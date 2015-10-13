@@ -1,0 +1,7 @@
+import(methods)
+import(Rcpp)
+import(BH)
+import(trust)
+import(moments)
+useDynLib(ernm)
+exportPattern("^[^\\.]")
