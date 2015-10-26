@@ -110,8 +110,8 @@ public:
 			GetRNGstate();
 			this->shuffle(vertices, n);
 			PutRNGstate();
-			//result.push_back(this->conditionalLogLik(downsampleRate, vertices));
-			result.push_back(this->conditionalLogLikRandomDyad(downsampleRate));
+			result.push_back(this->conditionalLogLik(downsampleRate, vertices));
+			//result.push_back(this->conditionalLogLikRandomDyad(downsampleRate));
 		}
 		return result;
 	}
@@ -289,6 +289,11 @@ public:
 		std::vector<double>  newTerms = runningModel->statistics();
 		std::vector<double> deriv(nStats, 0.0);
 		NumericMatrix hessian(nStats, nStats);
+		for(int k=0; k < nStats; k++){
+			for(int l=0; l < nStats; l++){
+				hessian(k,l) = 0.0;
+			}
+		}
 		bool sample;
 		double lpartition = 0.0;
 		for(int i=0; i < n; i++){
@@ -316,7 +321,7 @@ public:
 				bool hasEdge = model->network()->hasEdge(vertex, alter);
 				for(int k=0; k < nStats; k++){
 					double changeK = newTerms[k] - terms[k];
-					deriv[k] += (hasEdge ? changeK : 0.0) - probTie * changeK;
+					deriv[k] += changeK * (hasEdge - probTie);  //(hasEdge ? changeK : 0.0) - probTie * changeK;
 					for(int l=0; l < nStats; l++){
 						double changeL = newTerms[l] - terms[l];
 						hessian(k,l) -= changeK * changeL * probTie * (1.0 - probTie);
@@ -406,10 +411,10 @@ public:
 			//long ind = floor(Rf_runif(0.0,1.0)*n);
 			vertices[i] = i;
 		}
-		//this->shuffle(vertices, n);
+		this->shuffle(vertices, n);
 		PutRNGstate();
-		//return this->generateNetworkWithOrder(vertices);
-		return this->generateNetworkRandomDyad();
+		return this->generateNetworkWithOrder(vertices);
+		//return this->generateNetworkRandomDyad();
 	}
 
 	SEXP generateNetworkRandomDyad(){
@@ -521,17 +526,26 @@ public:
 		ModelPtr runningModel = noTieModel->clone();
 		runningModel->setNetwork(noTieModel->network()->clone());
 		runningModel->calculate();
-		std::vector<double> eStats = runningModel->statistics();
+		std::vector<double> eStats = std::vector<double>(nStats, 0.0);//runningModel->statistics();
+		std::vector<double> stats = std::vector<double>(nStats, 0.0);
 		std::vector<double> terms = runningModel->statistics();
 		std::vector<double>  newTerms = runningModel->statistics();
+		std::vector<double>  emptyStats = runningModel->statistics();
 		NumericMatrix grad(nStats, nStats);
+		NumericMatrix grad2(nStats, nStats);
+		for(int k=0; k < nStats; k++){
+			for(int l=0; l < nStats; l++){
+				grad(k,l) = 0.0;
+				grad2(k,l) = 0.0;
+			}
+		}
 		//std::cout << "n2 edges: " << noTieModel->network()->nEdges();
 		double llik = runningModel->logLik();
 		double llikChange, ldenom, probTie;
 		bool hasEdge = false;
 		for(int i=0; i < n; i++){
 			int vertex = vert_order[i];
-			//this->shuffle(vert_order,i);
+			this->shuffle(vert_order,i);
 
 			for(int j=0; j < i; j++){
 				int alter = vert_order[j];
@@ -549,15 +563,11 @@ public:
 				ldenom = R::log1pexp(llikChange);//log(1.0 + exp(llikChange));
 				probTie = exp(llikChange - ldenom);
 				//std::cout << probTie << "\n";
-				hasEdge = false;
+				hasEdge = true;
 				if(probTie < Rf_runif(0.0, 1.0)){
 					runningModel->dyadUpdate(vertex, alter);
 					runningModel->network()->toggle(vertex, alter);
-					hasEdge = true;
-				}
-
-				for(int m=0; m<terms.size(); m++){
-					eStats[m] += (newTerms[m] - terms[m]) * probTie;
+					hasEdge = false;
 				}
 
 				for(int k=0; k < nStats; k++){
@@ -565,9 +575,15 @@ public:
 					for(int l=0; l < nStats; l++){
 						double changeL = newTerms[l] - terms[l];
 						double actStat = hasEdge ? changeL : 0.0;
-						grad(k,l) += changeK * changeL * probTie * (1.0 - probTie) + changeK * probTie
-								;
+						grad(k,l) -= changeK * changeL * probTie * (1.0 - probTie) + changeK * probTie * (stats[l] - eStats[l]);
+						grad2(k,l) -= changeK * probTie * (stats[l] - eStats[l]);
 					}
+				}
+
+				for(int m=0; m<terms.size(); m++){
+					eStats[m] += (newTerms[m] - terms[m]) * probTie;
+					if(hasEdge)
+						stats[m] += newTerms[m] - terms[m];
 				}
 				if(runningModel->network()->isDirected()){
 					if(runningModel->network()->hasEdge(alter, vertex)){
@@ -587,8 +603,20 @@ public:
 						runningModel->dyadUpdate(alter, vertex);
 						runningModel->network()->toggle(alter, vertex);
 					}
+					for(int k=0; k < nStats; k++){
+						double changeK = newTerms[k] - terms[k];
+						for(int l=0; l < nStats; l++){
+							double changeL = newTerms[l] - terms[l];
+							double actStat = hasEdge ? changeL : 0.0;
+							grad(k,l) -= changeK * changeL * probTie * (1.0 - probTie) +
+									changeK * probTie * (stats[l] - eStats[l]);
+						}
+					}
+
 					for(int m=0; m<terms.size(); m++){
 						eStats[m] += (newTerms[m] - terms[m]) * probTie;
+						if(hasEdge)
+							stats[m] += newTerms[m] - terms[m];
 					}
 				}
 			}
@@ -596,8 +624,12 @@ public:
 		PutRNGstate();
 		List result;
 		result["network"] = runningModel->network()->cloneR();
-		result["stats"] = wrap(runningModel->statistics());
+		result["emptyNetworkStats"] = wrap(emptyStats);
+		result["stats"] = wrap(stats);
 		result["expectedStats"] = wrap(eStats);
+		result["gradient"] = grad;
+		result["gradient1"] = grad;
+		result["gradient2"] = grad2;
 		return result;
 	}
 };

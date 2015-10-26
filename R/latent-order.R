@@ -82,11 +82,16 @@ newtonOptim <- function(fn, par, tol= 10e-5, nHalfSteps=0, maxIter=100, ...){
 			hsCount <- 0
 		}
 		lastPar <- par
-		par <- par - solve(obs$hessian) %*% obs$gradient
+		#inv <- solve(obs$hessian)
+		#inv <- -chol2inv(chol(-obs$hessian))
+		#par <- par -  inv %*% obs$gradient
+		#browser()
+		par <- par -  solve(obs$hessian, obs$gradient)
 		if(abs(lastObs$value - obs$value) < tol){
 			break
+		}else if(iter < maxIter){
+			lastObs <- obs
 		}
-		lastObs <- obs
 	}
 	obs$argument <- drop(par)
 	obs$converged <- abs(lastObs$value - obs$value) < tol
@@ -111,8 +116,8 @@ latentOrderFit <- function(formula, nReplicates=500L, theta=NULL,
 			.latentOrderObjective(params, lolik, seed, nReplicates)
 	}
 	#browser()
-	#params <- trust(calculateObjective, thetaInit, 1, 1e+20, minimize=FALSE, blather=TRUE)
-	params <- newtonOptim(calculateObjective, thetaInit)
+	params <- trust(calculateObjective, thetaInit, 1, 1e+20, minimize=FALSE, blather=TRUE)
+	#params <- newtonOptim(calculateObjective, thetaInit)
 	#browser()
 	if(!params$converged){
 		print(params)
@@ -128,6 +133,43 @@ latentOrderFit <- function(formula, nReplicates=500L, theta=NULL,
 	result
 }
 
+.latentOrderMMObjective <- function(params, lolik, seed, nReplicates, observedStatistics){
+	lolik$setThetas(params)
+	nparams <- length(params)
+	set.seed(seed)
+	samples <- lapply(1:nReplicates,function(x) lolik$generateNetwork())
+	#browser()
+	momentConditions = rowMeans(sapply(samples,function(samp) observedStatistics - samp$expectedStats - samp$emptyNetworkStats))
+	gradient <- matrix(0, nrow=nparams, ncol=nparams)
+	for(i in 1:nparams){
+		for(j in 1:nparams){
+			ddij <- sapply(samples, function(x) x$gradient1[i,j])
+			gradient[i,j] <- mean(ddij)
+		}
+	}
+	#browser()
+	list(value=sum(momentConditions^2), gradient=momentConditions, hessian=gradient)
+}
+
+latentOrderFitMM <- function(formula, nReplicates=500L, theta=NULL,
+		seed = floor(runif(1, 0,.Machine$integer.max)), variational=FALSE ){
+	
+	lolik <- createLatentOrderLikelihood(formula, theta=theta)
+	thetaInit <- lolik$getModel()$thetas()
+	observedStatistics <- calculateStatistics(formula=formula)
+	calculateObjective <- function(params){
+		cat(".")
+		cat("params")
+		print(params)
+		result <- .latentOrderMMObjective(params, lolik, seed, nReplicates, observedStatistics)
+		#browser()
+		print(result)
+		result
+	}
+	browser()
+	optim(thetaInit, calculateObjective)
+	newtonOptim(calculateObjective, thetaInit, nHalfSteps=0)
+}
 #' Fits a latent ordered network model using generalized method of moments (i.e. the variational approximation)
 latentOrderGmmFit <- function(formula, nReplicates=500L, theta=NULL,
 		seed = floor(runif(1, 0,.Machine$integer.max)), approxSampleSize=100000){
