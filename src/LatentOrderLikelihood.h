@@ -12,6 +12,8 @@
 #include "VertexToggles.h"
 #include "ToggleController.h"
 #include "DyadToggles.h"
+#include "ShallowCopyable.h"
+
 #include <cmath>
 #include <Rcpp.h>
 #include <assert.h>
@@ -20,7 +22,7 @@
 namespace ernm{
 
 template<class Engine>
-class LatentOrderLikelihood {
+class LatentOrderLikelihood : public ShallowCopyable{
 protected:
 	typedef boost::shared_ptr< Model<Engine> > ModelPtr;
 	ModelPtr model;
@@ -71,6 +73,10 @@ public:
 	 */
 	operator SEXP() const{
 		return wrapInReferenceClass(*this,Engine::engineName() + "LatentOrderLikelihood");
+	}
+
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new LatentOrderLikelihood(*this);
 	}
 
 	~LatentOrderLikelihood(){}

@@ -143,3 +143,81 @@ FullErnmModel <- function(sampler, logLik, ...){
 	class(res) <- c("FullyObservedModel","ErnmModel")
 	res
 }
+
+
+
+#' creates an ERNM likelihood model
+#' @param sampler a sampler
+#' @param ... additional parameters for the log likelihood
+ReGibbsModel <- function(sampler, ...){
+	
+	sampler <- sampler
+	
+	res <- list(sampler=sampler)
+	
+	res$generateSampleStatistics <- function(burnin,interval,size){
+		sampler$generateSampleStatistics(burnin,interval,size)
+	}
+	
+	res$name <- function(){
+		"Reduced Entropy Gibbs Model"
+	}
+	
+	res$randomGraph <- function(){
+		sampler$getModel()$hasRandomGraph()
+	}
+	
+	res$randomVariables <- function(){
+		sampler$getModel()$getRandomVariables()
+	}
+	
+	res$initialize <- function(){
+		sampler$getModel()$calculate()
+	}
+	
+	res$thetas <- function(){
+		sampler$getModel()$thetas()
+	}
+	
+	res$setThetas <- function(newThetas){
+		sampler$getModel()$setThetas(newThetas)
+	}
+	
+	res$modelStatistics <- function(){
+		sampler$getModel()$statistics()
+	}
+	
+	res$statistics <- function(sample){
+		list(sample)
+	}
+	
+	
+	res$thetaVar <- function(sample){
+		error()
+	}
+	
+	res$info <- function(sample){
+		cov(as.matrix(sample))
+	}
+	
+	res$logLikelihood <- function(theta,sample,theta0,stats){
+		mod <- sampler$getModel()
+		centers <- mod$centers()
+		betas <- mod$betas()
+		isThetaDependent <- mod$isThetaDependent()
+		GmmObjective(theta=theta, centers=centers, betas=betas, isThetaDependent=isThetaDependent, 
+				sample=sample, theta0=theta0, stats=stats, ...)
+	}
+	
+	res$scaledGradient <- function(theta,sample,theta0,stats){
+		grad <- res$logLikelihood(theta=theta, sample=sample,
+				theta0=theta0, stats=stats)$gradient
+		vars <- diag(var(sample))
+		sd <- sqrt(abs(vars))
+		scl <- ifelse(sd<.Machine$double.eps,1 + abs(theta),sd)
+		grad / scl
+	}
+	
+	class(res) <- c("ReGibbsModel")
+	res
+}

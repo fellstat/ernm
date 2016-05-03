@@ -1412,6 +1412,117 @@ typedef Stat<Directed, DegreeSpread<Directed> > DirectedDegreeSpread;
 typedef Stat<Undirected, DegreeSpread<Undirected> > UndirectedDegreeSpread;
 
 
+template<class Engine>
+class LogDegreeMoment : public BaseStat< Engine > {
+protected:
+	std::vector<int> moments;
+	EdgeDirection direction;
+public:
+
+	LogDegreeMoment(){
+		direction=UNDIRECTED;
+	}
+	LogDegreeMoment(std::vector<int> mom){
+		direction = UNDIRECTED;
+		moments = mom;
+	}
+	/*!
+	 * \param params
+	 */
+	LogDegreeMoment(List params){
+		try{
+			moments = as< std::vector<int> >(params(0));
+		}catch(...){
+			::Rf_error("error");
+		}
+		try{
+			int tmp = as< int >(params(1));
+			if(tmp==0)
+				direction = UNDIRECTED;
+			else if(tmp==1)
+				direction = IN;
+			else if(tmp==2)
+				direction = OUT;
+			else
+				::Rf_error("invalid direction");
+		}catch(...){
+			direction = UNDIRECTED;
+		}
+	}
+
+
+	std::string name(){
+		return "logDegreeMoment";
+	}
+
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames;
+        for(int i=0;i<moments.size();i++){
+            int d = moments[i];
+            std::string nm = "logDegreeMoment."+asString(d);
+            statnames.push_back(nm);
+        }
+        return statnames;
+	}
+
+	void calculate(const BinaryNet<Engine>& net){
+		int nstats = moments.size();
+
+		this->stats = std::vector<double>(nstats,0.0);
+		if(this->thetas.size()!=nstats)
+			this->thetas = std::vector<double>(nstats,0.0);
+		double sum = 0.0;
+		//double skew = 0.0;
+		double deg = 0.0;
+		int n = net.size();
+		for(int i=0;i<n;i++){
+			//inVar += pow(net.indegree(i) - expectedDegree,2.0);
+			//outVar += pow(net.outdegree(i) - expectedDegree,2.0);
+			if(net.isDirected())
+				deg = (net.outdegree(i) + net.indegree(i)) / 2.0;
+			else
+				deg = net.degree(i);
+			deg = log(deg + 1);
+			sum += deg;
+			for(int j=0;j<moments.size();j++){
+				this->stats.at(j) += pow(deg,moments.at(j));
+			}
+		}
+	}
+
+
+	void dyadUpdate(const BinaryNet<Engine>& net,
+			int from, int to){
+		double toDeg;
+		double fromDeg;
+		bool addingEdge = !net.hasEdge(from,to);
+		double edgeChange = 2.0*(addingEdge - 0.5);
+
+		if(net.isDirected()){
+			toDeg = (net.indegree(to) + net.outdegree(to))/2.0;
+			fromDeg = (net.indegree(from) + net.outdegree(from))/2.0;
+			edgeChange = edgeChange / 2.0;
+		}else{
+			toDeg = net.degree(to);
+			fromDeg = net.degree(from);
+		}
+		for(int j=0;j<moments.size();j++){
+			this->stats.at(j) += pow(log(toDeg + edgeChange + 1), moments.at(j)) - pow(log(toDeg+1), moments.at(j));
+			this->stats.at(j) += pow(log(fromDeg + edgeChange + 1), moments.at(j)) - pow(log(fromDeg+1), moments.at(j));
+		}
+		//this->stats[0] = var;
+	}
+
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+			int variable, int newValue){}
+	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+				int variable, double newValue){}
+};
+
+typedef Stat<Directed, LogDegreeMoment<Directed> > DirectedLogDegreeMoment;
+typedef Stat<Undirected, LogDegreeMoment<Undirected> > UndirectedLogDegreeMoment;
+
+
 
 /*!
  * Adds a stat for the counts of degrees
@@ -1547,6 +1658,110 @@ public:
 typedef Stat<Directed, Degree<Directed> > DirectedDegree;
 typedef Stat<Undirected, Degree<Undirected> > UndirectedDegree;
 
+
+template<class Engine>
+class DegreeCrossProd : public BaseStat< Engine > {
+protected:
+	typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+	double nEdges;
+	double crossProd;
+public:
+
+	DegreeCrossProd(){
+		crossProd = nEdges = 0.0;
+	}
+
+	/*!
+	 * \param params
+	 */
+	DegreeCrossProd(List params){
+		nEdges = crossProd = 0.0;
+	}
+
+	std::string name(){
+		return "degreeCrossProd";
+	}
+
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"degreeCrossProd");
+        return statnames;
+	}
+
+
+	void calculate(const BinaryNet<Engine>& net){
+		int nstats = 1;
+
+		this->stats = std::vector<double>(nstats,0.0);
+		if(this->thetas.size()!=nstats)
+			this->thetas = std::vector<double>(nstats,0.0);
+		nEdges = net.nEdges();
+		crossProd = 0.0;
+		boost::shared_ptr<std::vector< std::pair<int,int> > > edges = net.edgelist();
+
+		std::vector< std::pair<int,int> >::iterator it = edges->begin();
+		while(it != edges->end()){
+			crossProd += net.degree((*it).first) * net.degree((*it).second);
+			it++;
+		}
+		if(nEdges==0)
+			this->stats[0] = 0;
+		else
+			this->stats[0] = crossProd / nEdges;
+	}
+
+
+	void dyadUpdate(const BinaryNet<Engine>& net,
+			int from, int to){
+		double toDeg;
+		double fromDeg;
+		bool addingEdge = !net.hasEdge(from,to);
+		double edgeChange = 2.0*(addingEdge - 0.5);
+
+		if(addingEdge)
+			crossProd += (net.degree(from) + 1.0) * (net.degree(to) + 1.0);
+		else
+			crossProd -= net.degree(from) * net.degree(to);
+
+		NeighborIterator it = net.begin(from);
+		NeighborIterator end = net.end(from);
+		double deg = net.degree(from);
+		while(it!=end){
+			double deg2 = net.degree(*it);
+			if(addingEdge)
+				crossProd += deg2;//(deg+1.0)*deg2 - deg*deg2
+			else if(*it != to)
+				crossProd -= deg2;// (deg-1.0)*deg - deg*deg2;
+
+			it++;
+		}
+
+		it = net.begin(to);
+		end = net.end(to);
+		deg = net.degree(to);
+		while(it!=end){
+			double deg2 = net.degree(*it);
+			if(addingEdge)
+				crossProd += deg2;//(deg+1.0)*deg2 - deg*deg2
+			else if(*it != from)
+				crossProd -= deg2;// (deg-1.0)*deg - deg*deg2;
+
+			it++;
+		}
+		nEdges += edgeChange;
+		if(nEdges==0)
+			this->stats[0] = 0;
+		else
+			this->stats[0] = crossProd / nEdges;
+	}
+
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+			int variable, int newValue){}
+	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+				int variable, double newValue){}
+};
+
+typedef Stat<Directed, DegreeCrossProd<Directed> > DirectedDegreeCrossProd;
+typedef Stat<Undirected, DegreeCrossProd<Undirected> > UndirectedDegreeCrossProd;
 
 template<class Engine>
 class DegreeChangeCounter : public BaseStat< Engine > {

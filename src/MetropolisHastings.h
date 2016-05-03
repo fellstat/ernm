@@ -12,6 +12,7 @@
 #include "VertexToggles.h"
 #include "ToggleController.h"
 #include "DyadToggles.h"
+#include "ShallowCopyable.h"
 #include <cmath>
 #include <Rcpp.h>
 #include <assert.h>
@@ -22,7 +23,7 @@ namespace ernm {
  * MCMC sampling.
  */
 template<class Engine>
-class MetropolisHastings{
+class MetropolisHastings : public ShallowCopyable{
 
 protected:
 	typedef boost::shared_ptr< Model<Engine> > ModelPtr;
@@ -38,6 +39,7 @@ public:
 	//Constructors.
 	//Note that the defaults toggles are *CompoundNodeTieDyadNieghborhood and DefaultVertexTobble
 	MetropolisHastings(){
+		model = ModelPtr(new Model<Engine>());
 		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >());
 		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >());
 		probDyad = .8;
@@ -45,7 +47,7 @@ public:
 
 	MetropolisHastings(Model<Engine>& mod,DyadTogglePtr tp,
 			VertexTogglePtr vtp){
-		model = mod.clone();
+		model = (&mod)->vClone();
 		dyadToggle = tp;
 		vertToggle = vtp;
 		probDyad=.8;
@@ -53,27 +55,43 @@ public:
 
 	MetropolisHastings(Model<Engine>& mod,AbstractDyadToggle<Engine>& tp,
 			AbstractVertexToggle<Engine>& vtp){
-		model = mod.clone();
+		model = (&mod)->vClone();
 		dyadToggle = DyadTogglePtr(tp.vCloneUnsafe());
 		vertToggle = VertexTogglePtr(vtp.vCloneUnsafe());
 		probDyad=.8;
 	}
 
 	MetropolisHastings(Model<Engine> mod){
-		model = mod.clone();
+		model = (&mod)->vClone();
 		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
 		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
 		probDyad=.8;
 	}
 
 	MetropolisHastings(Model<Engine> mod, double pdyad){
-		model = mod.clone();
+		model = (&mod)->vClone();
 		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
 		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
 		probDyad=pdyad;
 	}
 
+	MetropolisHastings(ReModel<Engine> mod){
+		model = (&mod)->vClone();
+		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
+		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
+		probDyad=.8;
+	}
 
+	MetropolisHastings(ReModel<Engine> mod, double pdyad){
+		model = (&mod)->vClone();
+		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
+		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
+		probDyad=pdyad;
+	}
+
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new MetropolisHastings(*this);
+	}
 
 	~MetropolisHastings(){
 
@@ -101,7 +119,7 @@ public:
 	 * Set exponential family model
 	 */
 	void setModel(const Model<Engine>& mod){
-		model = mod.clone();
+		model = (&mod)->vClone();
 		dyadToggle->vSetNetwork(mod.network());
 		vertToggle->vSetNetwork(mod.network());
 		std::vector<int> tmp = mod.randomVariables(true);
@@ -109,6 +127,17 @@ public:
 		tmp = mod.randomVariables(false);
 		vertToggle->vSetContinuousVars(tmp);
 
+	}
+
+	void setModelR(SEXP sexp){
+		ModelPtr mod = unwrapRobject< Model<Engine> >(sexp);
+		model = mod->vClone();
+		dyadToggle->vSetNetwork(mod->network());
+		vertToggle->vSetNetwork(mod->network());
+		std::vector<int> tmp = mod->randomVariables(true);
+		vertToggle->vSetDiscreteVars(tmp);
+		tmp = mod->randomVariables(false);
+		vertToggle->vSetContinuousVars(tmp);
 	}
 
 	ModelPtr getModel(){
@@ -119,6 +148,10 @@ public:
 	 * Get model exposed to R
 	 */
 	SEXP getModelR(){
+		if(boost::shared_ptr< ReModel<Engine> > m = boost::dynamic_pointer_cast< ReModel<Engine> >(model)){
+			//std::cout << "here";
+			return wrap(*m);
+		}
 		return wrap(*model);
 	}
 
@@ -173,14 +206,14 @@ public:
 				disToggles.clear();
 				//cout <<"toggles: " << tieToggles[0].first<<" "<<tieToggles[0].second<<"\n";
 				//cout << "is tie: " << model->network()->hasEdge(tieToggles[0].first,tieToggles[0].second)<<"\n";
-				double lastLik = model->logLik();
+				double lastLik = model->vLogLik();
 				for(int j=0;j<tieToggles.size();j++){
 					model->dyadUpdate(tieToggles[j].first, tieToggles[j].second);
 					model->network()->toggle(tieToggles[j].first, tieToggles[j].second);
 				}
 
-				double lr = model->logLik() - lastLik;
-				//cout << "lr:"<<lr<<"\n";
+				double lr = model->vLogLik() - lastLik;
+				//std::cout << "lr:"<<lr<<"\n";
 				lr += dyadToggle->vLogRatio();
 				//cout << "v toggle lr:"<<dyadToggle.logRatio()<<"\n";
 				if(lr>log(Rf_runif(0.0,1.0))){
@@ -199,7 +232,7 @@ public:
 				tieToggles.clear();
 				contToggles = vertToggle->vContVarChanges();
 				disToggles = vertToggle->vDisVarChanges();
-				double lastLik = model->logLik();
+				double lastLik = model->vLogLik();
 
 				std::vector<int> oldDisValues = std::vector<int>(disToggles.size(),-1);
 				for(int j=0;j<disToggles.size();j++){
@@ -235,7 +268,7 @@ public:
 				}
 
 
-				double lr = model->logLik() - lastLik;
+				double lr = model->vLogLik() - lastLik;
 				lr += vertToggle->vLogRatio();
 				if(lr>log(Rf_runif(0.0,1.0))){
 					accepted++;

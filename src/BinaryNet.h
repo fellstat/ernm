@@ -13,6 +13,7 @@
 #include "UndirectedVertex.h"
 #include "VarAttrib.h"
 #include "util.h"
+#include "ShallowCopyable.h"
 #include <memory>
 #include <boost/shared_ptr.hpp>
 
@@ -31,7 +32,7 @@ using namespace Rcpp;
  *
  */
 template <class Engine>
-class BinaryNet {
+class BinaryNet : public ShallowCopyable{
 protected:
 	Engine engine; /*!< the driver of the interface */
 
@@ -97,6 +98,10 @@ public:
 	 */
 	boost::shared_ptr<BinaryNet<Engine> >  clone() const{
 		return boost::shared_ptr<BinaryNet<Engine> >(new BinaryNet(*this,true));
+	}
+
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new BinaryNet(*this, false);
 	}
 
 	/*!

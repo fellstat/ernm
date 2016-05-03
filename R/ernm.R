@@ -16,7 +16,8 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
-createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL){
+#' @param modelClass The trailing name of the model class. For now, either Model or ReModel
+createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, modelClass="Model"){
 	form <- formula
 	env <- environment(form)
 	net <- as.BinaryNet(eval(form[[2]],envir=env))
@@ -63,7 +64,7 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL){
 	}
 	clss <- class(net)
 	networkEngine <- substring(clss,6,nchar(clss)-3)
-	ModelType <- eval(parse(text=paste(networkEngine,"Model",sep="")))
+	ModelType <- eval(parse(text=paste(networkEngine,modelClass,sep="")))
 	
 	model <- new(ModelType)
 	model$setNetwork(net)
@@ -161,13 +162,14 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL){
 #' samp <- createCppSampler(nw ~ edges() + triangles(),theta=c(-.5,0))
 #' samp$generateSampleStatistics(100,100,100)
 createCppSampler <- function(formula, dyadToggle = NULL, dyadArgs=list(), vertexToggle = NULL,
-		vertexArgs=list(), nodeSamplingPercentage=0.2, ignoreMnar=TRUE, theta=NULL){
-	cppModel <- createCppModel(formula, ignoreMnar=ignoreMnar, theta=theta)
+		vertexArgs=list(), nodeSamplingPercentage=0.2, ignoreMnar=TRUE, theta=NULL, ...){
+	cppModel <- createCppModel(formula, ignoreMnar=ignoreMnar, theta=theta, ...)
 	net <- cppModel$getNetwork()
 	clss <- class(net)
 	networkEngine <- substring(clss,6,nchar(clss)-3)	
 	SamplerClass <- eval(parse(text=paste0(networkEngine,"MetropolisHastings")))
-	cppSampler <- new(SamplerClass,cppModel)
+	cppSampler <- new(SamplerClass)
+	cppSampler$setModel(cppModel)
 	if(!is.null(dyadToggle))
 		cppSampler$setDyadToggleType(dyadToggle,dyadArgs)
 	if(!is.null(vertexToggle))

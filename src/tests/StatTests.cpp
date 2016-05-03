@@ -138,6 +138,12 @@ void changeStatTest(std::string statName){
     else if(statName == "Degree")
     	stat = boost::shared_ptr< Stat<Engine, Degree<Engine> > >(
     			new Stat<Engine, Degree<Engine> >(deg));
+    else if(statName == "LogDegreeMoment")
+    	stat = boost::shared_ptr< Stat<Engine, LogDegreeMoment<Engine> > >(
+    			new Stat<Engine, LogDegreeMoment<Engine> >(deg));
+    else if(statName == "DegreeCrossProd")
+    	stat = boost::shared_ptr< Stat<Engine, DegreeCrossProd<Engine> > >(
+    			new Stat<Engine, DegreeCrossProd<Engine> >());
     else if(statName == "Star"){
     	vector<int> tmp;
     	tmp.push_back(2);
@@ -257,6 +263,7 @@ void testStats(){
     RUN_TEST(changeStatTest<Directed>("Gwdegree"));
     RUN_TEST(changeStatTest<Directed>("Gauss"));
     RUN_TEST(changeStatTest<Directed>("Triangles"));
+    RUN_TEST(changeStatTest<Directed>("LogDegreeMoment"));
 
 	RUN_TEST(changeStatTest<Undirected>("Transitivity"));
 	RUN_TEST(changeStatTest<Undirected>("Triangles"));
@@ -276,6 +283,8 @@ void testStats(){
     RUN_TEST(changeStatTest<Undirected>("Gwdsp"));
     RUN_TEST(changeStatTest<Undirected>("Esp"));
     RUN_TEST(changeStatTest<Undirected>("Gauss"));
+    RUN_TEST(changeStatTest<Undirected>("LogDegreeMoment"));
+    RUN_TEST(changeStatTest<Undirected>("DegreeCrossProd"));
 }
 
 

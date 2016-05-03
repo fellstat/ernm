@@ -5,7 +5,7 @@
 #include "Offsets.h"
 #include "Constraint.h"
 #include "Constraints.h"
-
+#include "Temporary.h"
 namespace ernm{
 
 
@@ -74,6 +74,7 @@ RcppExport void initStats(){
     registerStatistic( DirStatPtr( new DirectedSumOfSquares() ) );
     registerStatistic( DirStatPtr( new DirectedGauss() ) );
     registerStatistic( DirStatPtr( new DirectedGamma() ) );
+    registerStatistic( DirStatPtr( new DirectedLogDegreeMoment() ) );
 	////////			Offsets				/////////
     //registerOffset( DirOffsetPtr( new DirectedREffectOffset() ) );
 	registerOffset( DirOffsetPtr( new DirectedBiasedSeedOffset() ) );
@@ -110,6 +111,8 @@ RcppExport void initStats(){
     registerStatistic( UndirStatPtr( new UndirectedSumOfSquares() ) );
     registerStatistic( UndirStatPtr( new UndirectedGauss() ) );
     registerStatistic( UndirStatPtr( new UndirectedGamma() ) );
+    registerStatistic( UndirStatPtr( new UndirectedLogDegreeMoment() ) );
+    registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
 
 	////////			Offsets				/////////
     registerOffset( UndirOffsetPtr( new UndirectedREffectOffset() ) );
@@ -118,7 +121,7 @@ RcppExport void initStats(){
 	registerOffset( UndirOffsetPtr( new UndirectedBoundedDegreeConstraint() ) );
 	registerOffset( UndirOffsetPtr( new UndirectedFixedNodeConstraint() ) );
 	registerOffset( UndirOffsetPtr( new UndirectedFixedDegreeConstraint() ) );
-
+    registerOffset( UndirOffsetPtr( new UndirectedStarPenalty() ) );
 	//Make registration available outside ernm compilation unit
 	R_RegisterCCallable("ernm",
 			"registerUndirectedStatistic",(DL_FUNC) &registerUndirectedStatistic);

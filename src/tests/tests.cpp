@@ -10,6 +10,7 @@
 #include "ConstraintTests.h"
 #include "ToggleTests.h"
 #include "LatentTests.h"
+#include "ReModelTests.h"
 #include <Rcpp/iostream/Rstreambuf.h>
 
 namespace ernm{
@@ -25,6 +26,7 @@ RcppExport void runErnmTests(){
 	testConstraints();
 	testToggles();
 	testLatent();
+	testReModel();
 	Rcpp::Rcout << "All C++ Tests Complete\n";
 }
 

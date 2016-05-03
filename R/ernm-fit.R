@@ -84,7 +84,8 @@ ernmFit <- function(sampler,theta0,
 			theta0 <- trustRes$argument
 		}else if(method == "newton"){
 			llk <- sampler$logLikelihood(theta0,sample,theta0,stats)
-			theta0 <- theta0 - drop(qr.solve(llk$hessian) %*% llk$grad)
+			theta0 <- theta0 - drop(solve(llk$hessian, llk$grad))
+			#theta0 <- theta0 - drop(qr.solve(llk$hessian) %*% llk$grad)
 		}
 		llik <- sampler$logLikelihood(theta0,sample,lastTheta,stats)$value
 		#browser()

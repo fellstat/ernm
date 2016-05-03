@@ -17,6 +17,7 @@
 #include <boost/shared_ptr.hpp>
 #include <Rcpp.h>
 #include <RcppCommon.h>
+#include "ShallowCopyable.h"
 
 namespace ernm{
 
@@ -25,7 +26,7 @@ namespace ernm{
  * a representation of an ernm model
  */
 template<class Engine>
-class Model{
+class Model : public ShallowCopyable{
 protected:
 	typedef boost::shared_ptr< AbstractStat<Engine > > StatPtr;
 	typedef std::vector< StatPtr >  StatVector;
@@ -43,6 +44,7 @@ protected:
 	boost::shared_ptr< std::vector<int> > randomContinVariables;
 public:
 	Model(){
+		//std::cout << "m1";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>());
 		net=n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -52,6 +54,7 @@ public:
 	}
 
 	Model(BinaryNet<Engine>& network){
+		//std::cout << "m2";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>(network));
 		net = n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -61,6 +64,7 @@ public:
 	}
 
 	Model(const Model& mod){
+		//std::cout << "m3";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -73,6 +77,7 @@ public:
 	 * if deep, then the model statistics are de-aliased
 	 */
 	Model(const Model& mod, bool deep){
+		//std::cout << "m4";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -100,6 +105,7 @@ public:
 	 *
 	 */
 	Model(SEXP sexp){
+		//std::cout << "m5";
 		boost::shared_ptr<Model> xp = unwrapRobject< Model<Engine> >(sexp);
 		stats = xp->stats;
 		offsets = xp->offsets;
@@ -109,10 +115,15 @@ public:
 		randomContinVariables = xp->randomContinVariables;
 	}
 
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new Model(*this);
+	}
+
 	/*!
 	 * coerce to R object. for RCPP
 	 */
 	operator SEXP() const{
+		//std::cout << "mWrap";
 		return wrapInReferenceClass(*this,Engine::engineName() + "Model");
 	}
 
@@ -121,6 +132,10 @@ public:
 	 */
 	boost::shared_ptr< Model<Engine> > clone() const{
 		return boost::shared_ptr< Model<Engine> >(new Model<Engine>(*this, true));
+	}
+
+	virtual boost::shared_ptr< Model<Engine> > vClone() const{
+		return clone();
 	}
 
 	void copy(Model<Engine>& mod){
@@ -399,11 +414,10 @@ public:
 			ll += offsets[i]->vLogLik();
 		}
 		return ll;
-		//std::vector<double> vals = terms();
-		//double d = 0.0;
-		//for(int i=0;i<vals.size();i++)
-		//	d += vals[i];
-		//return d;
+	}
+
+	virtual double vLogLik(){
+		return logLik();
 	}
 
 	/*!
@@ -542,6 +556,201 @@ public:
 		net = network;
 	}
 
+};
+
+
+/**
+ * Reduced entropy
+ */
+template<class Engine>
+class ReModel : public Model<Engine>{
+protected:
+	typedef boost::shared_ptr< std::vector<double> > ParamPtr;
+	typedef boost::shared_ptr< bool > BoolPtr;
+	ParamPtr betas;		// coefficient for penalties
+	ParamPtr centers;	// The mean values to center the penalty on beta * (center - g(x))^2
+	BoolPtr isThetaDep;				// ( theta / beta)^2 if true, beta if false
+
+	int nModelTerms(){
+		int n = 0;
+		for(int i=0;i<this->stats.size();i++){
+			n += this->stats[i]->vStatistics().size();
+		}
+		return n;
+	}
+public:
+	ReModel() : Model<Engine>(){
+		//std::cout << "rm1";
+		betas = ParamPtr(new std::vector<double>());
+		centers = ParamPtr(new std::vector<double>());
+		isThetaDep = BoolPtr(new bool);
+		*isThetaDep = true;
+	}
+
+	ReModel(BinaryNet<Engine>& network) : Model<Engine>(network){
+		//std::cout << "rm2";
+		betas = ParamPtr(new std::vector<double>());
+		centers = ParamPtr(new std::vector<double>());
+		isThetaDep = BoolPtr(new bool);
+		*isThetaDep = true;
+
+		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>(network));
+		/*this->net = n;
+		this->randomGraph = boost::shared_ptr< bool >(new bool);
+		this->randomDiscreteVariables = boost::shared_ptr< std::vector<int> >(new std::vector<int>) ;
+		this->randomContinVariables = boost::shared_ptr< std::vector<int> >(new std::vector<int>) ;
+		*this->randomGraph = true;*/
+	}
+
+	ReModel(const ReModel<Engine>& mod) : Model<Engine>(mod){
+		//std::cout << "rm3";
+		betas = mod.betas;
+		centers = mod.centers;
+		isThetaDep = mod.isThetaDep;
+
+		/*this->stats = mod.stats;
+		this->offsets = mod.offsets;
+		this->net = mod.net;
+		this->randomGraph = mod.randomGraph;
+		this->randomDiscreteVariables = mod.randomDiscreteVariables;
+		this->randomContinVariables = mod.randomContinVariables;*/
+		/*if(const ReModel* m = dynamic_cast<const ReModel*>(&mod)){
+			betas = m->betas;
+			centers = m->centers;
+			isThetaDep = m->isThetaDep;
+		}*/
+
+	}
+
+	/*!
+	 * if deep, then the model statistics are de-aliased
+	 */
+	ReModel(const ReModel<Engine>& mod, bool deep)  : Model<Engine>(mod, deep){
+		//std::cout << "rm4";
+		betas = mod.betas;
+		centers = mod.centers;
+		isThetaDep = mod.isThetaDep;
+		if(deep){
+			betas = ParamPtr(new std::vector<double>());
+			centers = ParamPtr(new std::vector<double>());
+			isThetaDep = BoolPtr(new bool);
+
+			for(int i=0;i<mod.betas->size();i++)
+				betas->push_back(mod.betas->at(i));
+			for(int i=0;i<mod.centers->size();i++)
+				centers->push_back(mod.centers->at(i));
+			*isThetaDep = *mod.isThetaDep;
+		}
+		/*this->stats = mod.stats;
+		this->offsets = mod.offsets;
+		this->net = mod.net;
+		this->randomGraph = mod.randomGraph;
+		this->randomDiscreteVariables = mod.randomDiscreteVariables;
+		this->randomContinVariables = mod.randomContinVariables;
+		if(deep){
+			for(int i=0;i<this->stats.size();i++)
+				this->stats[i] = this->stats[i]->vClone();
+			for(int i=0;i<this->offsets.size();i++)
+				this->offsets[i] = this->offsets[i]->vClone();
+			this->randomGraph = boost::shared_ptr< bool >(new bool);
+			this->randomDiscreteVariables = boost::shared_ptr< std::vector<int> >(new std::vector<int>) ;
+			this->randomContinVariables = boost::shared_ptr< std::vector<int> >(new std::vector<int>) ;
+			*this->randomGraph = *mod.randomGraph;
+			*this->randomDiscreteVariables = *mod.randomDiscreteVariables;
+			*this->randomContinVariables = *mod.randomContinVariables;
+		}*/
+	}
+
+	virtual ~ReModel(){}
+
+	/*!
+	 * R constructor for RCPP
+	 *
+	 */
+	ReModel(SEXP sexp) : Model<Engine>(sexp){
+		//std::cout << "rm5";
+		boost::shared_ptr<ReModel> xp = unwrapRobject< ReModel<Engine> >(sexp);
+		betas = xp->betas;
+		centers = xp->centers;
+		isThetaDep = xp->isThetaDep;
+
+		/*this->stats = xp->stats;
+		this->offsets = xp->offsets;
+		this->net = xp->net;
+		this->randomGraph = xp->randomGraph;
+		this->randomDiscreteVariables = xp->randomDiscreteVariables;
+		this->randomContinVariables = xp->randomContinVariables;*/
+	}
+
+	/*!
+	 * coerce to R object. for RCPP
+	 */
+	operator SEXP() const{
+		//std::cout << "rmWrap";
+		return wrapInReferenceClass(*this,Engine::engineName() + "ReModel");
+	}
+
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new ReModel(*this);
+	}
+
+	virtual boost::shared_ptr< Model<Engine> > vClone() const{
+		return boost::shared_ptr< Model<Engine> >(new ReModel<Engine>(*this, true));
+	}
+
+	void  setBetas(std::vector<double> newBetas){
+		if(nModelTerms() != newBetas.size())
+			Rf_error("ReModel::setBetas : size mismatch");
+		betas = ParamPtr(new std::vector<double>(newBetas));
+	}
+
+	void thetaDependent(bool td){
+		isThetaDep = BoolPtr(new bool(td));
+	}
+
+	bool isThetaDependent(){
+		return *isThetaDep;
+	}
+
+	std::vector<double> betaParams(){
+		return *betas;
+	}
+
+	std::vector<double> centerParams(){
+		return *centers;
+	}
+
+	void  setCenters(std::vector<double> newCenters){
+		if(nModelTerms() != newCenters.size())
+			Rf_error("ReModel::setCenters : size mismatch");
+		centers = ParamPtr(new std::vector<double>(newCenters));
+		//*centers = newCenters;
+	}
+
+	virtual double vLogLik(){
+		double ll = 0.0;
+		double s, t, par;
+		int nStats = 0;
+		int index = 0;
+		for(int i=0;i<this->stats.size();i++){
+			nStats = this->stats[i]->vStatistics().size();
+			for(int j = 0; j < nStats; j++){
+				s = this->stats[i]->vStatistics()[j];
+				t = this->stats[i]->vTheta()[j];
+				if(*isThetaDep)
+					par = (t / betas->at(index)) * (t / betas->at(index));
+				else
+					par = betas->at(index);
+				ll += s * t - par * (centers->at(index) - s) * (centers->at(index) - s);
+				index++;
+			}
+
+		}
+		for(int i=0;i<this->offsets.size();i++){
+			ll += this->offsets[i]->vLogLik();
+		}
+		return ll;
+	}
 };
 
 #include <Rcpp.h>

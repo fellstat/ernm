@@ -272,9 +272,12 @@ RCPP_MODULE(ernm){
 */
 
 	class_<MetropolisHastings<Directed> >("DirectedMetropolisHastings")
+			//.constructor<ReModel<Directed> >()
+			//.constructor<ReModel<Directed>,double >()
+			.constructor()
 			.constructor<Model<Directed> >()
 			.constructor<Model<Directed>,double >()
-			.method("setModel",&MetropolisHastings<Directed>::setModel)
+			.method("setModel",&MetropolisHastings<Directed>::setModelR)
 			.method("getModel",&MetropolisHastings<Directed>::getModelR)
 			.method("setDyadToggleType",&MetropolisHastings<Directed>::setDyadToggleType)
 			.method("setVertexToggleType",&MetropolisHastings<Directed>::setVertexToggleType)
@@ -283,9 +286,12 @@ RCPP_MODULE(ernm){
 			.method("generateSampleStatistics", &MetropolisHastings<Directed>::generateSampleStatistics)
 			;
 	class_<MetropolisHastings<Undirected> >("UndirectedMetropolisHastings")
+			//.constructor<ReModel<Undirected> >()
+			//.constructor<ReModel<Undirected>,double >()
+		    .constructor()
 			.constructor<Model<Undirected> >()
 			.constructor<Model<Undirected>,double >()
-			.method("setModel",&MetropolisHastings<Undirected>::setModel)
+			.method("setModel",&MetropolisHastings<Undirected>::setModelR)
 			.method("getModel",&MetropolisHastings<Undirected>::getModelR)
 			.method("setDyadToggleType",&MetropolisHastings<Undirected>::setDyadToggleType)
 			.method("setVertexToggleType",&MetropolisHastings<Undirected>::setVertexToggleType)
@@ -362,6 +368,30 @@ RCPP_MODULE(ernm){
 		.method("hasRandomGraph",&Model<Directed>::hasRandomGraph)
 		.method("setRandomVariables",&Model<Directed>::setRandomVariablesR)
 		.method("getRandomVariables",&Model<Directed>::getRandomVariablesR)
+		;
+
+	class_<ReModel<Undirected> >("UndirectedReModel")
+		.derives< Model<Undirected> >("UndirectedModel")
+		.constructor()
+		.constructor< ReModel<Undirected> >()
+		.method("setBetas",&ReModel<Undirected>::setBetas)
+		.method("betas",&ReModel<Undirected>::betaParams)
+		.method("setCenters",&ReModel<Undirected>::setCenters)
+		.method("centers",&ReModel<Undirected>::centerParams)
+		.method("isThetaDependent",&ReModel<Undirected>::isThetaDependent)
+		.method("thetaDependent",&ReModel<Undirected>::thetaDependent)
+		;
+
+	class_<ReModel<Directed> >("DirectedReModel")
+		.derives< Model<Directed> >("DirectedModel")
+		.constructor()
+		.constructor< ReModel<Directed> >()
+		.method("setBetas",&ReModel<Directed>::setBetas)
+		.method("betas",&ReModel<Directed>::betaParams)
+		.method("setCenters",&ReModel<Directed>::setCenters)
+		.method("centers",&ReModel<Directed>::centerParams)
+		.method("isThetaDependent",&ReModel<Directed>::isThetaDependent)
+		.method("thetaDependent",&ReModel<Directed>::thetaDependent)
 		;
 
 	class_<LatentOrderLikelihood<Undirected> >("UndirectedLatentOrderLikelihood")

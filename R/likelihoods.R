@@ -197,3 +197,86 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 }
 
 
+
+
+
+#' (E(g(X)) - g(x_o)^2 for ReGibbs
+#' @param theta parameters
+#' @param sample mcmc sample
+#' @param theta0 parameter values which generated sample
+#' @param stats observed statistics
+#' @param minEss minimum effective sample size
+GmmObjective <- function(theta, centers, betas, isThetaDependent, sample, theta0, stats,
+		minEss=5, damping=.05){
+	
+	# beta(theta) and beta'(theta)
+	b <- function(t){
+		if(isThetaDependent) (t/betas)^2 else betas
+	}
+	db <- function(t){
+		if(isThetaDependent) 2 * t / betas^2 else rep(0,length(t))
+	}	
+	
+	
+	llik <- function(){
+		thetadiff <- theta-theta0
+		
+		expon <- mat %*% thetadiff - penmat %*% (b(theta) - b(theta0)) 
+		
+		#if thetaExtended is (almost) outside convex hull don't trust theta
+		thetaExtended <- theta + (theta-theta0)*damping
+		exponExtended <- mat %*% (thetaExtended - theta0) - penmat %*% (b(thetaExtended) - b(theta0))
+		n <- nrow(mat)
+		wts <- exp(exponExtended) / sum(exp(exponExtended))
+		wtdSe <- apply(mat,2,function(x) mcmcse(wts*x))
+		se <- apply(mat,2,function(x) sd(x/n)/sqrt(n))
+		ess <- min(n * se^2 / wtdSe^2)
+		if(is.finite(ess) && ess<minEss){
+			if(all(theta==theta0))
+				stop("Insufficient MCMC variation")
+			return(-Inf)
+		}
+		diff <- stats - apply(mat,2,function(x) sum(wts*x,na.rm=TRUE))
+		- .5 * sum(diff^2)
+	}
+	
+	dl <- function(){
+		expon <- mat %*% (theta-theta0) - penmat %*% (b(theta) - b(theta0))
+		wts <- exp(expon)/sum(exp(expon),na.rm=TRUE)
+		if(any(is.nan(wts)))
+			wts <- rep(1/length(wts),length(wts))
+		diff <- stats - apply(mat,2,function(x) sum(wts*x,na.rm=TRUE))
+		diff[!is.finite(diff)] <- 0
+		diff
+	}
+	
+	hessian <- function(){
+		
+		expon <- mat %*% (theta-theta0) - penmat %*% (b(theta) - b(theta0))
+		wts <- drop(exp(expon)/sum(exp(expon)))
+		if(any(is.nan(wts)))
+			wts <- rep(1/length(wts),length(wts))
+		wmat <- mat*sqrt(drop(wts))
+		-crossprod(wmat) 
+		
+	}
+	
+	#center statistics
+	mat <- sample
+	penmat <- sample
+	mns <- colMeans(mat)
+	for(i in 1:ncol(mat)){
+		mat[,i] <- mat[,i] - mns[i]
+		penmat[,i] <- penmat[,i] - centers[i] 
+	}
+	stats <- stats - mns
+	
+	#penalty term
+	#pen <- sum(mns - centers)^2
+	
+	value<-llik()
+	grad<-dl()
+	hess<-hessian()
+	hess[upper.tri(hess)]<-t(hess)[upper.tri(hess)]
+	list(value=value,gradient=as.vector(grad),hessian=hess)
+}

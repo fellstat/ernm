@@ -20,7 +20,7 @@
 #include "VertexToggle.h"
 #include "VertexToggles.h"
 #include "ToggleController.h"
-
+#include "ShallowCopyable.h"
 
 namespace ernm {
 
@@ -615,6 +615,10 @@ public:
 		this->probDyad=.8;
 	}
 
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new CdSampler(*this);
+	}
+
 
 	void initialize(){
 		MetropolisHastings<Engine>::initialize();
@@ -889,6 +893,10 @@ public:
 
 	}
 
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new GibbsCdSampler(*this);
+	}
+
 	void initialize(){
 		MetropolisHastings<Engine>::initialize();
 		dyads.clear();
@@ -1106,6 +1114,10 @@ public:
 	}
 	GibbsCdSampler2(Model<Engine> mod,double p) : MetropolisHastings<Engine>(mod,p){
 		ss = mod.network()->size();
+	}
+
+	virtual ShallowCopyable* vShallowCopyUnsafe() const{
+		return new GibbsCdSampler2(*this);
 	}
 
 	void initialize(){

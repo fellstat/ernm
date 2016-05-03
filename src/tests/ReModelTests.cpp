@@ -1,9 +1,13 @@
 /*
- * TestLatent.cpp
+ * ReModelTests.cpp
  *
- *  Created on: Jul 1, 2015
- *      Author: goodfellow
+ *  Created on: Jan 15, 2016
+ *      Author: ianfellows
  */
+
+
+
+
 #include <Rcpp.h>
 #ifdef INSIDE
 #include "../BinaryNet.h"
@@ -15,7 +19,6 @@
 #include "../MetropolisHastings.h"
 #include "../VarAttrib.h"
 #include "../VertexToggles.h"
-#include "../LatentOrderLikelihood.h"
 #else
 #include "BinaryNet.h"
 #include "Stat.h"
@@ -26,15 +29,17 @@
 #include "MetropolisHastings.h"
 #include "VarAttrib.h"
 #include "VertexToggles.h"
-#include "LatentOrderLikelihood.h"
 #endif
 #include "tests.h"
-#include "LatentTests.h"
+
 namespace ernm{
+
 namespace tests{
 
+
+
 template<class Engine>
-void lt(){
+void re(){
 	using namespace std;
 	using namespace ernm;
 	vector<int> vals(30,1);
@@ -61,15 +66,12 @@ void lt(){
 	IntegerMatrix tmp(0,2);
 	BinaryNet<Engine> net(tmp,30);
 	GetRNGstate();
-	Language call1("set.seed",wrap(1.0));
-	call1.eval();
+	//Language call1("set.seed",wrap(1.0));
+	//call1.eval();
 	for(int i=0;i<30;i++){
 		pair<int,int> dyad = net.randomDyad();
 		net.addEdge(dyad.first,dyad.second);
 	}
-	net.addEdge(1,2);
-	net.addEdge(3,2);
-	net.addEdge(1,3);
 	net.addDiscreteVariable(vals,attr);
 	net.addDiscreteVariable(vals1,attr1);
 
@@ -115,33 +117,67 @@ void lt(){
     hom.push_back(false);
     stat = boost::shared_ptr< Stat<Engine, Triangles<Engine> > >(
             		new Stat<Engine, Triangles<Engine> >());
+    vector<int> tmp1;
+    tmp1.push_back(4);
+    tmp1.push_back(1);
+    tmp1.push_back(0);
+
     //create model
-    Model<Engine> model(net);
+    std::vector<double> centers(2,0.0);
+    std::vector<double> betas(2,0.0);
+    betas.at(0) = .1;
+    ReModel<Engine> model(net);
     model.addStatPtr(ed);
     model.addStatPtr(stat);
-    //model.addOffsetPtr(off);
+    model.setCenters(centers);
+    model.setBetas(betas);
+    model.thetaDependent(false);
     model.calculate();
-    double llik = model.logLik();
-    //Language call2("print",wrap(model.terms()));
-    //call2.eval();
-    //cout << "\nllik: " << llik << "\n";
-    //cout << "\nnedges:" << net.nEdges()<<"\n";
+    stat->vTheta().at(0) = 0.0;
 
-    LatentOrderLikelihood<Engine> lol = LatentOrderLikelihood<Engine>(model);
-    List result = lol.fullLogLik(1,.005);
-    //Language call("print",result);
-    //call.eval();
+
+    vector<int> togVars(1,0);
+    togVars.push_back(1);
+    model.setRandomVariables(togVars,false);
+    model.setRandomVariables(togVars,true);
+
+    // run mcmc
+    DyadToggle<Engine,TieDyad<Engine> > tog(net);
+    VertexToggle<Engine, DefaultVertex<Engine> > vtog(net);//,vector<int>(),togVars);
+    MetropolisHastings<Engine> mh(model,tog,vtog);
+    mh.setDyadProbability(0.5);
+    //cout<<net.discreteVariableValue(0,0)<<net.discreteVariableValue(0,1)
+	//	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
+    mh.initialize();
+
+    Language call3("print",wrap(model.betaParams()));
+    call3.eval();
+   // for(int i=0;i<30;i++){
+    mh.run(10);
+    	//cout <<"acceptance rate: "<< mh.run(200) << "\n";
+    	//cout << "edges: " << net.nEdges()<<"\n";
+   // }
+    //cout<<net.discreteVariableValue(0,0)<<net.discreteVariableValue(0,1)
+    //	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
+    vector<double> mcmcStats = mh.getModel()->statistics();
+    model.calculateStatistics();
+    vector<double> realStats = model.statistics();
+
+    for(int i=0;i<realStats.size();i++){
+    	//cout << i << " " << mcmcStats.at(i) << " " << realStats.at(i) << " ";
+    	EXPECT_NEAR((mcmcStats.at(i) + .0001)/(realStats.at(i) + .0001), 1.0);
+    }
+    PutRNGstate();
 }
 
-void testLatent(){
-	testContext = "TestLatent";
-	RUN_TEST(lt<Undirected>());
 
+void testReModel(){
+	testContext = "ReModel";
+
+	RUN_TEST(re<Directed>());
+    RUN_TEST(re<Undirected>());
 }
 
 
-
 }
 }
-
-

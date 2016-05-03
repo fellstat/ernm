@@ -32,14 +32,17 @@ boost::shared_ptr<T> unwrapRobject(const SEXP& s){
 
 	if ( TYPEOF(s) == EXTPTRSXP ) {
 		XPtr<T > xp(s);
-		return boost::shared_ptr<T>(new T(*xp));
+		return xp->template vShallowCopy<T>();
+		//return boost::shared_ptr<T>(new T(*xp));
 	}else if ( TYPEOF(s) == S4SXP ) {
 		Rcpp::S4 s4obj( s );
 		Rcpp::Environment env( s4obj );
 		Rcpp::XPtr<T> xp( env.get(".pointer") );
-		return boost::shared_ptr<T>(new T(*xp));
+		return xp->template vShallowCopy<T>();
+		//return boost::shared_ptr<T>(new T(*xp));
 	}
-	::Rf_error( "supplied object is not of correct type." );
+	std::cout << TYPEOF(s);
+	::Rf_error( "unwrapRobject: supplied object is not of correct type." );
 }
 
 
@@ -49,7 +52,8 @@ boost::shared_ptr<T> unwrapRobject(const SEXP& s){
  */
 template<class T>
 SEXP wrapInReferenceClass(const T& obj,std::string className){
-	XPtr< T > xp(new T(obj));
+	XPtr< T > xp = (&obj)->template vShallowCopyXPtr<T>();
+	//XPtr< T > xp(new T(obj));
 	Language call( "new", Symbol( className ),xp);
 	return call.eval();
 }
