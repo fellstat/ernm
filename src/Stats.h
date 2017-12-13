@@ -1200,6 +1200,7 @@ public:
 	 */
 	DegreeDispersion(List params){
 		slogfact = ssq = sum = n = 0.0;
+
 	}
 
 	std::string name(){
@@ -1292,6 +1293,114 @@ public:
 typedef Stat<Directed, DegreeDispersion<Directed> > DirectedDegreeDispersion;
 typedef Stat<Undirected, DegreeDispersion<Undirected> > UndirectedDegreeDispersion;
 
+
+template<class Engine>
+class DegreeSkew : public BaseStat< Engine > {
+protected:
+	double scube;
+	double ssq;
+	double sum;
+	double n;
+public:
+
+	DegreeSkew(){
+		scube = ssq = sum = n = 0.0;
+	}
+
+	/*!
+	 * \param params
+	 */
+	DegreeSkew(List params){
+		scube = ssq = sum = n = 0.0;
+
+	}
+
+	std::string name(){
+		return "degreeSkew" ;
+	}
+
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"degreeSkew");
+        return statnames;
+	}
+
+
+	void calculate(const BinaryNet<Engine>& net){
+		int nstats = 1;
+
+		this->stats = std::vector<double>(nstats,0.0);
+		if(this->thetas.size()!=nstats)
+			this->thetas = std::vector<double>(nstats,0.0);
+		n = net.size();
+		sum = 0.0;
+		ssq = 0.0;
+		scube = 0.0;
+		double mean = 0.0;
+		double var = 0.0;
+		double skew = 0.0;
+		double deg = 0.0;
+
+		for(int i=0;i<n;i++){
+			//inVar += pow(net.indegree(i) - expectedDegree,2.0);
+			//outVar += pow(net.outdegree(i) - expectedDegree,2.0);
+			if(net.isDirected())
+				deg = (net.outdegree(i) + net.indegree(i)) ;
+			else
+				deg = net.degree(i);
+			sum += deg;
+			ssq += pow( deg, 0.5);
+			scube += pow( deg, 3.0);
+		}
+
+		mean = sum / n;
+		//var = ssq/n-pow(mean,2.0);
+		//skew = (scube / n - 3.0 * mean * var - pow(mean,3.0));
+		//this->stats[0] = log(skew) - log(mean);
+		this->stats[0] = (ssq/n) - sqrt(mean);
+	}
+
+
+	void dyadUpdate(const BinaryNet<Engine>& net,
+			int from, int to){
+		double toDeg;
+		double fromDeg;
+		bool addingEdge = !net.hasEdge(from,to);
+		double edgeChange = 2.0*(addingEdge - 0.5);
+
+		if(net.isDirected()){
+			toDeg = (net.indegree(to) + net.outdegree(to));
+			fromDeg = (net.indegree(from) + net.outdegree(from));
+		}else{
+			toDeg = net.degree(to);
+			fromDeg = net.degree(from);
+
+		}
+		sum += toDeg+edgeChange +
+				fromDeg+edgeChange -
+				toDeg - fromDeg;
+		//sum += log(toDeg+edgeChange+1.0) +
+		//		log(fromDeg+edgeChange+1.0) -
+		//		log(toDeg+1.0) - log(fromDeg+1.0);
+		ssq += pow(toDeg+edgeChange,0.5) +
+				pow(fromDeg+edgeChange,0.5) -
+				pow(toDeg,0.5) - pow(fromDeg,0.5);
+		scube += pow(toDeg+edgeChange,3.0) +
+				pow(fromDeg+edgeChange,3.0) -
+				pow(toDeg,3.0) - pow(fromDeg,3.0);
+		double mean = sum / n;
+		//double var = ssq/n-pow(mean,2.0);
+		//double skew = (scube / n - 3.0 * mean * var - pow(mean,3.0));
+		this->stats[0] = (ssq/n) - sqrt(mean);
+	}
+
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+			int variable, int newValue){}
+	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+				int variable, double newValue){}
+};
+
+typedef Stat<Directed, DegreeSkew<Directed> > DirectedDegreeSkew;
+typedef Stat<Undirected, DegreeSkew<Undirected> > UndirectedDegreeSkew;
 
 
 /**

@@ -61,6 +61,7 @@ RcppExport void initStats(){
 //	registerStatistic( DirStatPtr( new DirectedDegree() ) );
 	registerStatistic( DirStatPtr( new DirectedLogistic() ) );
 	registerStatistic( DirStatPtr( new DirectedDegreeDispersion() ) );
+	registerStatistic( DirStatPtr( new DirectedDegreeSkew() ) );
 	registerStatistic( DirStatPtr( new DirectedHomophily() ) );
 	registerStatistic( DirStatPtr( new DirectedDegree() ) );
 	registerStatistic( DirStatPtr( new DirectedStar() ) );
@@ -99,6 +100,7 @@ RcppExport void initStats(){
 	registerStatistic( UndirStatPtr( new UndirectedDegree() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeMatch() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegreeDispersion() ) );
+	registerStatistic( UndirStatPtr( new UndirectedDegreeSkew() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegreeSpread() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDiffActivity() ) );
 	registerStatistic( UndirStatPtr( new UndirectedStar() ) );

@@ -121,6 +121,9 @@ void changeStatTest(std::string statName){
     else if(statName == "DegreeDispersion")
     	stat = boost::shared_ptr< Stat<Engine, DegreeDispersion<Engine> > >(
     		new Stat<Engine, DegreeDispersion<Engine> >());
+    else if(statName == "DegreeSkew")
+    	stat = boost::shared_ptr< Stat<Engine, DegreeSkew<Engine> > >(
+    		new Stat<Engine, DegreeSkew<Engine> >());
     else if(statName == "Transitivity")
     	stat = boost::shared_ptr< Stat<Engine, Transitivity<Engine> > >(
     		new Stat<Engine, Transitivity<Engine> >());
@@ -253,6 +256,7 @@ void testStats(){
 	RUN_TEST(changeStatTest<Directed>("NodeMatch"));
 	RUN_TEST(changeStatTest<Directed>("NodeCount"));
 	RUN_TEST(changeStatTest<Directed>("DegreeDispersion"));
+	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
 	RUN_TEST(changeStatTest<Directed>("Logistic"));
 	RUN_TEST(changeStatTest<Directed>("DiffActivity"));
 	RUN_TEST(changeStatTest<Directed>("Degree"));
@@ -271,6 +275,7 @@ void testStats(){
 	RUN_TEST(changeStatTest<Undirected>("NodeMatch"));
 	RUN_TEST(changeStatTest<Undirected>("NodeCount"));
 	RUN_TEST(changeStatTest<Undirected>("DegreeDispersion"));
+	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
 	RUN_TEST(changeStatTest<Undirected>("Logistic"));
 	RUN_TEST(changeStatTest<Undirected>("DiffActivity"));
 	RUN_TEST(changeStatTest<Undirected>("Degree"));
