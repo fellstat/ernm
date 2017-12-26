@@ -4016,6 +4016,7 @@ typedef Stat<Directed, Dist<Directed> > DirectedDist;
 typedef Stat<Undirected, Dist<Undirected> > UndirectedDist;
 
 
+
 /*!
  * barabasi-albert type change statistic. Order dependent
  */
