@@ -16,6 +16,7 @@
 #include "../VarAttrib.h"
 #include "../VertexToggles.h"
 #include "../LatentOrderLikelihood.h"
+#include "../Ranker.h"
 #else
 #include "BinaryNet.h"
 #include "Stat.h"
@@ -27,6 +28,7 @@
 #include "VarAttrib.h"
 #include "VertexToggles.h"
 #include "LatentOrderLikelihood.h"
+#include "Ranker.h"
 #endif
 #include "tests.h"
 #include "LatentTests.h"
@@ -129,14 +131,43 @@ void lt(){
 
     LatentOrderLikelihood<Engine> lol = LatentOrderLikelihood<Engine>(model);
     List result = lol.fullLogLik(1,.005);
+    /*
+    std::vector<int> ord(30);
+    for(int i=0;i<30;i++){
+    	ord[i] = i / 5;
+    }
+    lol.setOrder(ord);*/
+    lol.generateNetwork();
     //Language call("print",result);
     //call.eval();
+    PutRNGstate();
+}
+
+void rnker(){
+	//Rcpp::Environment base_env("package:base");
+	//Rcpp::Function set_seed_r = base_env["set.seed"];
+	//set_seed_r(10);
+	GetRNGstate();
+	vector<int> vals1(5,1);
+	vals1[3] = 2;
+	vals1[2] = 3;
+	vals1[4] = 3;
+	vector<int> ranks(5,1);
+	std::cout << "Rank: Average\n";
+	rank(vals1, ranks, "average");
+    for (uint i = 0; i < ranks.size(); ++i)
+      std::cout << vals1[i] << " " << ranks[i] << std::endl;
+    std::cout << "Rank: Random\n";
+	rank(vals1, ranks, "random");
+    for (uint i = 0; i < ranks.size(); ++i)
+      std::cout << vals1[i] << " " << ranks[i] << std::endl;
+    PutRNGstate();
 }
 
 void testLatent(){
 	testContext = "TestLatent";
 	RUN_TEST(lt<Undirected>());
-
+	RUN_TEST(rnker());
 }
 
 

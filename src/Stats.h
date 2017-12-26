@@ -4015,6 +4015,62 @@ public:
 typedef Stat<Directed, Dist<Directed> > DirectedDist;
 typedef Stat<Undirected, Dist<Undirected> > UndirectedDist;
 
+
+/*!
+ * barabasi-albert type change statistic. Order dependent
+ */
+template<class Engine>
+class PreferentialAttachment : public BaseStat<Engine>{
+public:
+	PreferentialAttachment(){
+	}
+
+	/*!
+	 * constructor. params is unused
+	 */
+	PreferentialAttachment(List params){
+	}
+
+
+	std::string name(){
+		return "preferentialAttachment";
+	}
+
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"preferentialAttachment");
+        return statnames;
+	}
+
+	void calculate(const BinaryNet<Engine>& net){
+		std::vector<double> v(1, 0.0); //should be NA
+		this->stats=v;
+		if(this->thetas.size()!=1){
+			this->thetas = std::vector<double>(1,0.0);
+		}
+	}
+
+	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+		double direction = net.hasEdge(from,to) ? -1.0 : 1.0;
+		double totDegree = net.nEdges() * 2.0;
+		double deg = net.degree(to);
+		if(deg < .5)
+			deg = 1.0;
+		//double toValue = net.degree(to) == 0 ? 0.0 : net.degree(to) / totDegree;
+		if(totDegree <.5)
+			totDegree = 1.0;
+		this->stats[0] += direction * log( deg / totDegree);
+
+		//this->stats[0] += direction * log((1.0 + net.degree(to)) / (1.0*net.size() + totDegree));
+	}
+
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+				int variable, int newValue){}
+	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+				int variable, double newValue){}
+};
+
+typedef Stat<Directed, PreferentialAttachment<Directed> > DirectedPreferentialAttachment;
+typedef Stat<Undirected, PreferentialAttachment<Undirected> > UndirectedPreferentialAttachment;
     
 #include <Rcpp.h>
 

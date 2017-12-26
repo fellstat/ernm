@@ -54,8 +54,14 @@ template<class T>
 SEXP wrapInReferenceClass(const T& obj,std::string className){
 	XPtr< T > xp = (&obj)->template vShallowCopyXPtr<T>();
 	//XPtr< T > xp(new T(obj));
+#ifndef INSIDE
 	Language call( "new", Symbol( className ),xp);
 	return call.eval();
+#endif
+#ifdef INSIDE
+	// when called from RInside, our reference classes are not available.
+	return xp;
+#endif
 }
 
 //Look up tables

@@ -115,6 +115,7 @@ RcppExport void initStats(){
     registerStatistic( UndirStatPtr( new UndirectedGamma() ) );
     registerStatistic( UndirStatPtr( new UndirectedLogDegreeMoment() ) );
     registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
+    registerStatistic( UndirStatPtr( new UndirectedPreferentialAttachment() ) );
 
 	////////			Offsets				/////////
     registerOffset( UndirOffsetPtr( new UndirectedREffectOffset() ) );

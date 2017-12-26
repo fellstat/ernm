@@ -13,6 +13,7 @@
 #include "ToggleController.h"
 #include "DyadToggles.h"
 #include "ShallowCopyable.h"
+#include "Ranker.h"
 
 #include <cmath>
 #include <Rcpp.h>
@@ -25,8 +26,10 @@ template<class Engine>
 class LatentOrderLikelihood : public ShallowCopyable{
 protected:
 	typedef boost::shared_ptr< Model<Engine> > ModelPtr;
+	typedef boost::shared_ptr< std::vector<int> > VectorPtr;
 	ModelPtr model;
 	ModelPtr noTieModel;
+	VectorPtr order;
 
 	template<class T>
 	void shuffle(std::vector<T>& vec, long offset){
@@ -37,6 +40,15 @@ protected:
 			vec[ind] = tmp;
 		}
 	}
+
+	void generateOrder(std::vector<int>& vertexOrder){
+		vertexOrder.resize(order->size());
+		rank(*order, vertexOrder, "random");
+		for(int i=0;i<vertexOrder.size();i++){
+			vertexOrder[i]--;
+		}
+	}
+
 
 	void removeEdges(ModelPtr mod){
 		long n = mod->network()->size();
@@ -66,6 +78,7 @@ public:
 		boost::shared_ptr<LatentOrderLikelihood> xp = unwrapRobject< LatentOrderLikelihood<Engine> >(sexp);
 		model = xp->model;
 		noTieModel = xp->noTieModel;
+		order = xp->order;
 	}
 
 	/*!
@@ -91,6 +104,14 @@ public:
 	void setThetas(std::vector<double> newThetas){
 		model->setThetas(newThetas);
 		noTieModel->setThetas(newThetas);
+	}
+
+	void setOrder(std::vector<int>& newOrder){
+		order = VectorPtr(new std::vector<int>(newOrder));
+	}
+
+	std::vector<int> getOrder(){
+		return *order;
 	}
 
 	ModelPtr getModel(){
@@ -412,12 +433,16 @@ public:
 	SEXP generateNetwork(){
 		GetRNGstate();
 		long n = model->network()->size();
-		std::vector<long> vertices(n);
-		for(int i=0; i<n;i++){
-			//long ind = floor(Rf_runif(0.0,1.0)*n);
-			vertices[i] = i;
+		std::vector<int> vertices(n);
+		if(order){
+			//std::cout << order->size() << "generating network from order" << order->size() << "\n" ;
+			this->generateOrder(vertices);
+		}else{
+			for(int i=0; i<n;i++){
+				vertices[i] = i;
+			}
+			this->shuffle(vertices, n);
 		}
-		this->shuffle(vertices, n);
 		PutRNGstate();
 		return this->generateNetworkWithOrder(vertices);
 		//return this->generateNetworkRandomDyad();
@@ -517,7 +542,7 @@ public:
 		return result;
 	}
 
-	SEXP generateNetworkWithOrder(std::vector<long> vert_order){
+	SEXP generateNetworkWithOrder(std::vector<int> vert_order){
 		//std::cout << "enter conditionalLogLik\n";
 		GetRNGstate();
 		long n = model->network()->size();
@@ -529,14 +554,25 @@ public:
 		this->shuffle(vertices, n);
 		std::vector<long> vert_order = vertices;*/
 		long nStats = model->thetas().size();
+
+		//The model used for generating the network draw
 		ModelPtr runningModel = noTieModel->clone();
 		runningModel->setNetwork(noTieModel->network()->clone());
 		runningModel->calculate();
+
+		// The model user to calculate the observed statistics given the
+		// order.
+		ModelPtr obsRunningModel = noTieModel->clone();
+		obsRunningModel->setNetwork(noTieModel->network()->clone());
+		obsRunningModel->calculate();
+
 		std::vector<double> eStats = std::vector<double>(nStats, 0.0);//runningModel->statistics();
 		std::vector<double> stats = std::vector<double>(nStats, 0.0);
+		//std::vector<double> obsStats = std::vector<double>(nStats, 0.0);
 		std::vector<double> terms = runningModel->statistics();
 		std::vector<double>  newTerms = runningModel->statistics();
 		std::vector<double>  emptyStats = runningModel->statistics();
+		/*
 		NumericMatrix grad(nStats, nStats);
 		NumericMatrix grad2(nStats, nStats);
 		for(int k=0; k < nStats; k++){
@@ -545,6 +581,7 @@ public:
 				grad2(k,l) = 0.0;
 			}
 		}
+		*/
 		//std::cout << "n2 edges: " << noTieModel->network()->nEdges();
 		double llik = runningModel->logLik();
 		double llikChange, ldenom, probTie;
@@ -555,6 +592,18 @@ public:
 
 			for(int j=0; j < i; j++){
 				int alter = vert_order[j];
+
+				//update the observed network statistics
+				/*if(model->network()->hasEdge(vertex, alter)){
+					obsRunningModel->statistics(terms);
+					obsRunningModel->dyadUpdate(vertex, alter);
+					obsRunningModel->network()->toggle(vertex, alter);
+					obsRunningModel->statistics(newTerms);
+					for(int m=0; m<terms.size(); m++){
+						obsStats[m] += newTerms[m] - terms[m];
+					}
+				}*/
+
 				//std::cout <<"(" << vertex << ", " << alter << ")\n";
 				if(runningModel->network()->hasEdge(vertex,alter)){
 					Rf_error("Logic error: edge found where there should be none.\n");
@@ -576,6 +625,7 @@ public:
 					hasEdge = false;
 				}
 
+				/*
 				for(int k=0; k < nStats; k++){
 					double changeK = newTerms[k] - terms[k];
 					for(int l=0; l < nStats; l++){
@@ -585,13 +635,27 @@ public:
 						grad2(k,l) -= changeK * probTie * (stats[l] - eStats[l]);
 					}
 				}
+				*/
 
+				//update the generated network statistics and expected statistics
 				for(int m=0; m<terms.size(); m++){
 					eStats[m] += (newTerms[m] - terms[m]) * probTie;
 					if(hasEdge)
 						stats[m] += newTerms[m] - terms[m];
 				}
 				if(runningModel->network()->isDirected()){
+					/*
+					if(model->network()->hasEdge(alter, vertex)){
+						obsRunningModel->statistics(terms);
+						obsRunningModel->dyadUpdate(alter, vertex);
+						obsRunningModel->network()->toggle(alter, vertex);
+						obsRunningModel->statistics(newTerms);
+						for(int m=0; m<terms.size(); m++){
+							obsStats[m] += newTerms[m] - terms[m];
+						}
+					}
+					*/
+
 					if(runningModel->network()->hasEdge(alter, vertex)){
 						Rf_error("Logic error: edge found where there should be none.\n");
 					}
@@ -609,6 +673,8 @@ public:
 						runningModel->dyadUpdate(alter, vertex);
 						runningModel->network()->toggle(alter, vertex);
 					}
+
+					/*
 					for(int k=0; k < nStats; k++){
 						double changeK = newTerms[k] - terms[k];
 						for(int l=0; l < nStats; l++){
@@ -618,6 +684,7 @@ public:
 									changeK * probTie * (stats[l] - eStats[l]);
 						}
 					}
+					*/
 
 					for(int m=0; m<terms.size(); m++){
 						eStats[m] += (newTerms[m] - terms[m]) * probTie;
@@ -633,9 +700,11 @@ public:
 		result["emptyNetworkStats"] = wrap(emptyStats);
 		result["stats"] = wrap(stats);
 		result["expectedStats"] = wrap(eStats);
-		result["gradient"] = grad;
-		result["gradient1"] = grad;
-		result["gradient2"] = grad2;
+		//result["observedStats"] = wrap(obsStats);
+
+		//result["gradient"] = grad;
+		//result["gradient1"] = grad;
+		//result["gradient2"] = grad2;
 		return result;
 	}
 };
