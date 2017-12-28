@@ -4051,16 +4051,19 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
-		double direction = net.hasEdge(from,to) ? -1.0 : 1.0;
-		double totDegree = net.nEdges() * 2.0;
-		double deg = net.degree(to);
+		bool hasEdge = net.hasEdge(from,to);
+		double direction = hasEdge ? -1.0 : 1.0;
+		double totDegree = (net.nEdges() - hasEdge) * 2.0;
+		double deg = net.degree(to) - hasEdge;
 		if(deg < .5)
-			deg = 1.0;
+			deg = 1/1000000000000.0;
 		//double toValue = net.degree(to) == 0 ? 0.0 : net.degree(to) / totDegree;
-		if(totDegree <.5)
+		if(totDegree <.5){
 			totDegree = 1.0;
+			deg = 1.0;
+		}
+		//this->stats[0] += direction * log( deg / totDegree);
 		this->stats[0] += direction * log( deg / totDegree);
-
 		//this->stats[0] += direction * log((1.0 + net.degree(to)) / (1.0*net.size() + totDegree));
 	}
 

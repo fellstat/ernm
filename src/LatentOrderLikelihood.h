@@ -27,8 +27,20 @@ class LatentOrderLikelihood : public ShallowCopyable{
 protected:
 	typedef boost::shared_ptr< Model<Engine> > ModelPtr;
 	typedef boost::shared_ptr< std::vector<int> > VectorPtr;
+
+	/**
+	 * The likelihood model with the observed graph
+	 */
 	ModelPtr model;
+
+	/**
+	 * The likelihood model with an empty graph
+	 */
 	ModelPtr noTieModel;
+
+	/**
+	 * A vector giving the (partial) ordering for vertex inclusion
+	 */
 	VectorPtr order;
 
 	template<class T>
@@ -51,11 +63,10 @@ protected:
 
 
 	void removeEdges(ModelPtr mod){
-		long n = mod->network()->size();
+		boost::shared_ptr< std::vector<std::pair<int,int> > > edgelist = mod->network()->edgelist();
+		long n = edgelist->size();
 		for(int i=0;i<n;i++){
-			for(int j=0;j<n;j++){
-				mod->network()->removeEdge(i,j);
-			}
+			mod->network()->removeEdge(edgelist->at(i).first,edgelist->at(i).second);
 		}
 		mod->calculate();
 	}
@@ -99,7 +110,9 @@ public:
 		noTieModel = mod.clone();
 		noTieModel->setNetwork(mod.network()->clone());
 		removeEdges(noTieModel);
+		noTieModel->calculate();
 	}
+
 
 	void setThetas(std::vector<double> newThetas){
 		model->setThetas(newThetas);
@@ -117,6 +130,7 @@ public:
 	ModelPtr getModel(){
 		return model;
 	}
+
 
 	/*!
 	 * Get model exposed to R
@@ -560,28 +574,22 @@ public:
 		runningModel->setNetwork(noTieModel->network()->clone());
 		runningModel->calculate();
 
-		// The model user to calculate the observed statistics given the
-		// order.
-		ModelPtr obsRunningModel = noTieModel->clone();
-		obsRunningModel->setNetwork(noTieModel->network()->clone());
-		obsRunningModel->calculate();
 
 		std::vector<double> eStats = std::vector<double>(nStats, 0.0);//runningModel->statistics();
 		std::vector<double> stats = std::vector<double>(nStats, 0.0);
+		std::vector<double> auxStats = std::vector<double>(nStats, 0.0);
 		//std::vector<double> obsStats = std::vector<double>(nStats, 0.0);
 		std::vector<double> terms = runningModel->statistics();
 		std::vector<double>  newTerms = runningModel->statistics();
 		std::vector<double>  emptyStats = runningModel->statistics();
-		/*
-		NumericMatrix grad(nStats, nStats);
-		NumericMatrix grad2(nStats, nStats);
+
+		NumericMatrix sumCov(nStats, nStats);
 		for(int k=0; k < nStats; k++){
 			for(int l=0; l < nStats; l++){
-				grad(k,l) = 0.0;
-				grad2(k,l) = 0.0;
+				sumCov(k,l) = 0.0;
 			}
 		}
-		*/
+
 		//std::cout << "n2 edges: " << noTieModel->network()->nEdges();
 		double llik = runningModel->logLik();
 		double llikChange, ldenom, probTie;
@@ -625,17 +633,15 @@ public:
 					hasEdge = false;
 				}
 
-				/*
+
 				for(int k=0; k < nStats; k++){
 					double changeK = newTerms[k] - terms[k];
 					for(int l=0; l < nStats; l++){
 						double changeL = newTerms[l] - terms[l];
-						double actStat = hasEdge ? changeL : 0.0;
-						grad(k,l) -= changeK * changeL * probTie * (1.0 - probTie) + changeK * probTie * (stats[l] - eStats[l]);
-						grad2(k,l) -= changeK * probTie * (stats[l] - eStats[l]);
+						sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
 					}
 				}
-				*/
+
 
 				//update the generated network statistics and expected statistics
 				for(int m=0; m<terms.size(); m++){
@@ -685,6 +691,13 @@ public:
 						}
 					}
 					*/
+					for(int k=0; k < nStats; k++){
+						double changeK = newTerms[k] - terms[k];
+						for(int l=0; l < nStats; l++){
+							double changeL = newTerms[l] - terms[l];
+							sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
+						}
+					}
 
 					for(int m=0; m<terms.size(); m++){
 						eStats[m] += (newTerms[m] - terms[m]) * probTie;
@@ -702,7 +715,7 @@ public:
 		result["expectedStats"] = wrap(eStats);
 		//result["observedStats"] = wrap(obsStats);
 
-		//result["gradient"] = grad;
+		result["sumCov"] = sumCov;
 		//result["gradient1"] = grad;
 		//result["gradient2"] = grad2;
 		return result;
