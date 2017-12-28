@@ -9,9 +9,6 @@
 #define LATENTORDERLIKELIHOOD_H_
 
 #include "Model.h"
-#include "VertexToggles.h"
-#include "ToggleController.h"
-#include "DyadToggles.h"
 #include "ShallowCopyable.h"
 #include "Ranker.h"
 

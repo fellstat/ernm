@@ -12,20 +12,14 @@
 #include "../Stats.h"
 #include "../Constraint.h"
 #include "../Model.h"
-#include "../DyadToggles.h"
-#include "../MetropolisHastings.h"
 #include "../VarAttrib.h"
-#include "../VertexToggles.h"
 #else
 #include "BinaryNet.h"
 #include "Stat.h"
 #include "Stats.h"
 #include "Constraint.h"
 #include "Model.h"
-#include "DyadToggles.h"
-#include "MetropolisHastings.h"
 #include "VarAttrib.h"
-#include "VertexToggles.h"
 #endif
 #include "tests.h"
 
@@ -115,35 +109,12 @@ void changeStatTest(std::string statName){
     if(statName == "NodeMatch")
     	stat = boost::shared_ptr< Stat<Engine,NodeMatch<Engine> > >(
     		new Stat<Engine, NodeMatch<Engine> >(fact));
-    else if(statName == "NodeCount")
-    	stat = boost::shared_ptr< Stat<Engine, NodeCount<Engine> > >(
-    		new Stat<Engine, NodeCount<Engine> >(fact));
-    else if(statName == "DegreeDispersion")
-    	stat = boost::shared_ptr< Stat<Engine, DegreeDispersion<Engine> > >(
-    		new Stat<Engine, DegreeDispersion<Engine> >());
-    else if(statName == "DegreeSkew")
-    	stat = boost::shared_ptr< Stat<Engine, DegreeSkew<Engine> > >(
-    		new Stat<Engine, DegreeSkew<Engine> >());
-    else if(statName == "Transitivity")
-    	stat = boost::shared_ptr< Stat<Engine, Transitivity<Engine> > >(
-    		new Stat<Engine, Transitivity<Engine> >());
     else if(statName == "Triangles")
     	stat = boost::shared_ptr< Stat<Engine, Triangles<Engine> > >(
         		new Stat<Engine, Triangles<Engine> >());
-    else if(statName == "Logistic")
-    	stat =boost::shared_ptr< Stat<Engine, Logistic<Engine> > >(
-    		new Stat<Engine, Logistic<Engine> >(log));
-    else if(statName == "DiffActivity")
-    	stat =boost::shared_ptr< Stat<Engine, DiffActivity<Engine> > >(new Stat<Engine,DiffActivity<Engine> >(fact));
-    else if(statName == "Homophily")
-    	stat = boost::shared_ptr< Stat<Engine, Homophily<Engine> > >(
-    		new Stat<Engine, Homophily<Engine> >(hom));
     else if(statName == "Degree")
     	stat = boost::shared_ptr< Stat<Engine, Degree<Engine> > >(
     			new Stat<Engine, Degree<Engine> >(deg));
-    else if(statName == "LogDegreeMoment")
-    	stat = boost::shared_ptr< Stat<Engine, LogDegreeMoment<Engine> > >(
-    			new Stat<Engine, LogDegreeMoment<Engine> >(deg));
     else if(statName == "DegreeCrossProd")
     	stat = boost::shared_ptr< Stat<Engine, DegreeCrossProd<Engine> > >(
     			new Stat<Engine, DegreeCrossProd<Engine> >());
@@ -192,11 +163,6 @@ void changeStatTest(std::string statName){
         ncpar.push_back(1);
         stat = boost::shared_ptr< Stat<Engine, Esp<Engine> > >(
                     new Stat<Engine, Esp<Engine> >(ncpar));
-    }else if(statName == "Gauss"){
-    	Rcpp::List ncpar;
-    	ncpar.push_back("contin");
-    	stat = boost::shared_ptr< Stat<Engine, Gauss<Engine> > >(
-    	    		new Stat<Engine, Gauss<Engine> >(ncpar));
     }else
     	Rf_error("changeStatTest: unknown stat");
     vector<int> tmp1;
@@ -220,22 +186,13 @@ void changeStatTest(std::string statName){
     model.setRandomVariables(togVars,false);
     model.setRandomVariables(togVars,true);
 
-    // run mcmc
-    DyadToggle<Engine,TieDyad<Engine> > tog(net);
-    VertexToggle<Engine, DefaultVertex<Engine> > vtog(net);//,vector<int>(),togVars);
-    MetropolisHastings<Engine> mh(model,tog,vtog);
-    mh.setDyadProbability(0.5);
-    //cout<<net.discreteVariableValue(0,0)<<net.discreteVariableValue(0,1)
-	//	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
-    mh.initialize();
-   // for(int i=0;i<30;i++){
-    mh.run(1000);
-    	//cout <<"acceptance rate: "<< mh.run(200) << "\n";
-    	//cout << "edges: " << net.nEdges()<<"\n";
-   // }
-    //cout<<net.discreteVariableValue(0,0)<<net.discreteVariableValue(0,1)
-    //	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
-    vector<double> mcmcStats = mh.getModel()->statistics();
+	for(int i=0;i<30;i++){
+		pair<int,int> dyad = net.randomDyad();
+		model.dyadUpdate(dyad.first,dyad.second);
+		net.toggle(dyad.first,dyad.second);
+	}
+
+    vector<double> mcmcStats = model.statistics();
     model.calculateStatistics();
     vector<double> realStats = model.statistics();
 
@@ -252,32 +209,17 @@ void changeStatTest(std::string statName){
 void testStats(){
 	testContext = "Statistics";
 
-	RUN_TEST(changeStatTest<Directed>("Homophily"));
 	RUN_TEST(changeStatTest<Directed>("NodeMatch"));
-	RUN_TEST(changeStatTest<Directed>("NodeCount"));
-	RUN_TEST(changeStatTest<Directed>("DegreeDispersion"));
-	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
-	RUN_TEST(changeStatTest<Directed>("Logistic"));
-	RUN_TEST(changeStatTest<Directed>("DiffActivity"));
 	RUN_TEST(changeStatTest<Directed>("Degree"));
 	RUN_TEST(changeStatTest<Directed>("Star"));
 	RUN_TEST(changeStatTest<Directed>("NodeCov"));
 	RUN_TEST(changeStatTest<Directed>("NodeCov (discrete)"));
 	RUN_TEST(changeStatTest<Directed>("Gwesp"));
     RUN_TEST(changeStatTest<Directed>("Gwdegree"));
-    RUN_TEST(changeStatTest<Directed>("Gauss"));
     RUN_TEST(changeStatTest<Directed>("Triangles"));
-    RUN_TEST(changeStatTest<Directed>("LogDegreeMoment"));
 
-	RUN_TEST(changeStatTest<Undirected>("Transitivity"));
 	RUN_TEST(changeStatTest<Undirected>("Triangles"));
-	RUN_TEST(changeStatTest<Undirected>("Homophily"));
 	RUN_TEST(changeStatTest<Undirected>("NodeMatch"));
-	RUN_TEST(changeStatTest<Undirected>("NodeCount"));
-	RUN_TEST(changeStatTest<Undirected>("DegreeDispersion"));
-	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
-	RUN_TEST(changeStatTest<Undirected>("Logistic"));
-	RUN_TEST(changeStatTest<Undirected>("DiffActivity"));
 	RUN_TEST(changeStatTest<Undirected>("Degree"));
 	RUN_TEST(changeStatTest<Undirected>("Star"));
 	RUN_TEST(changeStatTest<Undirected>("NodeCov"));
@@ -287,8 +229,6 @@ void testStats(){
     RUN_TEST(changeStatTest<Undirected>("Gwdegree"));
     RUN_TEST(changeStatTest<Undirected>("Gwdsp"));
     RUN_TEST(changeStatTest<Undirected>("Esp"));
-    RUN_TEST(changeStatTest<Undirected>("Gauss"));
-    RUN_TEST(changeStatTest<Undirected>("LogDegreeMoment"));
     RUN_TEST(changeStatTest<Undirected>("DegreeCrossProd"));
 }
 

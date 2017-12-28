@@ -14,10 +14,9 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' creates a model
 #' @param formula the model formula
 #' @param ignoreMnar ignore missing not at random offsets
-#' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
 #' @param modelClass The trailing name of the model class. For now, either Model or ReModel
-createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, modelClass="Model"){
+createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model"){
 	form <- formula
 	env <- environment(form)
 	net <- as.BinaryNet(eval(form[[2]],envir=env))
@@ -99,19 +98,6 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 			}
 			offsets[[lo+1]] <- args
 			names(offsets)[lo+1] <- name
-		}else if(name=="mnar"){
-			if(!ignoreMnar){
-				term <- term[[2]]
-				name <- if(is.symbol(term)) as.character(term) else as.character(term[[1]])
-				if(length(term)>1){
-					term[[1]] <- as.name("list")
-					args <- eval(term,envir=env)
-				}else{
-					args <- list()
-				}
-				offsets[[lo+1]] <- args
-				names(offsets)[lo+1] <- name		
-			}
 		}else{
 			if(length(term)>1){
 				term[[1]] <- as.name("list")
@@ -147,120 +133,12 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 	model
 }
 
-#' create a sampler
-#' @param formula the model formula
-#' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
-#' @param vertexToggle the method of vertex attribuate sampling to use.
-#' @param nodeSamplingPercentage how often the nodes should be toggled
-#' @param ignoreMnar ignore missing not at random offsets
-#' @param theta parameter values
-#' library(network)
-#' data(flo)
-#' nflo<-network(flo,directed=FALSE) 
-#' nw <- as.BinaryNet(nflo)
-#' mod <- createCppModel(nw ~ edges() + triangles(),theta=c(-.5,0))
-#' samp <- createCppSampler(nw ~ edges() + triangles(),theta=c(-.5,0))
-#' samp$generateSampleStatistics(100,100,100)
-createCppSampler <- function(formula, dyadToggle = NULL, dyadArgs=list(), vertexToggle = NULL,
-		vertexArgs=list(), nodeSamplingPercentage=0.2, ignoreMnar=TRUE, theta=NULL, ...){
-	cppModel <- createCppModel(formula, ignoreMnar=ignoreMnar, theta=theta, ...)
-	net <- cppModel$getNetwork()
-	clss <- class(net)
-	networkEngine <- substring(clss,6,nchar(clss)-3)	
-	SamplerClass <- eval(parse(text=paste0(networkEngine,"MetropolisHastings")))
-	cppSampler <- new(SamplerClass)
-	cppSampler$setModel(cppModel)
-	if(!is.null(dyadToggle))
-		cppSampler$setDyadToggleType(dyadToggle,dyadArgs)
-	if(!is.null(vertexToggle))
-		cppSampler$setVertexToggleType(vertexToggle, vertexArgs)
-	cppSampler$setDyadProbability(1-nodeSamplingPercentage[1])
-	cppSampler
-}
 
 
-
-#' simulate statistics
-#' @param formula the model formula
-#' @param theta model parameters
-#' @param nodeSamplingPercentage how often the nodes should be toggled
-#' @param mcmcBurnIn burn in
-#' @param mcmcInterval interval
-#' @param mcmcSampleSize sample size
-#' @param ignoreMnar ignore missing not at random offsets
-#' @param ... additional arguments to createCppSampler
-simulateStatistics <- function(formula, theta, 
-		nodeSamplingPercentage=0.2,
-		mcmcBurnIn=10000, mcmcInterval=100, mcmcSampleSize=100,
-		ignoreMnar=TRUE, ...){
-	s <- createCppSampler(formula,ignoreMnar=ignoreMnar,theta=theta,...)
-	s$generateSampleStatistics(mcmcBurnIn,mcmcInterval,mcmcSampleSize)
-}
 
 #'calculate model statistics from a formula
 #' @param formula An ernm formula
 calculateStatistics <- function(formula){
 	createCppModel(formula,clone=FALSE,ignoreMnar=FALSE)$statistics()
 }
-
-
-#' fits an ERNM model
-#' @param formula model formula
-#' @param modelType the likelihood model type to use
-#' @param modelArgs additional arguments for ModelType
-#' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
-#' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
-#' @param nodeSamplingPercentage how often are nodal variates toggled
-#' @param ... additional parameters for ernmFit
-#' library(network)
-#' data(flo)
-#' nflo<-network(flo,directed=FALSE) 
-#' nw <- as.BinaryNet(nflo)
-#' set.seed(1)
-#' ernm(nw ~ edges() + triangles())
-ernm <- function(formula, modelArgs=list(), 
-		fullToggles=c("Compound_NodeTieDyad_Neighborhood","DefaultVertex"),
-		missingToggles=c("Compound_NodeTieDyadMissing_NeighborhoodMissing",
-				"VertexMissing"),
-		nodeSamplingPercentage=0.2,
-		..., modelType=NULL){
-
-	fullCppSampler <- createCppSampler(formula,
-			dyadToggle=fullToggles[1],
-			vertexToggle=fullToggles[2],
-			nodeSamplingPercentage=nodeSamplingPercentage[1])	
-	net <- fullCppSampler$getModel()$getNetwork()
-	
-	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
-	vars <- fullCppSampler$getModel()$getRandomVariables( )
-	isMissVars <- any(sapply(vars,function(x)any(is.na(net[[x]]))))
-	if(is.null(modelType)){
-		if(!isMissVars && !isMissDyads)
-			modelType <- FullErnmModel
-		else
-			modelType <- MissingErnmModel
-	}
-	if(length(nodeSamplingPercentage)==1)
-		nodeSamplingPercentage <- c(nodeSamplingPercentage,nodeSamplingPercentage)
-	if(identical(modelType,FullErnmModel)){
-		model <- do.call(modelType,c(fullCppSampler,modelArgs))
-	}else{
-		missCppSampler <- createCppSampler(formula,
-				dyadToggle=missingToggles[1],
-				vertexToggle=missingToggles[2],
-				nodeSamplingPercentage=nodeSamplingPercentage[2])
-		if(!isMissVars)
-			missCppSampler$setDyadProbability(1)
-		if(!isMissDyads)
-			missCppSampler$setDyadProbability(0)
-		if(!isMissDyads && !isMissVars)
-			stop("The model type is for missing data, but none present.")
-		model <- do.call(modelType,c(fullCppSampler,missCppSampler,modelArgs))
-	}
-	fit <- ernmFit(model,...)
-	fit$formula <- formula
-	fit
-}
-
-
 

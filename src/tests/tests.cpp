@@ -8,9 +8,7 @@
 #include "BinaryNetTests.h"
 #include "StatTests.h"
 #include "ConstraintTests.h"
-#include "ToggleTests.h"
 #include "LatentTests.h"
-#include "ReModelTests.h"
 #include <Rcpp/iostream/Rstreambuf.h>
 
 namespace ernm{
@@ -24,9 +22,7 @@ RcppExport void runErnmTests(){
 	testBinaryNet();
 	testStats();
 	testConstraints();
-	testToggles();
 	testLatent();
-	testReModel();
 	Rcpp::Rcout << "All C++ Tests Complete\n";
 }
 

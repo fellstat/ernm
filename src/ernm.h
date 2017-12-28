@@ -9,10 +9,7 @@
 #define ERNM_H_
 
 #include "BinaryNet.h"
-#include "Constraint.h"
 #include "DirectedVertex.h"
-#include "DyadToggles.h"
-#include "MetropolisHastings.h"
 #include "Model.h"
 #include "Offset.h"
 #include "Stat.h"
@@ -21,7 +18,6 @@
 #include "util.h"
 #include "VarAttrib.h"
 #include "Vertex.h"
-#include "VertexToggles.h"
 
 
 

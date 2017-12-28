@@ -11,10 +11,7 @@
 #include "../Stats.h"
 #include "../Constraint.h"
 #include "../Model.h"
-#include "../DyadToggles.h"
-#include "../MetropolisHastings.h"
 #include "../VarAttrib.h"
-#include "../VertexToggles.h"
 #include "../LatentOrderLikelihood.h"
 #include "../Ranker.h"
 #else
@@ -23,10 +20,7 @@
 #include "Stats.h"
 #include "Constraint.h"
 #include "Model.h"
-#include "DyadToggles.h"
-#include "MetropolisHastings.h"
 #include "VarAttrib.h"
-#include "VertexToggles.h"
 #include "LatentOrderLikelihood.h"
 #include "Ranker.h"
 #endif
