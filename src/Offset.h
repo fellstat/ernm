@@ -61,7 +61,7 @@ public:
 	 * \param from toggled edge (from)
 	 * \param to toggled edge (to)
 	 */
-	virtual void vDyadUpdate(const BinaryNet<Engine>& net, int from, int to) = 0;
+	virtual void vDyadUpdate(const BinaryNet<Engine>& net,const int& from, int& to,const std::vector<int> &order,const int &actorIndex) = 0;
 
 	/*!
 	 * calculate the change in the statistics from a hypothetical vertex toggle,
@@ -75,8 +75,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vDiscreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue) = 0;
+	virtual void vDiscreteVertexUpdate(const BinaryNet<Engine>& net,const int& vert,
+			const int& variable, const int& newValue,const std::vector<int> &order,const int &actorIndex) = 0;
 
 	/*!
 	 * calculate the change in the statistics from a hypothetical vertex toggle,
@@ -90,8 +90,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vContinVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, double newValue) = 0;
+	virtual void vContinVertexUpdate(const BinaryNet<Engine>& net, const int& vert,
+			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex) = 0;
 
 	/*!
 	 * number of statistics
@@ -199,34 +199,12 @@ public:
 	 * \param from toggled edge (from)
 	 * \param to toggled edge (to)
 	 */
-	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
-		dyadUpdate(net,from,to);
+	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net,const int& from, int& to,const std::vector<int> &order,const int &actorIndex){
+		dyadUpdate(net,from,to, order, actorIndex);
 	}
 
-	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
-		off.dyadUpdate(net,from,to);
-	}
-
-	/*!
-	 * calculate the change in the statistics from a hypothetical vertex toggle,
-	 * assuming that the network has not changed since the statistic was last calculated.
-	 *
-	 * by default this uses calculate to compute the changes, but can be overridden to
-	 * get speed gains
-	 *
-	 * \param net the network
-	 * \param vert the index of the vertex change
-	 * \param variable the id of the variable
-	 * \param newValue the hypothetical new value
-	 */
-	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
-		discreteVertexUpdate(net,vert,variable,newValue);
-	}
-
-	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
-		off.discreteVertexUpdate(net,vert,variable,newValue);
+	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net,const int& from,const int& to, const std::vector<int> &order,const int &actorIndex){
+		off.dyadUpdate(net,from,to, order, actorIndex);
 	}
 
 	/*!
@@ -241,14 +219,36 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
-		continVertexUpdate(net,vert,variable,newValue);
+	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		discreteVertexUpdate(net,vert,variable,newValue, order, actorIndex);
 	}
 
-	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
-		off.continVertexUpdate(net,vert,variable,newValue);
+	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		off.discreteVertexUpdate(net,vert,variable,newValue,order,actorIndex);
+	}
+
+	/*!
+	 * calculate the change in the statistics from a hypothetical vertex toggle,
+	 * assuming that the network has not changed since the statistic was last calculated.
+	 *
+	 * by default this uses calculate to compute the changes, but can be overridden to
+	 * get speed gains
+	 *
+	 * \param net the network
+	 * \param vert the index of the vertex change
+	 * \param variable the id of the variable
+	 * \param newValue the hypothetical new value
+	 */
+	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net,const int& vert,
+			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		continVertexUpdate(net,vert,variable,newValue, order, actorIndex);
+	}
+
+	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net,  const int& vert,
+			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		off.continVertexUpdate(net,vert,variable,newValue,order,actorIndex);
 	}
 
 	/*!
@@ -338,7 +338,7 @@ public:
 	 * \param from toggled edge (from)
 	 * \param to toggled edge (to)
 	 */
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
 		std::vector<double> tmp = stats;
 		pnet->toggle(from,to);
@@ -359,8 +359,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue){
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
 		int oldValue = net.discreteVariableValue(variable,vert);
 		pnet->setDiscreteVariableValue(variable,vert,newValue);
@@ -380,8 +380,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, double newValue){
+	void continVertexUpdate(const BinaryNet<Engine>& net,  const int& vert,
+			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
 		double oldValue = net.continVariableValue(variable,vert);
 		pnet->setContinVariableValue(variable,vert,newValue);

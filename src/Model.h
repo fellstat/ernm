@@ -506,28 +506,28 @@ public:
 		}
 	}
 
-	void dyadUpdate(int from, int to){
+	void dyadUpdate(int &from, int &to, std::vector<int> &order, int &actorIndex){
 		for(int k=0;k<stats.size();k++){
-			stats[k]->vDyadUpdate(*net, from, to);
+			stats[k]->vDyadUpdate(*net, from, to, order, actorIndex);
 		}
 		for(int k=0;k<offsets.size();k++){
-			offsets[k]->vDyadUpdate(*net, from, to);
+			offsets[k]->vDyadUpdate(*net, from, to, order, actorIndex);
 		}
 	}
 
 
-	void discreteVertexUpdate(int vertex, int variable, int newValue){
+	void discreteVertexUpdate(int vertex, int variable, int newValue, std::vector<int> &order, int &actorIndex){
 		for(int k=0;k<stats.size();k++)
 			stats[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
 	}
 
-	void continVertexUpdate(int vertex, int variable, double newValue){
+	void continVertexUpdate(int vertex, int variable, double newValue, std::vector<int> &order, int &actorIndex){
 		for(int k=0;k<stats.size();k++)
-			stats[k]->vContinVertexUpdate(*net,vertex, variable, newValue);
+			stats[k]->vContinVertexUpdate(*net,vertex, variable, newValue, order, actorIndex);
 		for(int k=0;k<offsets.size();k++)
-			offsets[k]->vContinVertexUpdate(*net,vertex, variable, newValue);
+			offsets[k]->vContinVertexUpdate(*net,vertex, variable, newValue, order, actorIndex);
 	}
 
 	/*!

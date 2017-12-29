@@ -52,14 +52,10 @@ public:
 		}
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		this->stats[0] += net.hasEdge(from,to) ? -1.0 : 1.0;
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Edges<Directed> > DirectedEdges;
@@ -146,7 +142,7 @@ public:
 		this->stats=v;
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		int n;
 		if(!net.isDirected())
 			n = net.degree(to);
@@ -181,10 +177,6 @@ public:
 		}
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Star<Directed> > DirectedStar;
@@ -291,7 +283,7 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		int shared = sharedNbrs(net, from, to);
 		bool hasEdge = net.hasEdge(from,to);
 		if(hasEdge){
@@ -302,10 +294,6 @@ public:
 		this->stats[0] = sumTri;//sumSqrtTri - sumSqrtExpected;
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Triangles<Directed> > DirectedTriangles;
@@ -362,7 +350,7 @@ public:
 		this->stats=v;
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		bool addingEdge = !net.hasEdge(from,to);
 		bool hasReverse = net.hasEdge(to,from);
 		double change;
@@ -374,11 +362,6 @@ public:
 			change = 0.0;
 		this->stats[0] += change;
 	}
-
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Reciprocity<Directed> > DirectedReciprocity;
@@ -459,7 +442,7 @@ public:
 
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		bool addingEdge = !net.hasEdge(from,to);
 		int value1 = net.discreteVariableValue(varIndex,from) - 1;
 		int value2 = net.discreteVariableValue(varIndex,to) - 1;
@@ -471,8 +454,8 @@ public:
 		}
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue){
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		if(variable != varIndex)
 			return;
 		int val = net.discreteVariableValue(varIndex,vert);
@@ -510,9 +493,6 @@ public:
 			}
 		}
 	}
-
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 
 };
 
@@ -616,7 +596,7 @@ public:
 
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		bool addingEdge = !net.hasEdge(from,to);
 		double change = addingEdge ? 1.0 : -1.0;
 		int value1 = net.discreteVariableValue(varIndex,from) - 1;
@@ -624,15 +604,12 @@ public:
 		this->stats[getIndex(value1,value2)] += change;
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue){
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		if(variable != varIndex)
 			return;
 		Rf_error("NodeMix unimplemented");
 	}
-
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 
 };
 
@@ -727,7 +704,7 @@ public:
 		}
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		int change = !net.hasEdge(from,to) ? 1 : -1;
 		int fromDegree = 0;
 		int fromDegreeNew = 0;
@@ -769,11 +746,6 @@ public:
 		}
 
 	}
-
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Degree<Directed> > DirectedDegree;
@@ -831,8 +803,7 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net,
-			int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		double toDeg;
 		double fromDeg;
 		bool addingEdge = !net.hasEdge(from,to);
@@ -875,10 +846,6 @@ public:
 			this->stats[0] = crossProd / nEdges;
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, DegreeCrossProd<Directed> > DirectedDegreeCrossProd;
@@ -1175,7 +1142,7 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		if(net.isDirected()){
 			if(direction == IN || direction == UNDIRECTED)
@@ -1187,8 +1154,8 @@ public:
 		}
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){
+	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		if(isDiscrete && variable==varIndex){
 			double oldValue = getValue(net,vert);
 			int deg = 0;
@@ -1203,8 +1170,8 @@ public:
 		}
 	}
 
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){
+	void continVertexUpdate(const BinaryNet<Engine>& net, const int& vert,
+			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex){
 		if(!isDiscrete && variable==varIndex){
 			double oldValue = getValue(net,vert);
 			int deg = 0;
@@ -1342,7 +1309,7 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		NeighborIterator fit, fend, tit, tend;
 		if(!net.isDirected()){
 			fit = net.begin(from);
@@ -1385,11 +1352,6 @@ public:
 			eraseSharedValue(net,from,to);
 		this->stats[0] += expa * (delta + change * (1.0 - pow(oneexpa,sn)));
 	}
-
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Gwesp<Directed> > DirectedGwesp;
@@ -1479,7 +1441,7 @@ public:
     }
     
     
-    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
         //we'll toggle the dyad betwen from and to
         double change = 2.0 * (!net.hasEdge(from,to) - 0.5); //change in edge value (1, -1)
         double delta1 = 0.0;
@@ -1500,11 +1462,6 @@ public:
  
         this->stats[0] += expalpha*(delta1 + delta2);
     }
-    
-    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-                              int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, GwDegree<Directed> > DirectedGwDegree;
@@ -1627,7 +1584,7 @@ public:
     }
     
     
-    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
         double oneexpa = 1.0 - exp(-alpha);
         NeighborIterator fit, fend, tit, tend;
         if(!net.isDirected()){
@@ -1664,10 +1621,6 @@ public:
         this->stats[0] += (exp(alpha)*delta);
     }
     
-    
-    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert, int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Gwdsp<Directed> > DirectedGwdsp;
@@ -1787,7 +1740,7 @@ public:
         
     }
     
-    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
         int nstats = esps.size();
         int espi = sharedNbrs(net, from, to);
         double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
@@ -1828,10 +1781,6 @@ public:
         
     }
     
-    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-                              int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, Esp<Directed> > DirectedEsp;
@@ -1951,7 +1900,7 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		//double ne =net.nEdges();
 /*		this->stats[0] = this->stats[0] * (ne / (ne + change)) + change * dist(
@@ -1968,9 +1917,6 @@ public:
 						net.continVariableValue(longIndex,to)
 						);
 	}
-
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
 
 };
 
@@ -2065,13 +2011,10 @@ public:
 	}
 
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		this->stats[0] = this->stats[0] + change * dist(net, from,to);
 	}
-
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
 
 };
 
@@ -2113,7 +2056,7 @@ public:
 		}
 	}
 
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		bool hasEdge = net.hasEdge(from,to);
 		double direction = hasEdge ? -1.0 : 1.0;
 		double totDegree = (net.nEdges() - hasEdge) * 2.0;
@@ -2130,10 +2073,6 @@ public:
 		//this->stats[0] += direction * log((1.0 + net.degree(to)) / (1.0*net.size() + totDegree));
 	}
 
-	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, int newValue){}
-	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){}
 };
 
 typedef Stat<Directed, PreferentialAttachment<Directed> > DirectedPreferentialAttachment;

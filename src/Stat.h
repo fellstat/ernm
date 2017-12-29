@@ -63,7 +63,7 @@ public:
 	 * \param from toggled edge (from)
 	 * \param to toggled edge (to)
 	 */
-	virtual void vDyadUpdate(const BinaryNet<Engine>& net, int from, int to) = 0;
+	virtual void vDyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex) = 0;
 
 	/*!
 	 * calculate the change in the statistics from a hypothetical vertex toggle,
@@ -77,8 +77,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vDiscreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, int newValue) = 0;
+	virtual void vDiscreteVertexUpdate(const BinaryNet<Engine>& net,const int& vert,
+			const int& variable, const int& newValue,const std::vector<int> &order,const int &actorIndex) = 0;
 
 	/*!
 	 * calculate the change in the statistics from a hypothetical vertex toggle,
@@ -92,8 +92,8 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vContinVertexUpdate(const BinaryNet<Engine>& net, int vert,
-			int variable, double newValue) = 0;
+	virtual void vContinVertexUpdate(const BinaryNet<Engine>& net, const int& vert,
+			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex) = 0;
 
 	/*!
 	 * \return names for the statistics
@@ -225,34 +225,12 @@ public:
 	 * \param from toggled edge (from)
 	 * \param to toggled edge (to)
 	 */
-	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
-		dyadUpdate(net,from,to);
+	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		dyadUpdate(net,from,to,order,actorIndex);
 	}
 
-	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
-		stat.dyadUpdate(net,from,to);
-	}
-
-	/*!
-	 * calculate the change in the statistics from a hypothetical vertex toggle,
-	 * assuming that the network has not changed since the statistic was last calculated.
-	 *
-	 * by default this uses calculate to compute the changes, but can be overridden to
-	 * get speed gains
-	 *
-	 * \param net the network
-	 * \param vert the index of the vertex change
-	 * \param variable the id of the variable
-	 * \param newValue the hypothetical new value
-	 */
-	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
-		discreteVertexUpdate(net,vert,variable,newValue);
-	}
-
-	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
-		stat.discreteVertexUpdate(net,vert,variable,newValue);
+	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		stat.dyadUpdate(net,from,to,order,actorIndex);
 	}
 
 	/*!
@@ -267,14 +245,36 @@ public:
 	 * \param variable the id of the variable
 	 * \param newValue the hypothetical new value
 	 */
-	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
-		continVertexUpdate(net,vert,variable,newValue);
+	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		discreteVertexUpdate(net,vert,variable,newValue,order,actorIndex);
 	}
 
-	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
-		stat.continVertexUpdate(net,vert,variable,newValue);
+	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		stat.discreteVertexUpdate(net,vert,variable,newValue,order,actorIndex);
+	}
+
+	/*!
+	 * calculate the change in the statistics from a hypothetical vertex toggle,
+	 * assuming that the network has not changed since the statistic was last calculated.
+	 *
+	 * by default this uses calculate to compute the changes, but can be overridden to
+	 * get speed gains
+	 *
+	 * \param net the network
+	 * \param vert the index of the vertex change
+	 * \param variable the id of the variable
+	 * \param newValue the hypothetical new value
+	 */
+	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net, const int& vert,
+			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex){
+		continVertexUpdate(net,vert,variable,newValue,order,newValue);
+	}
+
+	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net, const int& vert,
+			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex){
+		stat.continVertexUpdate(net,vert,variable,newValue,order,actorIndex);
 	}
 
 	/*!

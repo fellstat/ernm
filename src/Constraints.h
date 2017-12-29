@@ -72,7 +72,7 @@ public:
 	}
 
 	//dyad update
-	double dyadUpdateDistance(const BinaryNet<Engine>& net, int& from, int&to){
+	double dyadUpdateDistance(const BinaryNet<Engine>& net, const int& from, const int&to){
 		bool addingEdge = !net.hasEdge(from,to);
 		int dfrom = net.degree(from);
 		int dto = net.degree(to);
@@ -102,12 +102,12 @@ public:
 
 	//vertex update
 	double discreteVertexUpdateDistance(const BinaryNet<Engine>& net,
-			int& vert, int& variable,int& newValue){
+			const int& vert, const int& variable, const int& newValue){
 		return dist;
 	}
 
-	double continVertexUpdateDistance(const BinaryNet<Engine>& net, int vert,
-			int variable, double newValue){
+	double continVertexUpdateDistance(const BinaryNet<Engine>& net, const int& vert,
+			const int& variable, const double& newValue){
 		return dist;
 	}
 

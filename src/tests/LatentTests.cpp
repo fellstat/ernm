@@ -147,14 +147,14 @@ void rnker(){
 	vals1[2] = 3;
 	vals1[4] = 3;
 	vector<int> ranks(5,1);
-	std::cout << "Rank: Average\n";
+	//std::cout << "Rank: Average\n";
 	rank(vals1, ranks, "average");
-    for (uint i = 0; i < ranks.size(); ++i)
-      std::cout << vals1[i] << " " << ranks[i] << std::endl;
-    std::cout << "Rank: Random\n";
+    //for (uint i = 0; i < ranks.size(); ++i)
+    //  std::cout << vals1[i] << " " << ranks[i] << std::endl;
+    //std::cout << "Rank: Random\n";
 	rank(vals1, ranks, "random");
-    for (uint i = 0; i < ranks.size(); ++i)
-      std::cout << vals1[i] << " " << ranks[i] << std::endl;
+    //for (uint i = 0; i < ranks.size(); ++i)
+    //  std::cout << vals1[i] << " " << ranks[i] << std::endl;
     PutRNGstate();
 }
 

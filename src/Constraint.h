@@ -63,31 +63,31 @@ public:
 		this->off.updateLogLik(this->off.initialize(net));
 	}
 
-	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
-		dyadUpdate(net,from,to);
+	virtual void vDyadUpdate(const BinaryNet<NetworkEngine>& net,const int& from, int& to,const std::vector<int> &order,const int &actorIndex){
+		dyadUpdate(net,from,to, order, actorIndex);
 	}
 
-	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net, int from, int to){
+	inline void dyadUpdate(const BinaryNet<NetworkEngine>& net,const int &from,const int &to,const std::vector<int> &order, const int &actorIndex){
 		this->off.updateLogLik(this->off.dyadUpdateDistance(net, from, to));
 	}
 
-	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
-		discreteVertexUpdate(net,vert,variable,newValue);
+	virtual void vDiscreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		discreteVertexUpdate(net,vert,variable,newValue,order,actorIndex);
 	}
 
-	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, int newValue){
+	inline void discreteVertexUpdate(const BinaryNet<NetworkEngine>& net, const  int& vert,
+			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		this->off.updateLogLik(this->off.discreteVertexUpdateDistance(net, vert, variable,newValue));
 	}
 
-	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
-		continVertexUpdate(net,vert,variable,newValue);
+	virtual void vContinVertexUpdate(const BinaryNet<NetworkEngine>& net,  const int& vert,
+			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		continVertexUpdate(net,vert,variable,newValue,order,actorIndex);
 	}
 
-	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net, int vert,
-			int variable, double newValue){
+	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net,  const int& vert,
+			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
 		this->off.updateLogLik(this->off.continVertexUpdateDistance(net, vert, variable, newValue));
 	}
 
@@ -118,7 +118,7 @@ public:
 	/*!
 	 * dyad update for how many steps away the constraint is from being satisfied
 	 */
-	double dyadUpdateDistance(const BinaryNet<Engine>& net, int& from, int& to){
+	double dyadUpdateDistance(const BinaryNet<Engine>& net,const int& from, const int& to){
 		Rf_error("distanceFromSatisfaction (dyad) must be implemented");
 	}
 
@@ -126,15 +126,15 @@ public:
 	 * disc vertex update for how many steps away the constraint is from being satisfied
 	 */
 	double discreteVertexUpdateDistance(const BinaryNet<Engine>& net,
-			int& vert, int& variable,int& newValue){
+			const int& vert, const int& variable, const int& newValue){
 		Rf_error("distanceFromSatisfaction (vertex) must be implemented");
 	}
 
 	/*!
 	 * cont vertex update for how many steps away the constraint is from being satisfied
 	 */
-	double continVertexUpdateDistance(const BinaryNet<Engine>& net, int vert,
-			int variable, double newValue){
+	double continVertexUpdateDistance(const BinaryNet<Engine>& net, const int& vert,
+			const int& variable, const double& newValue){
 		Rf_error("distanceFromSatisfaction (vertex cont) must be implemented");
 	}
 
@@ -173,15 +173,15 @@ public:
 	void calculate(const BinaryNet<Engine>& net){
 		Rf_error("BaseConstraint calculate should not be called");
 	}
-	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to, const  std::vector<int> &order, const  int &actorIndex){
 		Rf_error("BaseConstraint dyadUpdate should not be called");
 	}
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, int newValue){
+				int variable, int newValue, const  std::vector<int> &order, const  int &actorIndex){
 		Rf_error("BaseConstraint discreteVertexUpdate should not be called");
 	}
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-				int variable, double newValue){
+				int variable, double newValue, const  std::vector<int> &order, const  int &actorIndex){
 		Rf_error("BaseConstraint continVertexUpdate should not be called");
 	}
 };

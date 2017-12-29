@@ -186,9 +186,11 @@ void changeStatTest(std::string statName){
     model.setRandomVariables(togVars,false);
     model.setRandomVariables(togVars,true);
 
+    vector<int> order(30,1);
+    for(int i=0;i<30;i++) order[i] = i;
 	for(int i=0;i<30;i++){
 		pair<int,int> dyad = net.randomDyad();
-		model.dyadUpdate(dyad.first,dyad.second);
+		model.dyadUpdate(dyad.first,dyad.second, order, dyad.first);
 		net.toggle(dyad.first,dyad.second);
 	}
 
