@@ -40,10 +40,14 @@ protected:
 	 */
 	VectorPtr order;
 
+	/**
+	 * Fisher-Yates shuffle of elements up to offset
+	 */
 	template<class T>
 	void shuffle(std::vector<T>& vec, long offset){
 		for( int i=0; i < offset; i++){
-			long ind = floor(Rf_runif(0.0,1.0)*offset);
+			//long ind = floor(Rf_runif(0.0,1.0)*offset);
+			long ind = floor(Rf_runif(i,offset));
 			T tmp = vec[i];
 			vec[i] = vec[ind];
 			vec[ind] = tmp;
@@ -349,7 +353,7 @@ public:
 				}
 				llik = runningModel->logLik();
 				//Calculate likelihood for vertex --> alter
-				runningModel->dyadUpdate(vertex, alter, vert_order, vertex);
+				runningModel->dyadUpdate(vertex, alter, vert_order, i);
 				runningModel->network()->toggle(vertex, alter);
 				llikChange = runningModel->logLik() - llik;
 				//std::cout << llikChange;
@@ -370,7 +374,7 @@ public:
 				if(hasEdge){
 					llik += llikChange;
 				}else{
-					runningModel->dyadUpdate(vertex, alter, vert_order, vertex);
+					runningModel->dyadUpdate(vertex, alter, vert_order, i);
 					runningModel->network()->toggle(vertex, alter);
 				}
 
@@ -389,7 +393,7 @@ public:
 					sample = Rf_runif(0.0,1.0) < downsampleRate;
 					runningModel->statistics(terms);
 
-					runningModel->dyadUpdate(alter, vertex, vert_order, vertex);
+					runningModel->dyadUpdate(alter, vertex, vert_order, i);
 					runningModel->network()->toggle(alter, vertex);
 					llikChange = runningModel->logLik() - llik;
 					ldenom = R::log1pexp(llikChange);//log(1.0 + exp(llikChange));
@@ -408,7 +412,7 @@ public:
 					if(hasEdge){
 						llik += llikChange;
 					}else{
-						runningModel->dyadUpdate(alter, vertex, vert_order, vertex);
+						runningModel->dyadUpdate(alter, vertex, vert_order, i);
 						runningModel->network()->toggle(alter, vertex);
 					}
 
@@ -489,23 +493,25 @@ public:
 		std::vector<double>  newTerms = runningModel->statistics();
 		std::vector<double>  emptyStats = runningModel->statistics();
 
+		std::vector<int> workingVertOrder = vert_order;
+
 		NumericMatrix sumCov(nStats, nStats);
 		for(int k=0; k < nStats; k++){
 			for(int l=0; l < nStats; l++){
 				sumCov(k,l) = 0.0;
 			}
 		}
-
+		bool directedGraph = runningModel->network()->isDirected();
 		//std::cout << "n2 edges: " << noTieModel->network()->nEdges();
 		double llik = runningModel->logLik();
 		double llikChange, ldenom, probTie;
 		bool hasEdge = false;
 		for(int i=0; i < n; i++){
-			int vertex = vert_order[i];
-			this->shuffle(vert_order,i);
+			int vertex = workingVertOrder[i];
+			this->shuffle(workingVertOrder,i);
 
 			for(int j=0; j < i; j++){
-				int alter = vert_order[j];
+				int alter = workingVertOrder[j];
 
 				//update the observed network statistics
 				/*if(model->network()->hasEdge(vertex, alter)){
@@ -519,43 +525,48 @@ public:
 				}*/
 
 				//std::cout <<"(" << vertex << ", " << alter << ")\n";
-				if(runningModel->network()->hasEdge(vertex,alter)){
-					Rf_error("Logic error: edge found where there should be none.\n");
-				}
+				//if(runningModel->network()->hasEdge(vertex,alter)){
+				//	Rf_error("Logic error: edge found where there should be none.\n");
+				//}
 				llik = runningModel->logLik();
-				runningModel->statistics(terms);
-				runningModel->dyadUpdate(vertex, alter, vert_order, vertex);
-				runningModel->network()->toggle(vertex, alter);
+				//runningModel->statistics(terms);
+				runningModel->dyadUpdate(vertex, alter, vert_order, i);
+				//runningModel->network()->toggle(vertex, alter);
 				runningModel->statistics(newTerms);
 				llikChange = runningModel->logLik() - llik;
 				//std::cout << llikChange;
-				ldenom = R::log1pexp(llikChange);//log(1.0 + exp(llikChange));
-				probTie = exp(llikChange - ldenom);
+				//ldenom = R::log1pexp(llikChange);
+				//probTie = exp(llikChange - ldenom);
+				//ldenom = log(1.0 + exp(llikChange));
+				probTie = 1.0 / (1.0 + exp(-llikChange));
 				//std::cout << probTie << "\n";
-				hasEdge = true;
-				if(probTie < Rf_runif(0.0, 1.0)){
-					runningModel->dyadUpdate(vertex, alter, vert_order, vertex);
+				hasEdge = false;
+				if(Rf_runif(0.0, 1.0) < probTie){
+					//runningModel->dyadUpdate(vertex, alter, vert_order, i);
 					runningModel->network()->toggle(vertex, alter);
-					hasEdge = false;
-				}
-
-
-				for(int k=0; k < nStats; k++){
+					hasEdge = true;
+				}else
+					runningModel->rollback();
+				//std::cout << runningModel->network()->nEdges()<<"\n";
+				/*for(int k=0; k < nStats; k++){
 					double changeK = newTerms[k] - terms[k];
 					for(int l=0; l < nStats; l++){
 						double changeL = newTerms[l] - terms[l];
 						sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
 					}
-				}
+				}*/
 
 
 				//update the generated network statistics and expected statistics
 				for(int m=0; m<terms.size(); m++){
-					eStats[m] += (newTerms[m] - terms[m]) * probTie;
-					if(hasEdge)
-						stats[m] += newTerms[m] - terms[m];
+					double diff = newTerms[m] - terms[m];
+					eStats[m] += diff * probTie;
+					if(hasEdge){
+						stats[m] += diff;
+						terms[m] += diff;
+					}
 				}
-				if(runningModel->network()->isDirected()){
+				if(directedGraph){
 					/*
 					if(model->network()->hasEdge(alter, vertex)){
 						obsRunningModel->statistics(terms);
@@ -572,19 +583,23 @@ public:
 						Rf_error("Logic error: edge found where there should be none.\n");
 					}
 					llik = runningModel->logLik();
-					runningModel->statistics(terms);
-					runningModel->dyadUpdate(alter, vertex, vert_order, vertex);
-					runningModel->network()->toggle(alter, vertex);
+					//runningModel->statistics(terms);
+					runningModel->dyadUpdate(alter, vertex, vert_order, i);
+					//runningModel->network()->toggle(alter, vertex);
 					runningModel->statistics(newTerms);
 					llikChange = runningModel->logLik() - llik;
 					//std::cout << llikChange;
-					ldenom = R::log1pexp(llikChange);//log(1.0 + exp(llikChange));
-					probTie = exp(llikChange - ldenom);
+					//ldenom = R::log1pexp(llikChange);//log(1.0 + exp(llikChange));
+					//probTie = exp(llikChange - ldenom);
+					probTie = 1.0 / (1.0 + exp(-llikChange));
 					//std::cout << probTie << "\n";
-					if(probTie < Rf_runif(0.0, 1.0)){
-						runningModel->dyadUpdate(alter, vertex, vert_order, vertex);
+					hasEdge=false;
+					if(Rf_runif(0.0, 1.0) < probTie){
+						//runningModel->dyadUpdate(alter, vertex, vert_order, i);
 						runningModel->network()->toggle(alter, vertex);
-					}
+						hasEdge=true;
+					}else
+						runningModel->rollback();
 
 					/*
 					for(int k=0; k < nStats; k++){
@@ -597,18 +612,21 @@ public:
 						}
 					}
 					*/
-					for(int k=0; k < nStats; k++){
+					/*for(int k=0; k < nStats; k++){
 						double changeK = newTerms[k] - terms[k];
 						for(int l=0; l < nStats; l++){
 							double changeL = newTerms[l] - terms[l];
 							sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
 						}
-					}
+					}*/
 
 					for(int m=0; m<terms.size(); m++){
-						eStats[m] += (newTerms[m] - terms[m]) * probTie;
-						if(hasEdge)
-							stats[m] += newTerms[m] - terms[m];
+						double diff = newTerms[m] - terms[m];
+						eStats[m] += diff * probTie;
+						if(hasEdge){
+							stats[m] += diff;
+							terms[m] += diff;
+						}
 					}
 				}
 			}

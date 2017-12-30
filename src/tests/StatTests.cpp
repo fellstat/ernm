@@ -194,6 +194,12 @@ void changeStatTest(std::string statName){
 		net.toggle(dyad.first,dyad.second);
 	}
 
+	for(int i=0;i<30;i++){
+		pair<int,int> dyad = net.randomDyad();
+		model.dyadUpdate(dyad.first,dyad.second, order, dyad.first);
+		model.rollback();
+	}
+
     vector<double> mcmcStats = model.statistics();
     model.calculateStatistics();
     vector<double> realStats = model.statistics();

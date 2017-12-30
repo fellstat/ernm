@@ -108,6 +108,11 @@ public:
 	 */
 	virtual double vLogLik() = 0;
 
+	/*!
+	 * Rolls back the last update
+	 */
+	virtual void vRollback(const BinaryNet<Engine>& net) = 0;
+
 };
 
 
@@ -252,6 +257,17 @@ public:
 	}
 
 	/*!
+	 * roll back last update
+	 */
+	virtual void vRollback(const BinaryNet<NetworkEngine>& net){
+		rollback(net);
+	}
+
+	void rollback(const BinaryNet<NetworkEngine>& net){
+		off.rollback(net);
+	}
+
+	/*!
 	 * number of statistics
 	 */
 	virtual int vSize(){
@@ -297,16 +313,8 @@ class BaseOffset {
 protected:
 	std::vector<double> stats; /*!< the statistics */
 
-	/*!
-	 * calculate the offset based on the supplied network
-	 *
-	 * This function is good for prototyping statistics. Simply have the subclass implement
-	 * it, and the new stat can be used without the need to program dyad and vertex change update
-	 * functions.
-	 */
-	virtual void vCalculate(const BinaryNet<Engine>& net){
-		Rf_error("Either calculate, dyadUpdate, etc. _OR_ vCalculate must be implemented in the subclass.");
-	}
+	std::vector<double> lastStats; /*!< the value of the statistics before last update*/
+
 
 public:
 
@@ -321,10 +329,9 @@ public:
 	/*!
 	 * calculate the statistic based on the supplied network
 	 *
-	 * (Either this or vCalculate must be implemented by deriving classes)
 	 */
 	void calculate(const BinaryNet<Engine>& net){
-		vCalculate(net);
+		Rf_error("Either calculate must be implemented in the subclass.");
 	}
 
 	/*!
@@ -339,12 +346,7 @@ public:
 	 * \param to toggled edge (to)
 	 */
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
-		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
-		std::vector<double> tmp = stats;
-		pnet->toggle(from,to);
-		this->calculate(net);
-		pnet->toggle(from,to);
-
+		resetLastStats();
 	}
 
 	/*!
@@ -361,11 +363,7 @@ public:
 	 */
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
 			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
-		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
-		int oldValue = net.discreteVariableValue(variable,vert);
-		pnet->setDiscreteVariableValue(variable,vert,newValue);
-		this->calculate(net);
-		pnet->setDiscreteVariableValue(variable,vert,oldValue);
+		resetLastStats();
 	}
 
 	/*!
@@ -382,11 +380,26 @@ public:
 	 */
 	void continVertexUpdate(const BinaryNet<Engine>& net,  const int& vert,
 			 const int& variable, const  double& newValue, const  std::vector<int> &order, const  int &actorIndex){
-		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
-		double oldValue = net.continVariableValue(variable,vert);
-		pnet->setContinVariableValue(variable,vert,newValue);
-		this->calculate(net);
-		pnet->setContinVariableValue(variable,vert,oldValue);
+		resetLastStats();
+	}
+
+	/*!
+	 * updates the statistic at index i with change changeStatistic
+	 */
+	void update(const double& changeStatistic, const int& index){
+		stats[index] += changeStatistic;
+	}
+
+	void resetLastStats(){
+		for(int i=0;i<stats.size();i++){
+			lastStats[i] = stats[i];
+		}
+	}
+
+	void rollback(const BinaryNet<Engine>& net){
+		for(int i=0;i<stats.size();i++){
+			stats[i] = lastStats[i];
+		}
 	}
 
 	/*!

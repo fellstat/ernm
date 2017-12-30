@@ -91,6 +91,14 @@ public:
 		this->off.updateLogLik(this->off.continVertexUpdateDistance(net, vert, variable, newValue));
 	}
 
+	virtual void vRollback(const BinaryNet<NetworkEngine>& net){
+		calculate(net);
+	}
+
+	inline void rollback(const BinaryNet<NetworkEngine>& net){
+		this->off.updateLogLik(this->off.initialize(net));
+	}
+
 };
 
 
@@ -103,6 +111,7 @@ template<class Engine>
 class BaseConstraint{
 private:
 	double logValue;
+	double lastValue;
 protected:
 
 public:
@@ -145,11 +154,16 @@ public:
 	 *
 	 */
 	void updateLogLik(double dist){
+		lastValue = logValue;
 		if(near(dist,0.0)){
 			logValue = 0.0;
 		}else{
-			logValue = -100000000.0 - 100000.0*dist;
+			logValue = -10000000000.0 - 100000.0*dist;
 		}
+	}
+
+	void rollback(const BinaryNet<Engine>& net){
+		logValue = lastValue;
 	}
 
 	/*!

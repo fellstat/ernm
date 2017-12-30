@@ -337,8 +337,8 @@ public:
 			int c=0;
 			for(int i=0;i<stats.size();i++){
 				//std::vector<double> vals = stats.at(i)->vStatistics();
-				for(int j=0;j<stats.at(i)->vStatistics().size();j++){
-					v[c] = stats.at(i)->vStatistics()[j];
+				for(int j=0;j<stats[i]->vStatistics().size();j++){
+					v[c] = stats[i]->vStatistics()[j];
 					c++;
 				}
 			}
@@ -528,6 +528,13 @@ public:
 			stats[k]->vContinVertexUpdate(*net,vertex, variable, newValue, order, actorIndex);
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vContinVertexUpdate(*net,vertex, variable, newValue, order, actorIndex);
+	}
+
+	void rollback(){
+		for(int k=0;k<stats.size();k++)
+			stats[k]->vRollback(*net);
+		for(int k=0;k<offsets.size();k++)
+			offsets[k]->vRollback(*net);
 	}
 
 	/*!

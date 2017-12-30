@@ -44,6 +44,7 @@ public:
 	void calculate(const BinaryNet<Engine>& net){
 		std::vector<double> v(1,net.nEdges());
 		this->stats=v;
+		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1){
 			//this starts theta at a reasonable value assuming erdos-renyi
 			double ne = net.nEdges();
@@ -53,8 +54,10 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
-		this->stats[0] += net.hasEdge(from,to) ? -1.0 : 1.0;
+		BaseOffset<Engine>::resetLastStats();
+		BaseOffset<Engine>::update(net.hasEdge(from,to) ? -1.0 : 1.0, 0);
 	}
+
 
 };
 
@@ -101,10 +104,9 @@ public:
 		}catch(...){
 			direction = IN;
 		}
-		std::vector<double> v(starDegrees.size(),0.0);
-		std::vector<double> t(starDegrees.size(),0.0);
-		this->stats=v;
-		this->thetas = t;
+		this->lastStats = std::vector<double>(starDegrees.size(),0.0);
+		this->stats=std::vector<double>(starDegrees.size(),0.0);
+		this->thetas = std::vector<double>(starDegrees.size(),0.0);
 	}
 
 
@@ -124,6 +126,7 @@ public:
     
 	void calculate(const BinaryNet<Engine>& net){
 		std::vector<double> v(starDegrees.size(),0.0);
+		this->lastStats = std::vector<double>(starDegrees.size(),0.0);
 		for(int i=0; i<net.size();i++){
 			double nEd;
 			if(!net.isDirected())
@@ -143,6 +146,7 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		int n;
 		if(!net.isDirected())
 			n = net.degree(to);
@@ -155,11 +159,11 @@ public:
 		bool edge = net.hasEdge(from,to);
 		for(int i=0;i<starDegrees.size();i++){
 				if(edge){
-					this->stats[i] +=  -nchoosek(n,starDegrees[i]) +
-							nchoosek(n-1.0,starDegrees[i]);
+					BaseOffset<Engine>::update(-nchoosek(n,starDegrees[i]) +
+							nchoosek(n-1.0,starDegrees[i]),i);
 
 				}else{
-					this->stats[i] +=  nchoosek(n+1.0,starDegrees[i])-nchoosek(n,starDegrees[i]);
+					BaseOffset<Engine>::update(nchoosek(n+1.0,starDegrees[i])-nchoosek(n,starDegrees[i]), i);
 				}
 		}
 		if(!net.isDirected()){
@@ -167,11 +171,11 @@ public:
 			edge = net.hasEdge(from,to);
 			for(int i=0;i<starDegrees.size();i++){
 				if(edge){
-					this->stats[i] +=  -nchoosek(n,starDegrees[i]) +
-							nchoosek(n-1.0,starDegrees[i]);
+					BaseOffset<Engine>::update(-nchoosek(n,starDegrees[i]) +
+							nchoosek(n-1.0,starDegrees[i]), i);
 
 				}else{
-					this->stats[i] +=  nchoosek(n+1.0,starDegrees[i])-nchoosek(n,starDegrees[i]);
+					BaseOffset<Engine>::update( nchoosek(n+1.0,starDegrees[i])-nchoosek(n,starDegrees[i]), i);
 				}
 			}
 		}
@@ -190,7 +194,6 @@ template<class Engine>
 class Triangles : public BaseStat< Engine > {
 protected:
 	typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
-	double sumTri;
 public:
 
 
@@ -199,14 +202,12 @@ public:
 		std::vector<double> t(1,0.0);
 		this->stats=v;
 		this->thetas = t;
-		sumTri = 0.0;
 	}
 	Triangles(List params){
 		std::vector<double> v(1,0.0);
 		std::vector<double> t(1,0.0);
 		this->stats=v;
 		this->thetas = t;
-		sumTri = 0.0;
 	}
 
 	std::string name(){
@@ -266,9 +267,10 @@ public:
 
 		std::vector<double> v(1,0.0);
 		this->stats = v;
+		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1)
 			this->thetas = v;
-		sumTri = 0.0;
+		double sumTri = 0.0;
 
 		boost::shared_ptr<std::vector< std::pair<int,int> > > edges = net.edgelist();
 
@@ -284,14 +286,17 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		int shared = sharedNbrs(net, from, to);
 		bool hasEdge = net.hasEdge(from,to);
 		if(hasEdge){
-			sumTri -= shared;
+			BaseOffset<Engine>::update(-shared,0);
+			//sumTri -= shared;
 		}else{
-			sumTri += shared;
+			BaseOffset<Engine>::update(shared,0);
+			//sumTri += shared;
 		}
-		this->stats[0] = sumTri;//sumSqrtTri - sumSqrtExpected;
+		//this->stats[0] = sumTri;//sumSqrtTri - sumSqrtExpected;
 	}
 
 };
@@ -334,6 +339,7 @@ public:
 	}
 
 	void calculate(const BinaryNet<Engine>& net){
+		this->lastStats = std::vector<double>(1,0.0);
 		if(!net.isDirected())
 			Rf_error("Reciprocity only make sense for directed networks");
 
@@ -351,6 +357,7 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		bool addingEdge = !net.hasEdge(from,to);
 		bool hasReverse = net.hasEdge(to,from);
 		double change;
@@ -360,7 +367,7 @@ public:
 			change = -1.0;
 		else
 			change = 0.0;
-		this->stats[0] += change;
+		BaseOffset<Engine>::update(change,0);
 	}
 };
 
@@ -427,6 +434,7 @@ public:
 		//nstats = nlevels*nlevels;
 		nstats = 1;
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size() != nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		boost::shared_ptr< std::vector< std::pair<int,int> > > edges = net.edgelist();
@@ -443,19 +451,21 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		bool addingEdge = !net.hasEdge(from,to);
 		int value1 = net.discreteVariableValue(varIndex,from) - 1;
 		int value2 = net.discreteVariableValue(varIndex,to) - 1;
 		if(value1==value2){
 			if(addingEdge)
-				this->stats[0]++;
+				BaseOffset<Engine>::update(1.0,0);//this->stats[0]++;
 			else
-				this->stats[0]--;
+				BaseOffset<Engine>::update(-1.0,0);//this->stats[0]--;
 		}
 	}
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
 			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		if(variable != varIndex)
 			return;
 		int val = net.discreteVariableValue(varIndex,vert);
@@ -465,9 +475,9 @@ public:
 			while(it!=end){
 				int val2 = net.discreteVariableValue(varIndex,*it);
 				if(val2==val)
-					this->stats[0]--;
+					BaseOffset<Engine>::update(-1.0,0);//this->stats[0]--;
 				if(val2==newValue)
-					this->stats[0]++;
+					BaseOffset<Engine>::update(1.0,0);//this->stats[0]++;
 				it++;
 			}
 			it = net.inBegin(vert);
@@ -475,9 +485,9 @@ public:
 			while(it!=end){
 				int val2 = net.discreteVariableValue(varIndex,*it);
 				if(val2==val)
-					this->stats[0]--;
+					BaseOffset<Engine>::update(-1.0,0);//this->stats[0]--;
 				if(val2==newValue)
-					this->stats[0]++;
+					BaseOffset<Engine>::update(1.0,0);//this->stats[0]++;
 				it++;
 			}
 		}else{
@@ -486,9 +496,9 @@ public:
 			while(it!=end){
 				int val2 = net.discreteVariableValue(varIndex,*it);
 				if(val2==val)
-					this->stats[0]--;
+					BaseOffset<Engine>::update(-1.0,0);//this->stats[0]--;
 				if(val2==newValue)
-					this->stats[0]++;
+					BaseOffset<Engine>::update(1.0,0);//this->stats[0]++;
 				it++;
 			}
 		}
@@ -581,6 +591,7 @@ public:
 		nlevels = levels.size();
 		nstats = nlevels * (nlevels + 1) / 2;
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size() != nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		boost::shared_ptr< std::vector< std::pair<int,int> > > edges = net.edgelist();
@@ -597,15 +608,17 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		bool addingEdge = !net.hasEdge(from,to);
 		double change = addingEdge ? 1.0 : -1.0;
 		int value1 = net.discreteVariableValue(varIndex,from) - 1;
 		int value2 = net.discreteVariableValue(varIndex,to) - 1;
-		this->stats[getIndex(value1,value2)] += change;
+		BaseOffset<Engine>::update(change, getIndex(value1,value2));//this->stats[getIndex(value1,value2)] += change;
 	}
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
 			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		if(variable != varIndex)
 			return;
 		Rf_error("NodeMix unimplemented");
@@ -685,6 +698,7 @@ public:
 	void calculate(const BinaryNet<Engine>& net){
 		int nstats = degrees.size();
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		double n = net.size();
@@ -705,6 +719,7 @@ public:
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		int change = !net.hasEdge(from,to) ? 1 : -1;
 		int fromDegree = 0;
 		int fromDegreeNew = 0;
@@ -736,13 +751,13 @@ public:
 
 		for(int j=0;j<degrees.size();j++){
 			if(degrees[j] == fromDegree)
-				this->stats[j]--;
+				BaseOffset<Engine>::update(-1.0,j);//this->stats[j]--;
 			if(degrees[j] == toDegree)
-				this->stats[j]--;
+				BaseOffset<Engine>::update(-1.0,j);//this->stats[j]--;
 			if(degrees[j] == fromDegreeNew)
-				this->stats[j]++;
+				BaseOffset<Engine>::update(1.0,j);//this->stats[j]++;
 			if(degrees[j] == toDegreeNew)
-				this->stats[j]++;
+				BaseOffset<Engine>::update(1.0,j);//this->stats[j]++;
 		}
 
 	}
@@ -758,17 +773,21 @@ protected:
 	typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
 	double nEdges;
 	double crossProd;
+
+	double lastNEdges;
+	double lastCrossProd;
+
 public:
 
 	DegreeCrossProd(){
-		crossProd = nEdges = 0.0;
+		lastNEdges = lastCrossProd = crossProd = nEdges = 0.0;
 	}
 
 	/*!
 	 * \param params
 	 */
 	DegreeCrossProd(List params){
-		nEdges = crossProd = 0.0;
+		lastNEdges = lastCrossProd = nEdges = crossProd = 0.0;
 	}
 
 	std::string name(){
@@ -780,11 +799,23 @@ public:
         return statnames;
 	}
 
+    void resetMemory(){
+    	lastNEdges = nEdges;
+    	lastCrossProd = crossProd;
+    }
+
+    void rollback(const BinaryNet<Engine>& net){
+    	BaseOffset<Engine>::rollback(net);
+    	nEdges = lastNEdges;
+    	crossProd = lastCrossProd;
+    }
+
 
 	void calculate(const BinaryNet<Engine>& net){
 		int nstats = 1;
 
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		nEdges = net.nEdges();
@@ -804,6 +835,7 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		double toDeg;
 		double fromDeg;
 		bool addingEdge = !net.hasEdge(from,to);
@@ -841,189 +873,15 @@ public:
 		}
 		nEdges += edgeChange;
 		if(nEdges==0)
-			this->stats[0] = 0;
+			BaseOffset<Engine>::update(-this->stats[0],0);//this->stats[0] = 0;
 		else
-			this->stats[0] = crossProd / nEdges;
+			BaseOffset<Engine>::update(crossProd / nEdges - this->stats[0], 0);//this->stats[0] = crossProd / nEdges;
 	}
 
 };
 
 typedef Stat<Directed, DegreeCrossProd<Directed> > DirectedDegreeCrossProd;
 typedef Stat<Undirected, DegreeCrossProd<Undirected> > UndirectedDegreeCrossProd;
-
-
-/*!
- * Differential activity by group
- *
- * E(degree | group) - E(degree)*E(# in group)
- */
-//template<class Engine>
-//class DiffActivity : public BaseStat< Engine > {
-//protected:
-//	EdgeDirection direction;
-//	std::string variableName;
-//	int varIndex;
-//	int nstats;
-//
-//	double aveDeg;
-//	std::vector<double> counts;
-//public:
-//
-//	DiffActivity(){
-//		varIndex = nstats = 0;
-//		aveDeg = 0.0;
-//		direction = UNDIRECTED;
-//	}
-//
-//	DiffActivity(std::string name,EdgeDirection d){
-//		varIndex = nstats = 0;
-//		aveDeg = 0.0;
-//		direction = d;
-//		variableName = name;
-//	}
-//
-//	DiffActivity(std::string name){
-//		varIndex = nstats = 0;
-//		aveDeg = 0.0;
-//		direction = UNDIRECTED;
-//		variableName = name;
-//	}
-//
-//
-//	DiffActivity(List params){
-//		varIndex = nstats = 0;
-//		aveDeg = 0.0;
-//		try{
-//			variableName = as< std::string >(params(0));
-//		}catch(...){
-//			::Rf_error("NodeCount requires a nodal variable name");
-//		}
-//
-//		try{
-//			int tmp = as< int >(params(1));
-//			if(tmp==0)
-//				direction = UNDIRECTED;
-//			else if(tmp==1)
-//				direction = IN;
-//			else if(tmp==2)
-//				direction = OUT;
-//			else
-//				::Rf_error("invalid direction");
-//		}catch(...){
-//			direction = UNDIRECTED;
-//		}
-//	}
-//
-//	std::string name(){
-//		return "diffActivity";
-//	}
-//
-//    std::vector<std::string> statNames(){
-//        std::vector<std::string> statnames;
-//        for(int i=0;i<nstats;i++){
-//            std::string nm = "diffActivity."+variableName+"."+asString(i+1);
-//            statnames.push_back(nm);
-//        }
-//        return statnames;
-//	}
-//
-//
-//	inline int degree(const BinaryNet<Engine>& net,int i){
-//		int result = 0;
-//		if(net.isDirected()){
-//			if(direction==OUT || direction==UNDIRECTED)
-//				result += net.outdegree(i);
-//			if(direction==IN || direction==UNDIRECTED)
-//				result += net.indegree(i);
-//		}else
-//			result = net.degree(i);
-//		return result;
-//	}
-//
-//	void calculate(const BinaryNet<Engine>& net){
-//		std::vector<std::string> vars = net.discreteVarNames();
-//		int variableIndex = -1;
-//		for(int i=0;i<vars.size();i++){
-//			if(vars[i] == variableName){
-//				variableIndex = i;
-//			}
-//		}
-//		if(variableIndex<0)
-//			::Rf_error("nodal attribute not found in network");
-//		varIndex = variableIndex;
-//		int nlevels = net.discreteVariableAttributes(variableIndex).labels().size();
-//		nstats = nlevels-1;
-//		this->stats = std::vector<double>(nstats,0.0);
-//		if(this->thetas.size()!=nstats)
-//			this->thetas = std::vector<double>(nstats,0.0);
-//		double n = net.size();
-//		double degSum = 0.0;
-//		double deg = 0.0;
-//		counts = std::vector<double>(nlevels,0.0);
-//		for(int i=0;i<n;i++){
-//			deg = degree(net,i);
-//			degSum += deg;
-//			int val = net.discreteVariableValue(varIndex,i) - 1;
-//			counts[val]++;
-//			if(val<nstats)
-//				this->stats[val] += deg;
-//		}
-//		aveDeg = degSum / n;
-//		for(int i=0;i<nstats;i++)
-//			this->stats[i] = this->stats[i] - counts[i] * aveDeg;
-//	}
-//
-//
-//	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
-//		int fromVal = net.discreteVariableValue(varIndex,from)-1;
-//		//int fromDeg = degree(net,from);
-//		int toVal = net.discreteVariableValue(varIndex,to)-1;
-//		//int toDeg = degree(net,to);
-//		int change;
-//		if(direction==UNDIRECTED)
-//			change = !net.hasEdge(from,to) ? 2 : -2;
-//		else
-//			change = !net.hasEdge(from,to) ? 1 : -1;
-//		double n = net.size();
-//
-//		for(int i=0;i<nstats;i++){
-//			this->stats[i] -= counts[i] * (change / n );
-//		}
-//		aveDeg = aveDeg + change / n;
-//
-//		change = change>0 ? 1 : -1;
-//
-//		if( (direction==UNDIRECTED || direction==OUT) && fromVal<nstats)
-//			this->stats[fromVal] += change;
-//		if( (direction==UNDIRECTED || direction==IN) && toVal<nstats)
-//			this->stats[toVal] += change;
-//
-//	}
-//
-//	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-//					int variable, int newValue){
-//		if(variable != varIndex)
-//			return;
-//		int val = net.discreteVariableValue(varIndex,vert)-1;
-//		newValue--;
-//
-//		double degDiff = degree(net,vert) - aveDeg;
-//
-//		if(val<nstats)
-//			this->stats[val] -= degDiff;
-//		counts[val]--;
-//
-//		if(newValue<nstats)
-//			this->stats[newValue] += degDiff;
-//		counts[newValue]++;
-//	}
-//
-//	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
-//				int variable, double newValue){}
-//};
-//
-//typedef Stat<Directed, DiffActivity<Directed> > DirectedDiffActivity;
-//typedef Stat<Undirected, DiffActivity<Undirected> > UndirectedDiffActivity;
 
 
 /*!
@@ -1125,6 +983,7 @@ public:
 		varIndex = variableIndex;
 		int nstats = 1;
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		this->stats[0] = 0;
@@ -1143,6 +1002,7 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		if(net.isDirected()){
 			if(direction == IN || direction == UNDIRECTED)
@@ -1156,6 +1016,7 @@ public:
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, const  int& vert,
 			 const int& variable, const  int& newValue, const  std::vector<int> &order, const  int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		if(isDiscrete && variable==varIndex){
 			double oldValue = getValue(net,vert);
 			int deg = 0;
@@ -1172,6 +1033,7 @@ public:
 
 	void continVertexUpdate(const BinaryNet<Engine>& net, const int& vert,
 			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		if(!isDiscrete && variable==varIndex){
 			double oldValue = getValue(net,vert);
 			int deg = 0;
@@ -1289,8 +1151,9 @@ public:
 		sharedValues[f].erase(t);
 	}
 
-	virtual void vCalculate(const BinaryNet<Engine>& net){
+	virtual void calculate(const BinaryNet<Engine>& net){
 		this->stats = std::vector<double>(1,0.0);
+		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1)
 			this->thetas = std::vector<double>(1,0.0);
 		double result = 0.0;
@@ -1310,6 +1173,7 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		NeighborIterator fit, fend, tit, tend;
 		if(!net.isDirected()){
 			fit = net.begin(from);
@@ -1414,10 +1278,11 @@ public:
         
 	}
     
-    virtual void vCalculate(const BinaryNet<Engine>& net){
+    virtual void calculate(const BinaryNet<Engine>& net){
         oneexpa = 1.0 - exp(-alpha);
         expalpha = exp(alpha);
         this->stats = std::vector<double>(1,0.0);
+        this->lastStats = std::vector<double>(1,0.0);
         if(this->thetas.size()!=1)
             this->thetas = std::vector<double>(1,0.0);
         double result = 0.0;
@@ -1442,6 +1307,7 @@ public:
     
     
     void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+    	BaseOffset<Engine>::resetLastStats();
         //we'll toggle the dyad betwen from and to
         double change = 2.0 * (!net.hasEdge(from,to) - 0.5); //change in edge value (1, -1)
         double delta1 = 0.0;
@@ -1531,8 +1397,9 @@ public:
         return sn;
     }
     
-    virtual void vCalculate(const BinaryNet<Engine>& net){
+    virtual void calculate(const BinaryNet<Engine>& net){
         this->stats = std::vector<double>(1,0.0);
+        this->lastStats = std::vector<double>(1,0.0);
         if(this->thetas.size()!=1)
             this->thetas = std::vector<double>(1,0.0);
         
@@ -1585,6 +1452,7 @@ public:
     
     
     void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+    	BaseOffset<Engine>::resetLastStats();
         double oneexpa = 1.0 - exp(-alpha);
         NeighborIterator fit, fend, tit, tend;
         if(!net.isDirected()){
@@ -1721,9 +1589,10 @@ public:
         return sn;
     }
     
-    virtual void vCalculate(const BinaryNet<Engine>& net){
+    virtual void calculate(const BinaryNet<Engine>& net){
         int nstats = esps.size();
         this->stats = std::vector<double>(nstats,0.0);
+        this->lastStats = std::vector<double>(nstats,0.0);
         if(this->thetas.size()!=nstats)
             this->thetas = std::vector<double>(nstats,0.0);
         
@@ -1741,6 +1610,7 @@ public:
     }
     
     void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+    	BaseOffset<Engine>::resetLastStats();
         int nstats = esps.size();
         int espi = sharedNbrs(net, from, to);
         double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
@@ -1850,7 +1720,7 @@ public:
 		return asin(sqrt(dx * dx + dy * dy + dz * dz) / 2) * 2 * 6371.0;
 	}
 
-	virtual void vCalculate(const BinaryNet<Engine>& net){
+	virtual void calculate(const BinaryNet<Engine>& net){
 		std::vector<std::string> vars = net.continVarNames();
 		//int variableIndex = -1;
 		for(int i=0;i<vars.size();i++){
@@ -1879,6 +1749,7 @@ public:
 
 		int nstats = 1;
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		this->stats[0] = 0;
@@ -1901,6 +1772,7 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		//double ne =net.nEdges();
 /*		this->stats[0] = this->stats[0] * (ne / (ne + change)) + change * dist(
@@ -1978,7 +1850,7 @@ public:
 		return sqrt(ssq);
 	}
 
-	virtual void vCalculate(const BinaryNet<Engine>& net){
+	virtual void calculate(const BinaryNet<Engine>& net){
 		std::vector<std::string> vars = net.continVarNames();
 		//int variableIndex = -1;
 		indices = std::vector<int>(varNames.size(),-1);
@@ -1995,6 +1867,7 @@ public:
 
 		int nstats = 1;
 		this->stats = std::vector<double>(nstats,0.0);
+		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 
@@ -2012,6 +1885,7 @@ public:
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
 		this->stats[0] = this->stats[0] + change * dist(net, from,to);
 	}
@@ -2028,14 +1902,24 @@ typedef Stat<Undirected, Dist<Undirected> > UndirectedDist;
  */
 template<class Engine>
 class PreferentialAttachment : public BaseStat<Engine>{
+	double k;
 public:
 	PreferentialAttachment(){
+		k = 1.0;
 	}
 
 	/*!
 	 * constructor. params is unused
 	 */
 	PreferentialAttachment(List params){
+		try{
+			k = as< double >(params(0));
+			if(k <= 0.0)
+				::Rf_error("PreferentialAttachment: k must be greater than 0");
+		}catch(...){
+			k = 1.0;
+			//::Rf_error("PreferentialAttachment requires an k");
+		}
 	}
 
 
@@ -2051,26 +1935,24 @@ public:
 	void calculate(const BinaryNet<Engine>& net){
 		std::vector<double> v(1, 0.0); //should be NA
 		this->stats=v;
+		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1){
 			this->thetas = std::vector<double>(1,0.0);
 		}
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
 		bool hasEdge = net.hasEdge(from,to);
 		double direction = hasEdge ? -1.0 : 1.0;
 		double totDegree = (net.nEdges() - hasEdge) * 2.0;
-		double deg = net.degree(to) - hasEdge;
-		if(deg < .5)
-			deg = 1/1000000000000.0;
-		//double toValue = net.degree(to) == 0 ? 0.0 : net.degree(to) / totDegree;
-		if(totDegree <.5){
-			totDegree = 1.0;
-			deg = 1.0;
-		}
-		//this->stats[0] += direction * log( deg / totDegree);
-		this->stats[0] += direction * log( deg / totDegree);
-		//this->stats[0] += direction * log((1.0 + net.degree(to)) / (1.0*net.size() + totDegree));
+		int alter = order[actorIndex] == from ? to : from;
+		double deg = net.degree(alter) - hasEdge;
+		double netSize = actorIndex + 1.0;
+
+		this->stats[0] += direction * log( (k + deg) / (k*netSize + totDegree));
+
+		//BaseOffset<Engine>::update(direction * log( (k + net.degree(alter) - hasEdge) / (k*(actorIndex + 1.0) + (net.nEdges() - hasEdge) * 2.0)), 0);
 	}
 
 };

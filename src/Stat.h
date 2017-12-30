@@ -135,6 +135,11 @@ public:
 	 */
 	virtual double vLogLik() = 0;
 
+	/*!
+	 * Rolls back the last update
+	 */
+	virtual void vRollback(const BinaryNet<Engine>& net) = 0;
+
 };
 
 /*!
@@ -275,6 +280,17 @@ public:
 	inline void continVertexUpdate(const BinaryNet<NetworkEngine>& net, const int& vert,
 			const int& variable, const double& newValue, const std::vector<int> &order, const int &actorIndex){
 		stat.continVertexUpdate(net,vert,variable,newValue,order,actorIndex);
+	}
+
+	/*!
+	 * roll back last update
+	 */
+	virtual void vRollback(const BinaryNet<NetworkEngine>& net){
+		rollback(net);
+	}
+
+	void rollback(const BinaryNet<NetworkEngine>& net){
+		stat.rollback(net);
 	}
 
 	/*!
