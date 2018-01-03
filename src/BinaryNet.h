@@ -172,6 +172,13 @@ public:
 	}
 
 	/*!
+	 * removes all edges
+	 */
+	void emptyGraph(){
+		engine.emptyGraph();
+	}
+
+	/*!
 	 * adds an edge to a dyad if none exists, otherwise removes the edge.
 	 * \param from the id of the from node
 	 * \param to the id of the to node
@@ -1180,6 +1187,14 @@ public:
 		return has;
 	}
 
+	void emptyGraph(){
+		for(int i=0;i < verts.size();i++){
+			verts[i]->clearOutedges();
+			verts[i]->clearInedges();
+		}
+		(*numEdges) = 0;
+	}
+
 	void addEdge(int from,int to){
 		if(from==to)
 			return;
@@ -1847,6 +1862,13 @@ public:
 			(*numEdges)--;
 		}
 		return has;
+	}
+
+	void emptyGraph(){
+		for(int i=0;i < verts.size();i++){
+			verts[i]->clearEdges();
+		}
+		(*numEdges) = 0;
 	}
 
 	void addEdge(int from,int to){

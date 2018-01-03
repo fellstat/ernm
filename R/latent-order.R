@@ -356,7 +356,9 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 	    library(ernm)
 	    library(network)
 	  })
-	  network <- as.network(lolik$getModel()$getNetwork())
+	  tmpNet <- lolik$getModel()$getNetwork()$clone()
+	  tmpNet$emptyGraph()
+	  network <- as.network(tmpNet)
 	  clusterExport(cluster, "terms", envir = environment())
 	  clusterExport(cluster, "auxTerms", envir = environment())
 	  clusterExport(cluster, "network", envir = environment())
@@ -385,6 +387,7 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 		}else{
 		  workingNetwork <- as.network(lolik$getModel()$getNetwork())
 			worker <- function(i, theta){
+			  cat(i," ")
 			  network <- as.BinaryNet(network)
 			  lolik <- ernm:::.createLatentOrderLikelihoodFromTerms(terms, network, theta)
 			  auxModel <- ernm:::.makeCppModelFromTerms(auxTerms, network)
@@ -393,12 +396,13 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 			  auxModel$calculate()
 			  list(stats=samp$stats + samp$emptyNetworkStats,
 			    estats = samp$expectedStats + samp$emptyNetworkStats,
+			    auxStats = auxModel$statistics(),
 			    sumCov = samp$sumCov)
 			}
-			worker(1, theta)
-
-			results <- parallel::parLapply(cluster, 1:4, worker, theta=theta)
-			browser()
+			results <- parallel::parLapply(cluster, 1:nsamp, worker, theta=theta)
+			stats <- t(sapply(results, function(x) x$stats))
+			estats <- t(sapply(results, function(x) x$estats))
+			auxStats <- t(sapply(results, function(x) x$auxStats))
 		}
 		
 		#calculate gradient of moment conditions

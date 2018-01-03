@@ -97,6 +97,10 @@ public:
 		return edgs;
 	}
 
+	void clearEdges(){
+		edgs.clear();
+	}
+
 	int networkSize() const{return nverts;}
 	void setNetworkSize(int netSize){nverts = netSize;}
 

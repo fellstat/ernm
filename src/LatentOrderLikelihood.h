@@ -64,12 +64,13 @@ protected:
 
 
 	void removeEdges(ModelPtr mod){
-		boost::shared_ptr< std::vector<std::pair<int,int> > > edgelist = mod->network()->edgelist();
+		/*boost::shared_ptr< std::vector<std::pair<int,int> > > edgelist = mod->network()->edgelist();
 		long n = edgelist->size();
 		for(int i=0;i<n;i++){
 			mod->network()->removeEdge(edgelist->at(i).first,edgelist->at(i).second);
 		}
-		mod->calculate();
+		mod->calculate();*/
+		mod->network()->emptyGraph();
 	}
 public:
 

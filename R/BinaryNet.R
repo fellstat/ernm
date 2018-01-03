@@ -6,7 +6,11 @@
 as.network.Rcpp_UndirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
-	nw <- network(el,directed=FALSE)
+	
+	if(nrow(el) > 0)
+  	nw <- network(el,directed=FALSE)
+	else
+	  nw <- network.initialize(n, directed = FALSE)
 	
 	for(i in which(x$nMissing(1:n)>0)){
 		nas <- which(is.na(x[i,1:n]))
@@ -35,7 +39,11 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 as.network.Rcpp_DirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
-	nw <- network(el,directed=TRUE)
+	
+	if(nrow(el) > 0)
+	  nw <- network(el,directed=TRUE)
+	else
+	  nw <- network.initialize(n, directed = TRUE)
 	
 	for(i in which(x$nMissing(1:n)>0)){
 		nas <- which(is.na(x[i,1:n]))

@@ -119,6 +119,14 @@ public:
 		return oedges;
 	}
 
+	void clearInedges(){
+		iedges.clear();
+	}
+
+	void clearOutedges(){
+		iedges.clear();
+	}
+
 	int networkSize() const{return nverts;}
 	void setNetworkSize(int netSize){nverts = netSize;}
 
