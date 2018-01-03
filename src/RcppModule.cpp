@@ -116,8 +116,8 @@ RCPP_MODULE(ernm){
 		.method("getModel",&LatentOrderLikelihood<Undirected>::getModelR)
 		.method("setThetas",&LatentOrderLikelihood<Undirected>::setThetas)
 		.method("setOrder",&LatentOrderLikelihood<Undirected>::setOrder)
-		.method("fullLogLik",&LatentOrderLikelihood<Undirected>::fullLogLik)
-		.method("fullLogLikWithFunc",&LatentOrderLikelihood<Undirected>::fullLogLikWithFunc)
+		.method("variationalModelFrame",&LatentOrderLikelihood<Undirected>::variationalModelFrame)
+		.method("variationalModelFrameWithFunc",&LatentOrderLikelihood<Undirected>::variationalModelFrameWithFunc)
 		.method("generateNetwork",&LatentOrderLikelihood<Undirected>::generateNetwork)
 		;
 
@@ -127,8 +127,8 @@ RCPP_MODULE(ernm){
 		.method("getModel",&LatentOrderLikelihood<Directed>::getModelR)
 		.method("setThetas",&LatentOrderLikelihood<Directed>::setThetas)
 		.method("setOrder",&LatentOrderLikelihood<Directed>::setOrder)
-		.method("fullLogLik",&LatentOrderLikelihood<Directed>::fullLogLik)
-		.method("fullLogLikWithFunc",&LatentOrderLikelihood<Directed>::fullLogLikWithFunc)
+		.method("variationalModelFrame",&LatentOrderLikelihood<Directed>::variationalModelFrame)
+		.method("variationalModelFrameWithFunc",&LatentOrderLikelihood<Directed>::variationalModelFrameWithFunc)
 		.method("generateNetwork",&LatentOrderLikelihood<Directed>::generateNetwork)
 		;
 

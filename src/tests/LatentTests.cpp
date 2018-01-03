@@ -124,7 +124,7 @@ void lt(){
     //cout << "\nnedges:" << net.nEdges()<<"\n";
 
     LatentOrderLikelihood<Engine> lol = LatentOrderLikelihood<Engine>(model);
-    List result = lol.fullLogLik(1,.005);
+    List result = lol.variationalModelFrame(1,.005);
     /*
     std::vector<int> ord(30);
     for(int i=0;i<30;i++){
