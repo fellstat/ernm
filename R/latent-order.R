@@ -175,6 +175,7 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 	auxTerms <- .prepModelTerms(auxFormula)
 	auxModel <- createCppModel(auxFormula)
 	#browser()
+	samp <- NULL
 	auxModel$setNetwork(lolik$getModel()$getNetwork())
 	auxModel$calculate()
 	obsStats <- auxModel$statistics()
@@ -324,6 +325,11 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 			
 		}
 	}
+	
+	if(is.null(samp)){
+	  samp <- lolik$generateNetwork()
+	}
+	
 	omega <- var(auxStats)
 	vcov <- solve(t(grad) %*% W %*% grad) %*% 
 			t(grad) %*% W %*% omega %*% t(W) %*% grad %*% 
