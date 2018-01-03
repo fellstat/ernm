@@ -15,6 +15,19 @@ createLatentOrderLikelihood <- function(formula, theta=NULL){
 	lik
 }
 
+.createLatentOrderLikelihoodFromTerms <- function(terms, net, theta=NULL){
+  net <- as.BinaryNet(net)
+  model <- .makeCppModelFromTerms(terms, net, theta)
+  clss <- class(net)
+  networkEngine <- substring(clss,6,nchar(clss)-3)
+  LikType <- eval(parse(text=paste(networkEngine,"LatentOrderLikelihood",sep="")))
+  lik <- new(LikType, model)
+  if(!is.null(theta)){
+    lik$setThetas(theta)
+  }
+  lik
+}
+
 
 .latentOrderObjective <- function(params, lolik, seed, nReplicates){
 	lolik$setThetas(params)
@@ -217,4 +230,278 @@ latentOrderGmmFit <- function(formula, nReplicates=500L, theta=NULL,
 #' @method vcov latentOrderFit
 vcov.latentOrderFit <- function(object,...){
 	solve(-object$hessian)
+}
+
+
+
+elogFit <- function(formula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10, maxIter=100,
+		startingStepSize=maxStepSize, maxStepSize=.5, order=NULL){
+	
+	lolik <- createLatentOrderLikelihood(formula, theta=theta)
+	if(!is.null(order)){
+		lolik$setOrder(as.integer(rank(order, ties.method = "min")))
+	}
+	obsStats <- lolik$getModel()$statistics()
+	stepSize <- startingStepSize
+	lastTheta <- NULL
+	hsCount <- 0
+	iter <- 0
+	while(iter < maxIter){
+		iter <- iter + 1
+		
+		#generate networks
+		lolik$setThetas(theta)
+		stats <- matrix(0,ncol=length(theta),nrow=nsamp)
+		estats <- matrix(0,ncol=length(theta),nrow=nsamp)
+		for(i in 1:nsamp){
+			cat(".")
+			samp <- lolik$generateNetwork()
+			stats[i,] <- samp$stats + samp$emptyNetworkStats
+			estats[i,] <- samp$expectedStats + samp$emptyNetworkStats
+		}
+		cat("\n")
+		
+		momentCondition <- obsStats - colMeans(stats)
+		
+		#calculate gradient of moment conditions
+		grad <- matrix(0,ncol=length(theta),nrow=length(theta))
+		for(i in 1:length(theta)){
+			for(j in 1:length(theta)){
+				#grad[i,j] <- -mean(stats[,i] * (stats[,j] - estats[,j]))
+				grad[i,j] <- -(cov(stats[,i], stats[,j]) - cov(stats[,i], estats[,j]))
+			}
+		}
+		
+		
+		cat("Moment Conditions:\n")
+		print(momentCondition)
+		
+		
+		#calculate inverse of gradient
+		invFailed <- inherits(try(gradInv <- solve(grad),silent = TRUE),"try-error")
+		#invFailed <- inherits(try(gradInv <- solve(-var(stats)),silent = TRUE),"try-error")
+		pairs(stats)
+		#browser()
+		if(hsCount < nHalfSteps && invFailed && !is.null(lastTheta)){
+			cat("Half step back\n")
+			theta <- (lastTheta + theta) / 2
+			hsCount <- hsCount + 1
+			stepSize <- stepSize / 2
+			next
+		}else{
+			stepSize <- min(maxStepSize, stepSize * 1.1)
+			hsCount <- 0
+		}
+		lastTheta <- theta
+		theta <- theta - stepSize * gradInv %*% momentCondition
+		
+		#Hotelling's T^2 test
+		hotT <- momentCondition %*% solve(var(stats)/nrow(stats)) %*% momentCondition
+		pvalue <- pchisq(hotT,df=length(theta), lower.tail = FALSE)
+		cat("Hotelling's T2 p-value: ",pvalue,"\n")
+		cat("Theta:\n")
+		print(theta)
+		if(pvalue > hotellingTTol){
+			break
+		}else if(iter < maxIter){
+			
+		}
+	}
+	vcov <- gradInv %*% var(stats) %*% t(gradInv)
+	
+	result <- list(theta=lastTheta,
+			stats=stats,
+			estats=estats, 
+			net=samp$network,
+			grad=grad, 
+			vcov=vcov, 
+			likelihoodModel=lolik)
+	class(result) <- c("elog","list")
+	result
+}
+
+summary.elog <- function(x, ...){
+	theta <- fit$theta
+	se <- sqrt(diag(fit$vcov))
+	pvalue <- 2 * pnorm(abs(theta / se),lower.tail = FALSE)
+	stats <- fit$likelihoodModel$getModel()$statistics()
+	result <- data.frame(observed_statistics=stats, theta=theta, se=se, pvalue=round(pvalue,4))
+	rownames(result) <- names(stats)
+	result
+}
+
+
+elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10, maxIter=100,
+		startingStepSize=.1, maxStepSize=.5, order=NULL, cluster=NULL){
+	
+	lolik <- createLatentOrderLikelihood(formula, theta=theta)
+	if(!is.null(order)){
+		lolik$setOrder(as.integer(rank(order, ties.method = "min")))
+	}
+	terms <- .prepModelTerms(formula)
+	auxTerms <- .prepModelTerms(auxFormula)
+	auxModel <- createCppModel(auxFormula)
+	#browser()
+	auxModel$setNetwork(lolik$getModel()$getNetwork())
+	auxModel$calculate()
+	obsStats <- auxModel$statistics()
+	#obsStats <- lolik$getModel()$statistics()
+	stepSize <- startingStepSize
+	lastTheta <- NULL
+	lastObjective <- Inf
+	hsCount <- 0
+	iter <- 0
+	if(!is.null(cluster)){
+	  clusterEvalQ(cluster, {
+	    library(ernm)
+	    library(network)
+	  })
+	  network <- as.network(lolik$getModel()$getNetwork())
+	  clusterExport(cluster, "terms", envir = environment())
+	  clusterExport(cluster, "auxTerms", envir = environment())
+	  clusterExport(cluster, "network", envir = environment())
+	}
+	while(iter < maxIter){
+		iter <- iter + 1
+		
+		#generate networks
+		lolik$setThetas(theta)
+		stats <- matrix(0,ncol=length(theta),nrow=nsamp)
+		estats <- matrix(0,ncol=length(theta),nrow=nsamp)
+		auxStats <- matrix(0,ncol=length(obsStats),nrow=nsamp)
+		sumCov <- array(0, dim=c(nsamp,length(theta),length(theta)))
+		if(is.null(cluster)){
+			for(i in 1:nsamp){
+				cat(".")
+				samp <- lolik$generateNetwork()
+				auxModel$setNetwork(samp$network)
+				auxModel$calculate()
+				auxStats[i,] <-  auxModel$statistics()
+				stats[i,] <- samp$stats + samp$emptyNetworkStats
+				estats[i,] <- samp$expectedStats + samp$emptyNetworkStats
+				sumCov[i,,] <- samp$sumCov
+			}
+			cat("\n")
+		}else{
+		  workingNetwork <- as.network(lolik$getModel()$getNetwork())
+			worker <- function(i, theta){
+			  network <- as.BinaryNet(network)
+			  lolik <- ernm:::.createLatentOrderLikelihoodFromTerms(terms, network, theta)
+			  auxModel <- ernm:::.makeCppModelFromTerms(auxTerms, network)
+			  samp <- lolik$generateNetwork()
+			  auxModel$setNetwork(samp$network)
+			  auxModel$calculate()
+			  list(stats=samp$stats + samp$emptyNetworkStats,
+			    estats = samp$expectedStats + samp$emptyNetworkStats,
+			    sumCov = samp$sumCov)
+			}
+			worker(1, theta)
+
+			results <- parallel::parLapply(cluster, 1:4, worker, theta=theta)
+			browser()
+		}
+		
+		#calculate gradient of moment conditions
+		grad <- matrix(0,ncol=length(theta),nrow=length(obsStats))
+		for(i in 1:length(obsStats)){
+			for(j in 1:length(theta)){
+				#cat(i," ",j," ", cov(auxStats[,i], stats[,j]), " ", cov(auxStats[,i], estats[,j]),"\n")
+				#grad[i,j] <- -mean(stats[,i] * (stats[,j] - estats[,j]))
+				grad[i,j] <- -(cov(auxStats[,i], stats[,j]) - cov(auxStats[,i], estats[,j]))
+			}
+		}
+		
+		W <- diag( 1 / (diag(var(auxStats)) + 1) )
+		#W <- diag( 1 / (obsStats + 1) )
+		hess <- matrix(0,ncol=length(theta),nrow=length(theta))
+		mh <- colMeans(auxStats)
+		for(i in 1:length(theta)){
+			mgi <- mean(stats[,i])
+			mGi <- mean(estats[,i])
+			for(j in 1:length(theta)){
+				mgj <- mean(stats[,j])
+				mGj <- mean(estats[,j])
+				d2m <- -(colMeans(auxStats * stats[,i] * stats[,j]) - mh * mgi * mgj -
+							colMeans(auxStats * stats[,i] * estats[,j]) + mh * mgi * mGj -
+							colMeans(auxStats * estats[,i] * stats[,j]) + mh * mGi * mgj +
+							colMeans(auxStats * estats[,i] * estats[,j]) - mh * mGi * mGj -
+							colMeans(auxStats * stats[,i]) + colMeans(auxStats * sumCov[,i,j]))
+				hess[i,j] <- t(grad[,i,drop=FALSE]) %*% W %*% grad[,j,drop=FALSE] + d2m %*% W %*% (obsStats - mh)
+				#cat(i," ",j," ", t(grad[,i,drop=FALSE]) %*% W %*% grad[,j,drop=FALSE] , " ", 
+				#		d2m %*% W %*% (obsStats - mh),"\n")
+			}
+		}    
+		#browser()
+		
+		#W <- diag(nrow=length(obsStats),ncol=length(obsStats))
+		diffs <- -sweep(auxStats, 2, obsStats)
+		transformedDiffs <- t(t(grad) %*% W %*% t(diffs))
+		momentCondition <- colMeans(transformedDiffs)
+		
+		objective <- colMeans(diffs) %*% W %*% colMeans(diffs)
+		cat("Objective:\n")
+		print(objective)
+		objCrit <- max(-1000000, objective - lastObjective) / (lastObjective + 1)
+		
+		cat("Moment Conditions:\n")
+		print(momentCondition)
+		
+		
+		#calculate inverse of gradient
+		invFailed <- inherits(try(gradInv <- solve(t(grad) %*% W %*% grad),silent = TRUE),"try-error")
+		#invFailed <- inherits(try(gradInv <- solve(-var(stats)),silent = TRUE),"try-error")
+		pairs(stats)
+		#browser()
+		if(hsCount < nHalfSteps && !is.null(lastTheta) && (invFailed || objCrit > .3)){
+			cat("Half step back\n")
+			theta <- (lastTheta + theta) / 2
+			hsCount <- hsCount + 1
+			stepSize <- stepSize / 2
+			cat("Theta:\n")
+			print(theta)
+			next
+		}else{
+			stepSize <- min(maxStepSize, stepSize * 1.25)
+			hsCount <- 0
+		}
+		print(stepSize)
+		lastTheta <- theta
+		theta <- theta - stepSize * gradInv %*% momentCondition
+		#theta <- theta - stepSize * solve(hess) %*% momentCondition
+		#browser()
+		lastObjective <- objective
+		
+		print("auxStat Diffs:")
+		print(colMeans(diffs) / sqrt(diag(var(diffs))))
+		
+		#Hotelling's T^2 test
+		hotT <- momentCondition %*% solve(var(transformedDiffs)/nrow(transformedDiffs)) %*% momentCondition
+		pvalue <- pchisq(hotT,df=length(theta), lower.tail = FALSE)
+		cat("Hotelling's T2 p-value: ",pvalue,"\n")
+		cat("Theta:\n")
+		print(theta)
+		#browser()
+		if(pvalue > hotellingTTol){
+			break
+		}else if(iter < maxIter){
+			
+		}
+	}
+	omega <- var(auxStats)
+	vcov <- solve(t(grad) %*% W %*% grad) %*% 
+			t(grad) %*% W %*% omega %*% t(W) %*% grad %*% 
+			solve(t(grad) %*% t(W) %*% grad) 
+	#vcov <- gradInv %*% var(stats) %*% t(gradInv)
+	
+	result <- list(theta=lastTheta,
+			stats=stats,
+			estats=estats, 
+			auxStats=auxStats,
+			obsStats=obsStats,
+			net=samp$network,
+			grad=grad, 
+			vcov=vcov, 
+			likelihoodModel=lolik)
+	class(result) <- c("elog","list")
+	result
 }

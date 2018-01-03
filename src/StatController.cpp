@@ -68,6 +68,7 @@ RcppExport void initStats(){
     registerStatistic( UndirStatPtr( new UndirectedEsp() ) );
     registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
     registerStatistic( UndirStatPtr( new UndirectedPreferentialAttachment() ) );
+    registerStatistic( UndirStatPtr( new UndirectedSharedNbrs() ) );
 
 	////////			Offsets				/////////
 	registerOffset( UndirOffsetPtr( new UndirectedBoundedDegreeConstraint() ) );

@@ -45,7 +45,7 @@ protected:
 	 */
 	template<class T>
 	void shuffle(std::vector<T>& vec, long offset){
-		for( int i=0; i < offset; i++){
+		for( int i=0; i < offset - 1.0; i++){
 			//long ind = floor(Rf_runif(0.0,1.0)*offset);
 			long ind = floor(Rf_runif(i,offset));
 			T tmp = vec[i];
@@ -631,7 +631,9 @@ public:
 				}
 			}
 		}
-
+		DiscreteAttrib attr = DiscreteAttrib();
+		attr.setName("__order__");
+		runningModel->network()->addDiscreteVariable(vert_order, attr);
 		PutRNGstate();
 		List result;
 		result["network"] = runningModel->network()->cloneR();

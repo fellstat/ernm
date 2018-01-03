@@ -1,15 +1,6 @@
 
 
-initLatent <- function(name, levels, lower=NULL,upper=NULL){
-	cont <- TRUE
-	if(!missing(levels)){
-		cont <- FALSE
-	}
-	if(cont)
-		return(list(name=name,type='continuous',lower=lower,upper=upper))
-	else
-		return(list(name=name,type='discrete',levels=levels))
-}
+
 
 #' creates a model
 #' @param formula the model formula
@@ -22,53 +13,15 @@ createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model")
 	net <- as.BinaryNet(eval(form[[2]],envir=env))
 	if(cloneNet)
 		net <- net$clone()
-	noDyad <- FALSE
-	randomVars <- character()
-	if(!is.symbol(formula[[3]]) && as.character(formula[[3]][[1]])=="|"){
-		lastTerm <- FALSE
-		tmp <- formula[[3]][[3]]
-		while(!lastTerm){
-			if(is.symbol(tmp)){
-				lastTerm <- TRUE
-				term <- tmp
-			} else if(as.character(tmp[[1]])=="+"){
-				term <- tmp[[3]]
-			}else{
-				lastTerm <- TRUE
-				term <- tmp
-			}
-			if(length(term)==1){
-				val <- as.character(term)
-				if(val == "noDyad")
-					noDyad <- TRUE
-				else
-					randomVars[length(randomVars)+1] <- val
-			}else if(as.character(term[[1]]) == "latent"){
-				term[[1]] <- as.name("initLatent")
-				latent <- eval(term,envir=env)
-				if(latent$type=="discrete")
-					var <- factor(rep(NA,net$size()), levels=latent$levels)
-				else{
-					var <- as.numeric(rep(NA,net$size()))
-					attr(var,"lowerBound") <- latent$lower
-					attr(var,"upperBound") <- latent$upper
-				}
-				net[[latent$name]] <- var
-				randomVars[length(randomVars)+1] <- latent$name
-			}
-			if(!lastTerm)
-				tmp <- tmp[[2]]
-		}
-		form[[3]] <- formula[[3]][[2]]
-	}
-	clss <- class(net)
-	networkEngine <- substring(clss,6,nchar(clss)-3)
-	ModelType <- eval(parse(text=paste(networkEngine,modelClass,sep="")))
-	
-	model <- new(ModelType)
-	model$setNetwork(net)
-	
-	tmp <- form[[3]]
+	terms <- .prepModelTerms(formula)
+	model <- .makeCppModelFromTerms(terms, net, theta, modelClass)
+	model
+}
+
+
+.prepModelTerms <- function(formula){
+	env <- environment(formula)
+	tmp <- formula[[3]]
 	lastTerm <- FALSE
 	stats <- list()
 	offsets <- list()
@@ -76,14 +29,14 @@ createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model")
 		ls <- length(stats)
 		lo <- length(offsets)
 		term <- if(is.symbol(tmp)){
-			lastTerm <- TRUE
-			term <- tmp
-		} else if(as.character(tmp[[1]])=="+"){
-			tmp[[3]]
-		}else{
-			lastTerm <- TRUE
-			tmp
-		}
+					lastTerm <- TRUE
+					term <- tmp
+				} else if(as.character(tmp[[1]])=="+"){
+					tmp[[3]]
+				}else{
+					lastTerm <- TRUE
+					tmp
+				}
 		
 		name <- if(is.symbol(term)) as.character(term) else as.character(term[[1]])
 		args <- NULL
@@ -111,8 +64,23 @@ createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model")
 		if(!lastTerm)
 			tmp <- tmp[[2]]
 	}
-	offsets <- rev(offsets)
-	stats <- rev(stats)
+	list(stats=stats,offsets=offsets)
+}
+
+
+.makeCppModelFromTerms <- function(terms, net, theta=NULL, modelClass="Model"){
+	net <- as.BinaryNet(net)
+	
+	clss <- class(net)
+	networkEngine <- substring(clss,6,nchar(clss)-3)
+	ModelType <- eval(parse(text=paste(networkEngine,modelClass,sep="")))
+	
+	model <- new(ModelType)
+	model$setNetwork(net)
+	
+	stats <- rev(terms$stats)
+	offsets <- rev(terms$offsets)
+	
 	if(length(stats)>0)
 		for(i in 1:length(stats)){
 			t <- try(model$addStatistic(names(stats)[i],stats[[i]]), silent=TRUE)
@@ -125,12 +93,10 @@ createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model")
 	if(length(offsets)>0)
 		for(i in 1:length(offsets))
 			model$addOffset(names(offsets)[i],offsets[[i]])
-	
-	model$setRandomVariables(randomVars)
-	model$setRandomGraph(!noDyad)
 	if(!is.null(theta))
 		model$setThetas(theta)
 	model
+	
 }
 
 

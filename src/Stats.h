@@ -1959,7 +1959,117 @@ public:
 
 typedef Stat<Directed, PreferentialAttachment<Directed> > DirectedPreferentialAttachment;
 typedef Stat<Undirected, PreferentialAttachment<Undirected> > UndirectedPreferentialAttachment;
+
+
+template<class Engine>
+class SharedNbrs : public BaseStat< Engine > {
+protected:
+	typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+public:
+
+
+	SharedNbrs(){
+		std::vector<double> v(1,0.0);
+		std::vector<double> t(1,0.0);
+		this->stats=v;
+		this->thetas = t;
+	}
+	SharedNbrs(List params){
+		std::vector<double> v(1,0.0);
+		std::vector<double> t(1,0.0);
+		this->stats=v;
+		this->thetas = t;
+	}
+
+	std::string name(){
+		return "sharedNbrs";
+	}
+
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"sharedNbrs");
+        return statnames;
+	}
+
+    int sharedNbrs(const BinaryNet<Engine>& net, int from, int to){
+    	if(net.isDirected()){
+    		return directedSharedNbrs(net, from, to);
+    	}
+    	return undirectedSharedNbrs(net, from, to);
+    }
     
+	int undirectedSharedNbrs(const BinaryNet<Engine>& net, int from, int to){
+		NeighborIterator fit = net.begin(from);
+		NeighborIterator fend = net.end(from);
+		NeighborIterator tit = net.begin(to);
+		NeighborIterator tend = net.end(to);
+		int shared = 0;
+		while(tit!=tend && fit!=fend){
+			if(*tit==*fit){
+				shared++;
+				tit++;
+				fit++;
+			}else if(*tit<*fit){
+				tit++;
+			}else
+				fit++;
+		}
+		return shared;
+	}
+
+	int directedSharedNbrs(const BinaryNet<Engine>& net, int from, int to){
+		NeighborIterator ifit = net.inBegin(from);
+		NeighborIterator ifend = net.inEnd(from);
+		NeighborIterator ofit = net.outBegin(from);
+		NeighborIterator ofend = net.outEnd(from);
+		int shared = 0;
+		while(ifit != ifend){
+			shared += net.hasEdge(*ifit, to);
+			shared += net.hasEdge(to, *ifit);
+			ifit++;
+		}
+		while(ofit != ofend){
+			shared += net.hasEdge(*ofit, to);
+			shared += net.hasEdge(to, *ofit);
+			ofit++;
+		}
+		return shared;
+	}
+
+
+	void calculate(const BinaryNet<Engine>& net){
+
+		std::vector<double> v(1,0.0);
+		this->stats = v;
+		this->lastStats = std::vector<double>(1,0.0);
+		this->stats[0] = 0.0;
+	}
+
+
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
+		double shared = sharedNbrs(net, from, to);
+		bool hasEdge = net.hasEdge(from,to);
+		double deg = net.degree(order[actorIndex]) - hasEdge;
+		if(deg < .5)
+			deg = 1.0;
+		if(shared < .5)
+			shared = 0.5;
+		double value = log(shared / deg);
+		if(hasEdge){
+			BaseOffset<Engine>::update(-value, 0);
+		}else{
+			BaseOffset<Engine>::update(value, 0);
+		}
+	}
+
+};
+
+typedef Stat<Directed, SharedNbrs<Directed> > DirectedSharedNbrs;
+typedef Stat<Undirected, SharedNbrs<Undirected> > UndirectedSharedNbrs;
+
+
+
+
 #include <Rcpp.h>
 
 
