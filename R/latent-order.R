@@ -30,9 +30,14 @@ createLatentOrderLikelihood <- function(formula, theta=NULL){
 
 
 #' Fits a latent ordered network model using maximum likelihood
-elogVariationalFit <- function(formula, nReplicates=5L, downsampleRate=NULL, targetFrameSize=500000){
+elogVariationalFit <- function(formula, order=NULL, nReplicates=5L, downsampleRate=NULL, targetFrameSize=500000){
   
   lolik <- createLatentOrderLikelihood(formula)
+  
+  if(!is.null(order)){
+    lolik$setOrder(as.integer(rank(order, ties.method = "min")))
+  }
+  
   network <- lolik$getModel()$getNetwork()
   n <- network$size()
   ndyads <- n * (n-1)
@@ -196,6 +201,11 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 	  clusterExport(cluster, "terms", envir = environment())
 	  clusterExport(cluster, "auxTerms", envir = environment())
 	  clusterExport(cluster, "network", envir = environment())
+	  if(!is.null(order))
+  	  ord <- as.integer(rank(order, ties.method = "min"))
+	  else
+	    ord <- NULL
+	  clusterExport(cluster, "ord", envir = environment())
 	}
 	while(iter < maxIter){
 		iter <- iter + 1
@@ -224,6 +234,9 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 			  cat(i," ")
 			  network <- as.BinaryNet(network)
 			  lolik <- ernm:::.createLatentOrderLikelihoodFromTerms(terms, network, theta)
+			  if(!is.null(ord)){
+			    lolik$setOrder(as.integer(rank(ord, ties.method = "min")))
+			  }
 			  auxModel <- ernm:::.makeCppModelFromTerms(auxTerms, network)
 			  samp <- lolik$generateNetwork()
 			  auxModel$setNetwork(samp$network)
