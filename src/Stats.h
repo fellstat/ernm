@@ -473,42 +473,28 @@ public:
 typedef Stat<Undirected, Clustering<Undirected> > UndirectedClustering;
 
 
-/*!
- * the sum over all nodes of the square root of the number of triangles incident
- * on the node minus what would be expected by chance given the degrees of the node's
- * neighbors.
- *
- * A robust transitivity statistic with almost no degeneracy. only currently implemented
- * for undirected nets
- */
+
 template<class Engine>
 class Transitivity : public BaseStat< Engine > {
 protected:
 	typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
-	double sumSqrtTri;
-	double sumSqrtExpected;
-	int lastTo;
-	int lastFrom;
-	std::vector<double> triadCounts;
-	std::vector<double> sumNbrDegrees;
+	double triads;
+	double nPosTriads;
+
+	double lastTriads;
+	double lastNPosTriads;
+
 public:
 
-
 	Transitivity(){
-		std::vector<double> v(1,0.0);
-		std::vector<double> t(1,0.0);
-		this->stats=v;
-		this->thetas = t;
-		sumSqrtTri = sumSqrtExpected = 0.0;
-		lastTo = lastFrom = 0;
+		triads = lastTriads = nPosTriads = lastNPosTriads = 0.0;
 	}
+
+	/*!
+	 * \param params
+	 */
 	Transitivity(List params){
-		std::vector<double> v(1,0.0);
-		std::vector<double> t(1,0.0);
-		this->stats=v;
-		this->thetas = t;
-		sumSqrtTri = sumSqrtExpected = 0.0;
-		lastTo = lastFrom = 0;
+		triads = lastTriads = nPosTriads = lastNPosTriads = 0.0;
 	}
 
 	std::string name(){
@@ -520,197 +506,58 @@ public:
         return statnames;
 	}
 
-	void calcAtNode(const BinaryNet<Engine>& net, int& node, std::vector<double>& results){
-		//const Set* nbs = &net.neighbors(node);
-		//Set::iterator it = nbs->begin();
-		NeighborIterator it = net.begin(node);
-		NeighborIterator end = net.end(node);
-		NeighborIterator nit;
-		double tri = 0.0;
-		double degSum = 0.0;
-		while(it!=end){
-			nit = it;
-			nit++;
-			for(;nit!=end;nit++){
-				tri += net.hasEdge(*it,*nit);
-			}
-			degSum += net.degree(*it);
-			it++;
-		}
-		//double deg = net.degree(node);
-		//double density = degSum / ((double)nbs->size()) / (net.size()-1.0);
-		//double expected = density*deg*(deg-1.0)/2.0;
-		results.at(0) = tri;
-		results.at(1) = degSum;
-	}
-
-	double trans(double val){return sqrt(val + 3.0/8.0);}
-
-	void calculate(const BinaryNet<Engine>& net){
-		triadCounts = std::vector<double>(net.size(),0.0);
-		sumNbrDegrees = std::vector<double>(net.size(),0.0);
-		std::vector<double> v(1,0.0);
-		this->stats = v;
-		if(this->thetas.size()!=1)
-			this->thetas = v;
-		sumSqrtTri = 0.0;
-		sumSqrtExpected = 0.0;
-		std::vector<double> tmp(2,0.0);
-		for(int i=0; i<net.size();i++){
-			double deg = net.degree(i);
-			calcAtNode(net,i,tmp);
-			triadCounts[i] = tmp[0];
-			sumNbrDegrees[i] = tmp[1];
-			sumSqrtTri += trans(tmp[0]);
-			//double density = (tmp[1] / deg - 1.0) / (net.size()-2.0);
-			double nEdgesBetweenNbrs = tmp[1] - tmp[0] - deg;
-			//if(deg<.5)
-			//	density = 0.0;
-			int nPosTri = round(deg*(deg-1.0)/2.0);
-			double nPosEdges = ( deg * (net.size() - 2.0) - nPosTri);
-			double nExpected = nEdgesBetweenNbrs * nPosTri / nPosEdges;
-			if(nPosEdges<.5)
-				nExpected=0.0;
-			//sumSqrtExpected += expectedAnscombe(nExpected,round(nPosEdges));
-			sumSqrtExpected += expectedAnscombe2(round(nPosEdges), nPosTri, round(nEdgesBetweenNbrs));
-			//		trans(density*deg*(deg-1.0)/2.0);
-			//cout <<sqrt(tmp[0])<<","<<nExpected<<","<<nPosEdges<<","<<deg<<",\n";
-
-		}
-
-		this->stats[0] = sumSqrtTri - sumSqrtExpected;
-	}
-
-
-	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int>  &order,const int &actorIndex){
-
-		BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
-		bool edge = net.hasEdge(from,to);
-		double change = edge ? -1.0 : 1.0;
-
-		//const Set* nbs = &net.neighbors(from);
-		//Set::iterator it = nbs->begin();
-		double curTriadValue, curSumNbrDegrees, deg, newTriadValue, newSumNbrDegrees;
-		NeighborIterator it = net.begin(from);
-		NeighborIterator end = net.end(from);
-		while(it!=end){
-			if(*it == to){
-				it++;
-				continue;
-			}
-			curTriadValue = triadCounts[*it];
-			curSumNbrDegrees = sumNbrDegrees[*it];
-			if(net.hasEdge(to,*it)){
-				sumSqrtTri += trans(curTriadValue + change) - trans(curTriadValue);
-				triadCounts[*it] = curTriadValue + change;
-				newSumNbrDegrees = sumNbrDegrees[*it] = curSumNbrDegrees + 2.0*change;
-			}else
-				newSumNbrDegrees = sumNbrDegrees[*it] = curSumNbrDegrees + change;
-			newTriadValue = triadCounts[*it];
-
-			deg = net.degree(*it);
-
-			double curNEdgesBetweenNbrs = curSumNbrDegrees - curTriadValue - deg;
-			double newNEdgesBetweenNbrs = newSumNbrDegrees - newTriadValue - deg;
-			int nPosTri = round(deg*(deg-1.0)/2.0);
-			double nPosEdges = ( deg * (net.size() - 2.0) - nPosTri);
-			double curNExpected = curNEdgesBetweenNbrs * nPosTri / nPosEdges;
-			double newNExpected = newNEdgesBetweenNbrs * nPosTri / nPosEdges;
-			if(nPosEdges<.5)
-				curNExpected = newNExpected = 0.0;
-			//sumSqrtExpected += expectedAnscombe(newNExpected,round(nPosEdges)) -
-			//		expectedAnscombe(curNExpected,round(nPosEdges));
-			sumSqrtExpected += expectedAnscombe2(round(nPosEdges), nPosTri, round(newNEdgesBetweenNbrs)) -
-				expectedAnscombe2(round(nPosEdges), nPosTri, round(curNEdgesBetweenNbrs));
-
-			it++;
-		}
-
-		it = net.begin(to);
-		end = net.end(to);
-		while(it!=end){
-			if(*it == from){
-				it++;
-				continue;
-			}
-			curTriadValue = triadCounts[*it];
-			curSumNbrDegrees = sumNbrDegrees[*it];
-			if(net.hasEdge(from,*it)){
-				it++;
-				continue;
-				//sumSqrtTri += trans(curTriadValue + change) - trans(curTriadValue);
-				//triadCounts[*it] = curTriadValue + change;
-			}
-			newSumNbrDegrees = sumNbrDegrees[*it] = curSumNbrDegrees + change;
-			newTriadValue = triadCounts[*it];
-
-			deg = net.degree(*it);
-
-			double curNEdgesBetweenNbrs = curSumNbrDegrees - curTriadValue - deg;
-			double newNEdgesBetweenNbrs = newSumNbrDegrees - newTriadValue - deg;
-			int nPosTri = round(deg*(deg-1.0)/2.0);
-			double nPosEdges = ( deg * (net.size() - 2.0) - nPosTri);
-			double curNExpected = curNEdgesBetweenNbrs * nPosTri / nPosEdges;
-			double newNExpected = newNEdgesBetweenNbrs * nPosTri / nPosEdges;
-			if(nPosEdges<.5)
-				curNExpected = newNExpected = 0.0;
-			//sumSqrtExpected += expectedAnscombe(newNExpected,round(nPosEdges)) -
-			//		expectedAnscombe(curNExpected,round(nPosEdges));
-			sumSqrtExpected += expectedAnscombe2(round(nPosEdges), nPosTri, round(newNEdgesBetweenNbrs)) -
-				expectedAnscombe2(round(nPosEdges), nPosTri, round(curNEdgesBetweenNbrs));
-			it++;
-		}
-
-		std::vector<double> tmp(2,0.0);
-
-		for(int i=0;i<2;i++){
-			int node;
-			if(i==0)
-				node = from;
-			else
-				node = to;
-			double curDeg = net.degree(node);
-			pnet->toggle(from,to);
-			double newDeg = net.degree(node);
-			curTriadValue = triadCounts[node];
-			curSumNbrDegrees = sumNbrDegrees[node];
-			calcAtNode(*pnet,node,tmp);
-			newTriadValue = triadCounts[node] = tmp[0];
-			newSumNbrDegrees = sumNbrDegrees[node] = tmp[1];
-			sumSqrtTri += trans(triadCounts[node]) - trans(curTriadValue);
-
-			double curNEdgesBetweenNbrs = curSumNbrDegrees - curTriadValue - curDeg;
-			double newNEdgesBetweenNbrs = newSumNbrDegrees - newTriadValue - newDeg;
-			int newNPosTri = round(newDeg*(newDeg-1.0)/2.0);
-			int curNPosTri = round(curDeg*(curDeg-1.0)/2.0);
-			double newNPosEdges = ( newDeg * (net.size() - 2.0) - newNPosTri);
-			double curNPosEdges = ( curDeg * (net.size() - 2.0) - curNPosTri);
-			double curNExpected = curNEdgesBetweenNbrs * curNPosTri / curNPosEdges;
-			double newNExpected = newNEdgesBetweenNbrs * newNPosTri / newNPosEdges;
-			if(newNPosEdges<.5)
-				newNExpected =  0.0;
-			if(curNPosEdges<.5)
-				curNExpected =  0.0;
-			//sumSqrtExpected += expectedAnscombe(newNExpected,round(newNPosEdges)) -
-			//		expectedAnscombe(curNExpected,round(curNPosEdges));
-			sumSqrtExpected += expectedAnscombe2(round(newNPosEdges), newNPosTri, round(newNEdgesBetweenNbrs)) -
-				expectedAnscombe2(round(curNPosEdges), curNPosTri, round(curNEdgesBetweenNbrs));
-			pnet->toggle(from,to);
-		}
-		lastTo = to;
-		lastFrom = from;
-		this->stats[0] = sumSqrtTri - sumSqrtExpected;
-	}
-
-    void rollback(const BinaryNet<Engine>& net){
-    	BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
-    	pnet->toggle(lastFrom, lastTo);
-    	this->dyadUpdate(net, lastFrom, lastTo, std::vector<int>(), -1);
-    	pnet->toggle(lastFrom, lastTo);
+    void resetMemory(){
+    	lastTriads = triads;
+    	lastNPosTriads = nPosTriads;
     }
 
-};
+    void rollback(const BinaryNet<Engine>& net){
+    	BaseOffset<Engine>::rollback(net);
+    	nPosTriads = lastNPosTriads;
+    	triads = lastTriads;
+    }
 
+
+	void calculate(const BinaryNet<Engine>& net){
+		int nstats = 1;
+
+		std::vector<double> v(1,0.0);
+		this->stats = v;
+		this->lastStats = std::vector<double>(1,0.0);
+		if(this->thetas.size()!=1)
+			this->thetas = v;
+
+		boost::shared_ptr<std::vector< std::pair<int,int> > > edges = net.edgelist();
+
+		std::vector< std::pair<int,int> >::iterator it = edges->begin();
+		while(it != edges->end()){
+			int shared = sharedNbrs(net, (*it).first,(*it).second);
+			triads += shared;
+			nPosTriads += .5 * (std::min(net.degree((*it).first), net.degree((*it).second)) - 1.0);
+			it++;
+		}
+		this->stats[0] = log( (1.0 + triads) / (1.0 + nPosTriads));
+	}
+
+
+	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
+		BaseOffset<Engine>::resetLastStats();
+		resetMemory();
+		int shared = sharedNbrs(net, from, to);
+		bool hasEdge = net.hasEdge(from,to);
+		if(hasEdge){
+			triads -= 3.0 * shared;
+		}else{
+			triads += 3.0 * shared;
+		}
+
+		nPosTriads += hasEdge;//(std::min(net.degree(from), net.degree(to)) - 1.0) -
+				//(std::min(net.degree(from), net.degree(to)) - hasEdge - 1.0);
+
+		this->stats[0] = log( (1.0 + triads) / (1.0 + nPosTriads));
+	}
+
+};
 typedef Stat<Directed, Transitivity<Directed> > DirectedTransitivity;
 typedef Stat<Undirected, Transitivity<Undirected> > UndirectedTransitivity;
 
