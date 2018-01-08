@@ -262,7 +262,8 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 			}
 		}
 		
-		W <- diag( 1 / (diag(var(auxStats)) + 1) )
+		#W <- diag( 1 / (diag(var(auxStats)) + 1) )
+		W <- diag( 1 / (diag(var(auxStats))) )
 		#W <- diag( 1 / (obsStats + 1) )
 		hess <- matrix(0,ncol=length(theta),nrow=length(theta))
 		mh <- colMeans(auxStats)

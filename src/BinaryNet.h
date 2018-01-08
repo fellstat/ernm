@@ -2423,6 +2423,8 @@ public:
 typedef BinaryNet<Undirected> UndirectedNet;
 
 
+
+
 }
 
 #endif /* NETH_ */

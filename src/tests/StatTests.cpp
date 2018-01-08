@@ -112,6 +112,9 @@ void changeStatTest(std::string statName){
     else if(statName == "Triangles")
     	stat = boost::shared_ptr< Stat<Engine, Triangles<Engine> > >(
         		new Stat<Engine, Triangles<Engine> >());
+    else if(statName == "Clustering")
+    	stat = boost::shared_ptr< Stat<Engine, Clustering<Engine> > >(
+        		new Stat<Engine, Clustering<Engine> >());
     else if(statName == "Degree")
     	stat = boost::shared_ptr< Stat<Engine, Degree<Engine> > >(
     			new Stat<Engine, Degree<Engine> >(deg));
@@ -227,6 +230,7 @@ void testStats(){
     RUN_TEST(changeStatTest<Directed>("Triangles"));
 
 	RUN_TEST(changeStatTest<Undirected>("Triangles"));
+	RUN_TEST(changeStatTest<Undirected>("Clustering"));
 	RUN_TEST(changeStatTest<Undirected>("NodeMatch"));
 	RUN_TEST(changeStatTest<Undirected>("Degree"));
 	RUN_TEST(changeStatTest<Undirected>("Star"));

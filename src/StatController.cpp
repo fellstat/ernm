@@ -56,6 +56,9 @@ RcppExport void initStats(){
 	 */
 	registerStatistic( UndirStatPtr( new UndirectedEdges() ) );
 	registerStatistic( UndirStatPtr( new UndirectedTriangles() ) );
+	registerStatistic( UndirStatPtr( new UndirectedClustering() ) );
+	registerStatistic( UndirStatPtr( new UndirectedTransitivity() ) );
+	registerStatistic( UndirStatPtr( new UndirectedNodeLogMaxCov() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeMix() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegree() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeMatch() ) );
