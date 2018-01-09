@@ -2280,6 +2280,9 @@ public:
         return statnames;
 	}
 
+
+
+
 	void calculate(const BinaryNet<Engine>& net){
 
 		std::vector<double> v(1,0.0);
