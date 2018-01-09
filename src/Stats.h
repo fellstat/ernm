@@ -409,7 +409,7 @@ public:
 		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1)
 			this->thetas = v;
-
+		triangles = twostars = 0.0;
 		boost::shared_ptr<std::vector< std::pair<int,int> > > edges = net.edgelist();
 
 		std::vector< std::pair<int,int> >::iterator it = edges->begin();
@@ -526,17 +526,17 @@ public:
 		this->lastStats = std::vector<double>(1,0.0);
 		if(this->thetas.size()!=1)
 			this->thetas = v;
-
+		triads = nPosTriads = 0.0;
 		boost::shared_ptr<std::vector< std::pair<int,int> > > edges = net.edgelist();
 
 		std::vector< std::pair<int,int> >::iterator it = edges->begin();
 		while(it != edges->end()){
 			int shared = sharedNbrs(net, (*it).first,(*it).second);
 			triads += shared;
-			nPosTriads += .5 * (std::min(net.degree((*it).first), net.degree((*it).second)) - 1.0);
+			nPosTriads += std::min(net.degree((*it).first), net.degree((*it).second)) - 1.0;
 			it++;
 		}
-		this->stats[0] = log( (1.0 + triads) / (1.0 + nPosTriads));
+		this->stats[0] = (1.0 + triads) / (1.0 + nPosTriads);
 	}
 
 
@@ -545,16 +545,30 @@ public:
 		resetMemory();
 		int shared = sharedNbrs(net, from, to);
 		bool hasEdge = net.hasEdge(from,to);
-		if(hasEdge){
-			triads -= 3.0 * shared;
-		}else{
-			triads += 3.0 * shared;
+		int change = hasEdge ? -1 : 1;
+		int fromDeg = net.degree(from);
+		int toDeg = net.degree(to);
+		triads += change * 3.0 * shared;
+		NeighborIterator it = net.begin(from);
+		NeighborIterator end = net.end(from);
+		while(it != end){
+
+			if(*it != to && net.degree(*it) >= (fromDeg + !hasEdge)){
+				nPosTriads += change;
+			}
+			it++;
 		}
+		it = net.begin(to);
+		end = net.end(to);
+		while(it != end){
+			if(*it != from && net.degree(*it) >= (toDeg + !hasEdge)){
+				nPosTriads += change;
+			}
+			it++;
+		}
+		nPosTriads += change * (std::min(fromDeg, toDeg) + !hasEdge - 1.0);
 
-		nPosTriads += hasEdge;//(std::min(net.degree(from), net.degree(to)) - 1.0) -
-				//(std::min(net.degree(from), net.degree(to)) - hasEdge - 1.0);
-
-		this->stats[0] = log( (1.0 + triads) / (1.0 + nPosTriads));
+		this->stats[0] =  (1.0 + triads) / (1.0 + nPosTriads);
 	}
 
 };
@@ -1320,15 +1334,17 @@ protected:
 	double oneexpa;
 	double expa;
 	std::vector< boost::container::flat_map<int,int> > sharedValues;
+	int lastFrom;
+	int lastTo;
 public:
 
 	Gwesp() : alpha(.5), oneexpa(1.0 - exp(-alpha)), expa(exp(alpha)),
-	sharedValues(){
+	sharedValues(), lastFrom(0), lastTo(0){
 	}
 
 	virtual ~Gwesp(){};
 
-	Gwesp(List params) : sharedValues(){
+	Gwesp(List params) : sharedValues(), lastFrom(0), lastTo(0){
 		try{
 			alpha = as< double >(params(0));
 			oneexpa = 1.0 - exp(-alpha);
@@ -1469,8 +1485,17 @@ public:
 			setSharedValue(net,from,to,sn);
 		else
 			eraseSharedValue(net,from,to);
+		lastFrom=from;
+		lastTo=to;
 		this->stats[0] += expa * (delta + change * (1.0 - pow(oneexpa,sn)));
 	}
+
+    void rollback(const BinaryNet<Engine>& net){
+    	BinaryNet<Engine>* pnet = const_cast< BinaryNet<Engine>* > (&net);
+    	pnet->toggle(lastFrom, lastTo);
+    	this->dyadUpdate(net, lastFrom, lastTo, std::vector<int>(), -1);
+    	pnet->toggle(lastFrom, lastTo);
+    }
 };
 
 typedef Stat<Directed, Gwesp<Directed> > DirectedGwesp;
@@ -2255,52 +2280,6 @@ public:
         return statnames;
 	}
 
-    int sharedNbrs(const BinaryNet<Engine>& net, int from, int to){
-    	if(net.isDirected()){
-    		return directedSharedNbrs(net, from, to);
-    	}
-    	return undirectedSharedNbrs(net, from, to);
-    }
-    
-	int undirectedSharedNbrs(const BinaryNet<Engine>& net, int from, int to){
-		NeighborIterator fit = net.begin(from);
-		NeighborIterator fend = net.end(from);
-		NeighborIterator tit = net.begin(to);
-		NeighborIterator tend = net.end(to);
-		int shared = 0;
-		while(tit!=tend && fit!=fend){
-			if(*tit==*fit){
-				shared++;
-				tit++;
-				fit++;
-			}else if(*tit<*fit){
-				tit++;
-			}else
-				fit++;
-		}
-		return shared;
-	}
-
-	int directedSharedNbrs(const BinaryNet<Engine>& net, int from, int to){
-		NeighborIterator ifit = net.inBegin(from);
-		NeighborIterator ifend = net.inEnd(from);
-		NeighborIterator ofit = net.outBegin(from);
-		NeighborIterator ofend = net.outEnd(from);
-		int shared = 0;
-		while(ifit != ifend){
-			shared += net.hasEdge(*ifit, to);
-			shared += net.hasEdge(to, *ifit);
-			ifit++;
-		}
-		while(ofit != ofend){
-			shared += net.hasEdge(*ofit, to);
-			shared += net.hasEdge(to, *ofit);
-			ofit++;
-		}
-		return shared;
-	}
-
-
 	void calculate(const BinaryNet<Engine>& net){
 
 		std::vector<double> v(1,0.0);
@@ -2315,7 +2294,7 @@ public:
 		BaseOffset<Engine>::resetLastStats();
 		double shared = sharedNbrs(net, from, to);
 		bool hasEdge = net.hasEdge(from,to);
-		double deg = net.degree(order[actorIndex]) - hasEdge;
+		int deg = net.degree(order[actorIndex]) - hasEdge;
 		int alter = order[actorIndex] == from ? to : from;
 		double altDeg = net.degree(alter) - hasEdge;
 		double netSize = actorIndex + 1.0;
@@ -2329,15 +2308,11 @@ public:
 		NeighborIterator fit = net.begin(order[actorIndex]);
 		NeighborIterator fend = net.end(order[actorIndex]);
 		while(fit != fend){
-			sdegs += net.degree(*fit);
+			sdegs += std::min(net.degree(*fit), deg) + !hasEdge - 1.0;
 			fit++;
 		}
-		double value = shared > k   ;
-		//double value = log((k + shared) / (k + sdegs));
-		//double value = log((k + shared) / (k + nchoosek(deg,2.0)));
-		//double value = log( k * altDeg / totDegree + (shared) / (sdegs));
-		if(deg == 0.0 || totDegree < 0.5)
-			value = 0.0;
+
+		double value = log((k + shared) / (k + 0.5 * sdegs));
 		if(hasEdge){
 			BaseOffset<Engine>::update(-value, 0);
 		}else{

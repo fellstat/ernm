@@ -25,16 +25,17 @@ protected:
 	int lower;
 	std::vector<int> scratch;
 	double dist;
+	double lastDist;
 public:
 
-	BoundedDegree() : upper(10000000), lower(0), dist(0.0){}
+	BoundedDegree() : upper(10000000), lower(0), dist(0.0), lastDist(0.0){}
 
-	BoundedDegree(int low, int up) : dist(0.0){
+	BoundedDegree(int low, int up) : dist(0.0), lastDist(0.0){
 		lower=low;
 		upper=up;
 	}
 
-	BoundedDegree(List params) : dist(0.0){
+	BoundedDegree(List params) : dist(0.0), lastDist(0.0){
 		if(params.size()<2){
 			::Rf_error("BoundedDegree: two parameters required");
 			return;
@@ -73,6 +74,7 @@ public:
 
 	//dyad update
 	double dyadUpdateDistance(const BinaryNet<Engine>& net, const int& from, const int&to){
+		lastDist = dist;
 		bool addingEdge = !net.hasEdge(from,to);
 		int dfrom = net.degree(from);
 		int dto = net.degree(to);
@@ -98,6 +100,12 @@ public:
 				dist--;
 		}
 		return dist;
+	}
+
+
+	void rollback(const BinaryNet<Engine>& net){
+		dist = lastDist;
+
 	}
 
 	//vertex update

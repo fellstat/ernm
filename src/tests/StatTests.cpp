@@ -115,7 +115,10 @@ void changeStatTest(std::string statName){
     else if(statName == "Clustering")
     	stat = boost::shared_ptr< Stat<Engine, Clustering<Engine> > >(
         		new Stat<Engine, Clustering<Engine> >());
-    else if(statName == "Degree")
+    else if(statName == "Transitivity")
+        	stat = boost::shared_ptr< Stat<Engine, Transitivity<Engine> > >(
+            		new Stat<Engine, Transitivity<Engine> >());
+        else if(statName == "Degree")
     	stat = boost::shared_ptr< Stat<Engine, Degree<Engine> > >(
     			new Stat<Engine, Degree<Engine> >(deg));
     else if(statName == "DegreeCrossProd")
@@ -197,10 +200,13 @@ void changeStatTest(std::string statName){
 		net.toggle(dyad.first,dyad.second);
 	}
 
-	for(int i=0;i<30;i++){
+	for(int i=0;i<300;i++){
 		pair<int,int> dyad = net.randomDyad();
 		model.dyadUpdate(dyad.first,dyad.second, order, dyad.first);
-		model.rollback();
+		if(Rf_runif(0.0,1.0) < .5)
+			model.rollback();
+		else
+			net.toggle(dyad.first,dyad.second);
 	}
 
     vector<double> mcmcStats = model.statistics();
@@ -231,6 +237,7 @@ void testStats(){
 
 	RUN_TEST(changeStatTest<Undirected>("Triangles"));
 	RUN_TEST(changeStatTest<Undirected>("Clustering"));
+	RUN_TEST(changeStatTest<Undirected>("Transitivity"));
 	RUN_TEST(changeStatTest<Undirected>("NodeMatch"));
 	RUN_TEST(changeStatTest<Undirected>("Degree"));
 	RUN_TEST(changeStatTest<Undirected>("Star"));

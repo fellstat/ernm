@@ -92,11 +92,11 @@ public:
 	}
 
 	virtual void vRollback(const BinaryNet<NetworkEngine>& net){
-		calculate(net);
+		rollback(net);
 	}
 
 	inline void rollback(const BinaryNet<NetworkEngine>& net){
-		this->off.updateLogLik(this->off.initialize(net));
+		this->off.rollback(net);
 	}
 
 };

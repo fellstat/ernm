@@ -105,6 +105,6 @@ createCppModel <- function(formula,cloneNet=TRUE,theta=NULL, modelClass="Model")
 #'calculate model statistics from a formula
 #' @param formula An ernm formula
 calculateStatistics <- function(formula){
-	createCppModel(formula,clone=FALSE,ignoreMnar=FALSE)$statistics()
+	createCppModel(formula,clone=FALSE)$statistics()
 }
 
