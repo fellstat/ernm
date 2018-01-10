@@ -1942,14 +1942,14 @@ typedef Stat<Undirected, Esp<Undirected> > UndirectedEsp;
 template<class Engine>
 class GeoDist : public BaseStat< Engine > {
 protected:
-	EdgeDirection direction;
 	std::string latVarName;
 	int latIndex;
 	std::string longVarName;
 	int longIndex;
+	std::vector<double> distCuts;
 public:
 
-	GeoDist() : direction(UNDIRECTED), latIndex(-1), longIndex(-1){}
+	GeoDist() : latIndex(-1), longIndex(-1){}
 
 	virtual ~GeoDist(){};
 
@@ -1962,20 +1962,13 @@ public:
 		try{
 			latVarName = as< std::string >(params(1));
 		}catch(...){
-			::Rf_error("The first parameter of geoDist should be the latitude variable");
+			::Rf_error("The second parameter of geoDist should be the latitude variable");
 		}
 		try{
-			int tmp = as< int >(params(2));
-			if(tmp==0)
-				direction = UNDIRECTED;
-			else if(tmp==1)
-				direction = IN;
-			else if(tmp==2)
-				direction = OUT;
-			else
-				::Rf_error("invalid direction");
+			distCuts = as< std::vector<double> >(params(2));
 		}catch(...){
-			direction = UNDIRECTED;
+			distCuts = std::vector<double>();
+			distCuts.push_back(41000.0);
 		}
 	}
 
@@ -1984,7 +1977,12 @@ public:
 	}
 
     std::vector<std::string> statNames(){
-        std::vector<std::string> statnames(1,"geoDist");
+        std::vector<std::string> statnames;
+        for(int i=0;i<distCuts.size();i++){
+            int e = distCuts[i];
+            std::string nm = "geoDist."+asString(e);
+            statnames.push_back(nm);
+        }
         return statnames;
 	}
     
@@ -2027,26 +2025,26 @@ public:
 				Rf_error("Longitude values out of range.");
 		}
 
-		int nstats = 1;
+		int nstats = distCuts.size();
 		this->stats = std::vector<double>(nstats,0.0);
 		this->lastStats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size()!=nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
-		this->stats[0] = 0;
 
 		boost::shared_ptr< std::vector<std::pair<int,int> > > el = net.edgelist();
-		double result = 0.0;
 		for(int i=0;i<el->size();i++){
 			int from = el->at(i).first;
 			int to = el->at(i).second;
-			result += dist(
+			double distance = dist(
 					net.continVariableValue(latIndex,from),
 					net.continVariableValue(longIndex,from),
 					net.continVariableValue(latIndex,to),
 					net.continVariableValue(longIndex,to)
 					);
+			for(int j=0;j<distCuts.size();j++){
+				this->stats[j] += std::min(distCuts[j], distance);
+			}
 		}
-		this->stats[0] = result;
 		//this->stats[0] = result / (double) net.nEdges();
 	}
 
@@ -2054,20 +2052,15 @@ public:
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
 		BaseOffset<Engine>::resetLastStats();
 		double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
-		//double ne =net.nEdges();
-/*		this->stats[0] = this->stats[0] * (ne / (ne + change)) + change * dist(
+		double distance = dist(
 				net.continVariableValue(latIndex,from),
 				net.continVariableValue(longIndex,from),
 				net.continVariableValue(latIndex,to),
 				net.continVariableValue(longIndex,to)
-				) / ne;
-*/
-		this->stats[0] = this->stats[0] + change * dist(
-						net.continVariableValue(latIndex,from),
-						net.continVariableValue(longIndex,from),
-						net.continVariableValue(latIndex,to),
-						net.continVariableValue(longIndex,to)
-						);
+				);
+		for(int j=0;j<distCuts.size();j++){
+			this->stats[j] += change * std::min(distCuts[j], distance);
+		}
 	}
 
 };
@@ -2311,11 +2304,14 @@ public:
 		NeighborIterator fit = net.begin(order[actorIndex]);
 		NeighborIterator fend = net.end(order[actorIndex]);
 		while(fit != fend){
-			sdegs += std::min(net.degree(*fit), deg) + !hasEdge - 1.0;
+			sdegs += std::min(net.degree(*fit), deg + !hasEdge) - 1.0;
 			fit++;
 		}
-
+		//double maxShared = std::min(altDeg, (double) deg) + !hasEdge - 1.0;
+		//double value = log((k + shared) / (k + maxShared));
 		double value = log((k + shared) / (k + 0.5 * sdegs));
+		//if(sdegs < .5) sdegs++;
+		//double value = (shared) / (0.5 * sdegs);
 		if(hasEdge){
 			BaseOffset<Engine>::update(-value, 0);
 		}else{
