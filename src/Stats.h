@@ -2303,13 +2303,19 @@ public:
 		double sdegs = 0.0;
 		NeighborIterator fit = net.begin(order[actorIndex]);
 		NeighborIterator fend = net.end(order[actorIndex]);
-		while(fit != fend){
-			sdegs += std::min(net.degree(*fit), deg + !hasEdge) - 1.0;
-			fit++;
-		}
+		//while(fit != fend){
+		//	sdegs += std::min(net.degree(*fit), deg + !hasEdge) - 1.0;
+		//	fit++;
+		//}
+
+		double d = std::min((double)altDeg, (double)deg);
+		if(d < .5) d++;
+
+		double value = log(k + shared / d);
+
 		//double maxShared = std::min(altDeg, (double) deg) + !hasEdge - 1.0;
 		//double value = log((k + shared) / (k + maxShared));
-		double value = log((k + shared) / (k + 0.5 * sdegs));
+		//double value = log((k + shared) / (k + 0.5 * sdegs));
 		//if(sdegs < .5) sdegs++;
 		//double value = (shared) / (0.5 * sdegs);
 		if(hasEdge){

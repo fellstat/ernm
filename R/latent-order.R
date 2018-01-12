@@ -169,7 +169,7 @@ summary.elog <- function(x, ...){
 }
 
 
-elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10, maxIter=100,
+elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal", hotellingTTol= .1, nHalfSteps=10, maxIter=100,
 		startingStepSize=.1, maxStepSize=.5, order=NULL, cluster=NULL){
 	
 	lolik <- createLatentOrderLikelihood(formula, theta=theta)
@@ -261,10 +261,10 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, hotellingTTol= .1
 				grad[i,j] <- -(cov(auxStats[,i], stats[,j]) - cov(auxStats[,i], estats[,j]))
 			}
 		}
-		
-		#W <- diag( 1 / (diag(var(auxStats)) + 1) )
-		W <- diag( 1 / (diag(var(auxStats))) )
-		#W <- diag( 1 / (obsStats + 1) )
+		if(weights == "diagonal")
+    		W <- diag( 1 / (diag(var(auxStats))) )
+		else
+		  W <- solve(var(auxStats))
 		hess <- matrix(0,ncol=length(theta),nrow=length(theta))
 		mh <- colMeans(auxStats)
 		for(i in 1:length(theta)){
