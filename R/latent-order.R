@@ -72,7 +72,7 @@ print.elogVariationalFit <- function(x, ...){
 
 
 
-elogFit <- function(formula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10, maxIter=100,
+elogFit <- function(formula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10, maxIter=100, minIter=4,
 		startingStepSize=maxStepSize, maxStepSize=.5, order=NULL){
 	
 	lolik <- createLatentOrderLikelihood(formula, theta=theta)
@@ -139,7 +139,7 @@ elogFit <- function(formula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10
 		cat("Hotelling's T2 p-value: ",pvalue,"\n")
 		cat("Theta:\n")
 		print(theta)
-		if(pvalue > hotellingTTol){
+		if(pvalue > hotellingTTol && iter >= minIter){
 			break
 		}else if(iter < maxIter){
 			
@@ -159,17 +159,17 @@ elogFit <- function(formula, theta, nsamp=1000, hotellingTTol= .1, nHalfSteps=10
 }
 
 summary.elog <- function(x, ...){
-	theta <- fit$theta
-	se <- sqrt(diag(fit$vcov))
+	theta <- x$theta
+	se <- sqrt(diag(x$vcov))
 	pvalue <- 2 * pnorm(abs(theta / se),lower.tail = FALSE)
-	stats <- fit$likelihoodModel$getModel()$statistics()
+	stats <- x$likelihoodModel$getModel()$statistics()
 	result <- data.frame(observed_statistics=stats, theta=theta, se=se, pvalue=round(pvalue,4))
 	rownames(result) <- names(stats)
 	result
 }
 
 
-elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal", hotellingTTol= .1, nHalfSteps=10, maxIter=100,
+elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal", hotellingTTol= .1, nHalfSteps=10, maxIter=100, minIter=4,
 		startingStepSize=.1, maxStepSize=.5, order=NULL, cluster=NULL){
 	
 	lolik <- createLatentOrderLikelihood(formula, theta=theta)
@@ -215,7 +215,6 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 		stats <- matrix(0,ncol=length(theta),nrow=nsamp)
 		estats <- matrix(0,ncol=length(theta),nrow=nsamp)
 		auxStats <- matrix(0,ncol=length(obsStats),nrow=nsamp)
-		sumCov <- array(0, dim=c(nsamp,length(theta),length(theta)))
 		if(is.null(cluster)){
 			for(i in 1:nsamp){
 				cat(".")
@@ -225,7 +224,6 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 				auxStats[i,] <-  auxModel$statistics()
 				stats[i,] <- samp$stats + samp$emptyNetworkStats
 				estats[i,] <- samp$expectedStats + samp$emptyNetworkStats
-				sumCov[i,,] <- samp$sumCov
 			}
 			cat("\n")
 		}else{
@@ -243,8 +241,7 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 			  auxModel$calculate()
 			  list(stats=samp$stats + samp$emptyNetworkStats,
 			    estats = samp$expectedStats + samp$emptyNetworkStats,
-			    auxStats = auxModel$statistics(),
-			    sumCov = samp$sumCov)
+			    auxStats = auxModel$statistics())
 			}
 			results <- parallel::parLapply(cluster, 1:nsamp, worker, theta=theta)
 			stats <- t(sapply(results, function(x) x$stats))
@@ -256,36 +253,15 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 		grad <- matrix(0,ncol=length(theta),nrow=length(obsStats))
 		for(i in 1:length(obsStats)){
 			for(j in 1:length(theta)){
-				#cat(i," ",j," ", cov(auxStats[,i], stats[,j]), " ", cov(auxStats[,i], estats[,j]),"\n")
-				#grad[i,j] <- -mean(stats[,i] * (stats[,j] - estats[,j]))
 				grad[i,j] <- -(cov(auxStats[,i], stats[,j]) - cov(auxStats[,i], estats[,j]))
 			}
 		}
 		if(weights == "diagonal")
-    		W <- diag( 1 / (diag(var(auxStats))) )
+      W <- diag( 1 / (diag(var(auxStats))) )
 		else
 		  W <- solve(var(auxStats))
-		hess <- matrix(0,ncol=length(theta),nrow=length(theta))
 		mh <- colMeans(auxStats)
-		for(i in 1:length(theta)){
-			mgi <- mean(stats[,i])
-			mGi <- mean(estats[,i])
-			for(j in 1:length(theta)){
-				mgj <- mean(stats[,j])
-				mGj <- mean(estats[,j])
-				d2m <- -(colMeans(auxStats * stats[,i] * stats[,j]) - mh * mgi * mgj -
-							colMeans(auxStats * stats[,i] * estats[,j]) + mh * mgi * mGj -
-							colMeans(auxStats * estats[,i] * stats[,j]) + mh * mGi * mgj +
-							colMeans(auxStats * estats[,i] * estats[,j]) - mh * mGi * mGj -
-							colMeans(auxStats * stats[,i]) + colMeans(auxStats * sumCov[,i,j]))
-				hess[i,j] <- t(grad[,i,drop=FALSE]) %*% W %*% grad[,j,drop=FALSE] + d2m %*% W %*% (obsStats - mh)
-				#cat(i," ",j," ", t(grad[,i,drop=FALSE]) %*% W %*% grad[,j,drop=FALSE] , " ", 
-				#		d2m %*% W %*% (obsStats - mh),"\n")
-			}
-		}    
-		#browser()
 		
-		#W <- diag(nrow=length(obsStats),ncol=length(obsStats))
 		diffs <- -sweep(auxStats, 2, obsStats)
 		transformedDiffs <- t(t(grad) %*% W %*% t(diffs))
 		momentCondition <- colMeans(transformedDiffs)
@@ -301,9 +277,7 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 		
 		#calculate inverse of gradient
 		invFailed <- inherits(try(gradInv <- solve(t(grad) %*% W %*% grad),silent = TRUE),"try-error")
-		#invFailed <- inherits(try(gradInv <- solve(-var(stats)),silent = TRUE),"try-error")
 		pairs(stats)
-		#browser()
 		if(hsCount < nHalfSteps && !is.null(lastTheta) && (invFailed || objCrit > .3)){
 			cat("Half step back\n")
 			theta <- (lastTheta + theta) / 2
@@ -319,8 +293,6 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 		print(stepSize)
 		lastTheta <- theta
 		theta <- theta - stepSize * gradInv %*% momentCondition
-		#theta <- theta - stepSize * solve(hess) %*% momentCondition
-		#browser()
 		lastObjective <- objective
 		
 		print("auxStat Diffs:")
@@ -332,8 +304,7 @@ elogGmmFit <- function(formula, auxFormula, theta, nsamp=1000, weights="diagonal
 		cat("Hotelling's T2 p-value: ",pvalue,"\n")
 		cat("Theta:\n")
 		print(theta)
-		#browser()
-		if(pvalue > hotellingTTol){
+		if(pvalue > hotellingTTol && iter >= minIter){
 			break
 		}else if(iter < maxIter){
 			

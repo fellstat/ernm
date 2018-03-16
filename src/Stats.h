@@ -911,15 +911,18 @@ class Degree : public BaseStat< Engine > {
 protected:
 	EdgeDirection direction;
 	std::vector<int> degrees;
+	bool lessThanOrEqual;
 public:
 
 	Degree(){
 		direction = UNDIRECTED;
+		lessThanOrEqual = false;
 	}
 
 	Degree(std::vector<int> deg){
 		direction = UNDIRECTED;
 		degrees = deg;
+		lessThanOrEqual = false;
 	}
 
 	/*!
@@ -944,6 +947,12 @@ public:
 				::Rf_error("invalid direction");
 		}catch(...){
 			direction = UNDIRECTED;
+		}
+		try{
+			int tmp = as< int >(params(2));
+			lessThanOrEqual = tmp;
+		}catch(...){
+			lessThanOrEqual = false;
 		}
 	}
 
@@ -974,16 +983,21 @@ public:
 			for(int j=0;j<nstats;j++){
 				if(net.isDirected()){
 					if(direction==UNDIRECTED){
-						this->stats[j] += (net.outdegree(i) + net.indegree(i)) == degrees[j];
+						this->stats[j] += comp((net.outdegree(i) + net.indegree(i)), degrees[j]);
 					}else if(direction==OUT)
-						this->stats[j] += net.outdegree(i) == degrees[j];
+						this->stats[j] += comp(net.outdegree(i), degrees[j]);
 					else if(direction==IN)
-						this->stats[j] += net.indegree(i) == degrees[j];
+						this->stats[j] += comp(net.indegree(i), degrees[j]);
 				}else{
-					this->stats[j] += net.degree(i) == degrees[j];
+					this->stats[j] += comp(net.degree(i), degrees[j]);
 				}
 			}
 		}
+		//std::cout << lessThanOrEqual << " \n";
+	}
+
+	inline bool comp(int d,int d1){
+		return lessThanOrEqual ? d <= d1 : d == d1;
 	}
 
 	void dyadUpdate(const BinaryNet<Engine>& net,const int &from,const int &to,const std::vector<int> &order,const int &actorIndex){
@@ -1018,13 +1032,13 @@ public:
 		fromDegreeNew += fromDegree;
 
 		for(int j=0;j<degrees.size();j++){
-			if(degrees[j] == fromDegree)
+			if(comp(fromDegree, degrees[j]))
 				BaseOffset<Engine>::update(-1.0,j);//this->stats[j]--;
-			if(degrees[j] == toDegree)
+			if(comp(toDegree, degrees[j]))
 				BaseOffset<Engine>::update(-1.0,j);//this->stats[j]--;
-			if(degrees[j] == fromDegreeNew)
+			if(comp(fromDegreeNew, degrees[j]))
 				BaseOffset<Engine>::update(1.0,j);//this->stats[j]++;
-			if(degrees[j] == toDegreeNew)
+			if(comp(toDegreeNew, degrees[j]))
 				BaseOffset<Engine>::update(1.0,j);//this->stats[j]++;
 		}
 

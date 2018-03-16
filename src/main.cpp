@@ -36,7 +36,8 @@ using namespace ernm;
  */
 int main(int argc, char *argv[]) {
 /**/
-    RInside R(argc, argv);              // create an embedded R instance
+    //RInside R(argc, argv);              // create an embedded R instance
+	RInside Rins(argc, argv);
     initStats();
     /*
     std::string txt = "Hello, world!\n";// assign a standard C++ string to 'txt'

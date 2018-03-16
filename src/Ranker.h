@@ -1,9 +1,4 @@
-/*
- * Ranker.h
- *
- *  Created on: Dec 19, 2017
- *      Author: ianfellows
- */
+
 
 #ifndef RANKER_H_
 #define RANKER_H_

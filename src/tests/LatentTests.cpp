@@ -151,10 +151,16 @@ void rnker(){
 	rank(vals1, ranks, "average");
     //for (uint i = 0; i < ranks.size(); ++i)
     //  std::cout << vals1[i] << " " << ranks[i] << std::endl;
-    //std::cout << "Rank: Random\n";
+    std::cout << "Rank: Random\n";
 	rank(vals1, ranks, "random");
     //for (uint i = 0; i < ranks.size(); ++i)
     //  std::cout << vals1[i] << " " << ranks[i] << std::endl;
+
+    std::cout << "Rank: Order\n";
+	order(vals1, ranks);
+    //for (uint i = 0; i < ranks.size(); ++i)
+    //  std::cout << vals1[i] << " " << ranks[i] << std::endl;
+
     PutRNGstate();
 }
 

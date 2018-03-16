@@ -19,6 +19,16 @@
 
 namespace ernm{
 
+
+struct IdxCompare
+{
+    const std::vector<int>& target;
+
+    IdxCompare(const std::vector<int>& target): target(target) {}
+
+    bool operator()(int a, int b) const { return target[a] < target[b]; }
+};
+
 template<class Engine>
 class LatentOrderLikelihood : public ShallowCopyable{
 protected:
@@ -56,10 +66,19 @@ protected:
 
 	void generateOrder(std::vector<int>& vertexOrder){
 		vertexOrder.resize(order->size());
-		rank(*order, vertexOrder, "random");
-		for(int i=0;i<vertexOrder.size();i++){
-			vertexOrder[i]--;
-		}
+		std::vector<int> y(vertexOrder.size());
+		//get ranks. ties broken randomly
+		rank(*order, y, "random");
+
+		//get ordered indices of ranks
+		for(int i=0;i<y.size();i++)
+			vertexOrder[i] = i;
+		std::sort(  std::begin(vertexOrder),
+		                std::end(vertexOrder), IdxCompare(y));
+
+		//for(int i=0;i<vertexOrder.size();i++){
+		//	std::cout << vertexOrder.at(i) << " " << order->at(vertexOrder.at(i)) << "\n";
+		//}
 	}
 
 
@@ -457,24 +476,25 @@ public:
 
 		std::vector<int> workingVertOrder = vert_order;
 
-		NumericMatrix sumCov(nStats, nStats);
+		/*NumericMatrix sumCov(nStats, nStats);
 		for(int k=0; k < nStats; k++){
 			for(int l=0; l < nStats; l++){
 				sumCov(k,l) = 0.0;
 			}
-		}
+		}*/
 		bool directedGraph = runningModel->network()->isDirected();
 		//std::cout << "n2 edges: " << noTieModel->network()->nEdges();
 		double llik = runningModel->logLik();
 		double llikChange, ldenom, probTie;
 		bool hasEdge = false;
+		//std::cout << "\n";
 		for(int i=0; i < n; i++){
 			int vertex = workingVertOrder[i];
 			this->shuffle(workingVertOrder,i);
-
+			//std::cout  << "\n"<< vertex << "      ";
 			for(int j=0; j < i; j++){
 				int alter = workingVertOrder[j];
-
+				//std::cout << alter << " ";
 				//update the observed network statistics
 				/*if(model->network()->hasEdge(vertex, alter)){
 					obsRunningModel->statistics(terms);
@@ -514,14 +534,14 @@ public:
 					double changeK = newTerms[k] - terms[k];
 					for(int l=0; l < nStats; l++){
 						double changeL = newTerms[l] - terms[l];
-						sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
+						sumCov(k,l) += changeK * changeL * probTie * (1.0 - probTie) ;
 					}
 				}*/
 
 
 				//update the generated network statistics and expected statistics
 				for(int m=0; m<terms.size(); m++){
-					double diff = newTerms[m] - terms[m];
+					double diff = newTerms[m] - terms[m];\
 					eStats[m] += diff * probTie;
 					if(hasEdge){
 						stats[m] += diff;
@@ -581,7 +601,6 @@ public:
 							sumCov(k,l) -= changeK * changeL * probTie * (1.0 - probTie) ;
 						}
 					}*/
-
 					for(int m=0; m<terms.size(); m++){
 						double diff = newTerms[m] - terms[m];
 						eStats[m] += diff * probTie;
@@ -604,7 +623,7 @@ public:
 		result["expectedStats"] = wrap(eStats);
 		//result["observedStats"] = wrap(obsStats);
 
-		result["sumCov"] = sumCov;
+		//result["sumCov"] = sumCov;
 		//result["gradient1"] = grad;
 		//result["gradient2"] = grad2;
 		return result;
