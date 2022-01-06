@@ -12,10 +12,11 @@
 #' @param meanStats if non-missing, these are the target statistics
 #' @param verbose level of verbosity 0, 1, or 2
 #' @param method the optimization method to use
+#' @param stepScale scale the optimization step
 ernmFit <- function(sampler,theta0,
 		mcmcBurnIn=10000, mcmcInterval=100, mcmcSampleSize=10000,
 		minIter=3, maxIter=40, objectiveTolerance=.5, gradTolerance=.25,
-		meanStats,verbose=1,method=c("bounded","newton")){
+		meanStats,verbose=1,method=c("bounded","newton"),stepScale =1){
 	method <- match.arg(method)
 	sampler$initialize()
 	stats <- sampler$modelStatistics()
@@ -84,7 +85,7 @@ ernmFit <- function(sampler,theta0,
 			theta0 <- trustRes$argument
 		}else if(method == "newton"){
 			llk <- sampler$logLikelihood(theta0,sample,theta0,stats)
-			theta0 <- theta0 - drop(solve(llk$hessian, llk$grad))
+			theta0 <- theta0 - stepScale*drop(solve(llk$hessian, llk$grad))
 			#theta0 <- theta0 - drop(qr.solve(llk$hessian) %*% llk$grad)
 		}
 		llik <- sampler$logLikelihood(theta0,sample,lastTheta,stats)$value

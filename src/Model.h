@@ -514,7 +514,15 @@ public:
 			offsets[k]->vDyadUpdate(*net, from, to);
 		}
 	}
-
+  
+  void dyadUpdateR(int from, int to){
+    for(int k=0;k<stats.size();k++){
+      stats[k]->vDyadUpdate(*net, (from-1), (to-1));
+    }
+    for(int k=0;k<offsets.size();k++){
+      offsets[k]->vDyadUpdate(*net, (from-1), (to-1));
+    }
+  }
 
 	void discreteVertexUpdate(int vertex, int variable, int newValue){
 		for(int k=0;k<stats.size();k++)
@@ -522,6 +530,23 @@ public:
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
 	}
+  
+  void discreteVertexUpdateR(int vertex, std::string varName, int newValue){
+    std::vector<std::string> vars = net->discreteVarNames();
+    int variable = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == varName){
+        variable = i;
+      }
+    }
+    if(variable<0){
+      ::Rf_error("UpdateR::nodal attribute not found in network");
+    }
+    for(int k=0;k<stats.size();k++)
+      stats[k]->vDiscreteVertexUpdate(*net,(vertex-1), variable, newValue);
+    for(int k=0;k<offsets.size();k++)
+      offsets[k]->vDiscreteVertexUpdate(*net,(vertex-1), variable, newValue);
+  }
 
 	void continVertexUpdate(int vertex, int variable, double newValue){
 		for(int k=0;k<stats.size();k++)

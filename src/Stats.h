@@ -13,6 +13,7 @@
 #include <vector>
 #include <utility>
 #include <boost/container/flat_map.hpp>
+#include <boost/make_shared.hpp>
 namespace ernm{
 
 
@@ -973,7 +974,102 @@ public:
 typedef Stat<Directed, NodeCount<Directed> > DirectedNodeCount;
 typedef Stat<Undirected, NodeCount<Undirected> > UndirectedNodeCount;
 
+/*!
+ * The counts of the number of nodes in each category (except for the FIRST)
+ *  of variableName.
+ */
+template<class Engine>
+class NodeCountTopLevel : public BaseStat< Engine > {
+protected:
+  std::string variableName; /*!< the name of the matching variable */
+int varIndex; /*!< the index of the variable in the network */
+int nstats; /*!< the number of stats generated (i.e. the number of levels) */
+public:
+  NodeCountTopLevel(){
+    variableName="";
+    varIndex=nstats=0;
+  }
+  
+  NodeCountTopLevel(std::string name){
+    variableName=name;
+    varIndex=nstats=0;
+  }
+  
+  NodeCountTopLevel(List params){
+    varIndex=nstats=0;
+    try{
+      variableName = as< std::string >(params(0));
+    }catch(...){
+      ::Rf_error("NodeCount requires a nodal variable name");
+    }
+  }
+  
+  std::string name(){
+    return "nodeCountTopLevel";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames;
+    for(int i=0;i<nstats;i++){
+      std::string nm = "nodecountTop."+variableName+"."+asString(i+1);
+      statnames.push_back(nm);
+    }
+    return statnames;
+  }
+  
+  
+  void calculate(const BinaryNet<Engine>& net){
+    
+    
+    std::vector<std::string> vars = net.discreteVarNames();
+    int variableIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+    }
+    if(variableIndex<0)
+      ::Rf_error("nodal attribute not found in network");
+    varIndex = variableIndex;
+    int nlevels = net.discreteVariableAttributes(variableIndex).labels().size();
+    nstats = nlevels-1;
+    this->stats = std::vector<double>(nstats,0.0);
+    if(this->thetas.size() != nstats)
+      this->thetas = std::vector<double>(nstats,0.0);
+    int val = 0;
+    std::vector<double> tmp = std::vector<double>(nlevels,0.0);
+    for(int i=0;i<net.size();i++){
+      val = net.discreteVariableValue(varIndex,i);
+      tmp[val-1]++;
+    }
+    for(int i=0;i<nlevels;i++){
+      if(i<nlevels-1)
+        this->stats[i] = tmp[i+1];
+    }
+  }
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){}
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){
+    if(variable != varIndex)
+      return;
+    int val = net.discreteVariableValue(varIndex,vert);
+    if(val>1){
+      this->stats[val-2]--;
+    }
+    if(newValue>1){
+      this->stats[newValue-2]++;
+    }
+  }
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+  
+};
 
+typedef Stat<Directed, NodeCountTopLevel<Directed> > DirectedNodeCountTopLevel;
+typedef Stat<Undirected, NodeCountTopLevel<Undirected> > UndirectedNodeCountTopLevel;
 
 
 
@@ -1177,7 +1273,440 @@ public:
 typedef Stat<Directed, Logistic<Directed> > DirectedLogistic;
 typedef Stat<Undirected, Logistic<Undirected> > UndirectedLogistic;
 
+/*!
+ * A logistic regression statistic for variableName regressed upon regressorName but using the topLevel of the regressor
+ */
+template<class Engine>
+class LogisticTopLevel : public BaseStat< Engine > {
+protected:
+  int nstats; /*!< the number of stats generated */
+int nlevels;
+int variableIndex, regIndex;
+std::string variableName, regressorName;
+public:
+  LogisticTopLevel(){
+    nstats=nlevels=variableIndex=regIndex = 0;
+  }
+  
+  LogisticTopLevel(std::string out,std::string reg){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    variableName = out;
+    regressorName = reg;
+  }
+  
+  LogisticTopLevel(List params){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    try{
+      variableName = as<std::string>(params[0]);
+    }catch(...){
+      ::Rf_error("LogisticModel requires a formula");
+    }
+    try{
+      regressorName = as<std::string>(params[1]);
+    }catch(...){
+      ::Rf_error("LogisticModel requires a formula");
+    }
+  }
+  
+  std::string name(){
+    return "logisticTopLevel";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"logisticTopLevel");
+    return statnames;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    std::vector<std::string> vars = net.discreteVarNames();
+    variableIndex = -1;
+    regIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+      if(vars[i] == regressorName){
+        regIndex = i;
+      }
+    }
+    if(regIndex<0 || variableIndex<0)
+      Rf_error("invalid variables");
+    int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+    nstats = nlevels - 1;
+    this->stats = std::vector<double>(nstats,0.0);
+    if(this->thetas.size() != nstats)
+      this->thetas = std::vector<double>(nstats,0.0);
+    int val,val1;
+    for(int i=0;i<net.size();i++){
+      val = net.discreteVariableValue(variableIndex,i)-1;
+      val1 = net.discreteVariableValue(regIndex,i)-1;
+      //this->stats[0] +=val;
+      //this->stats[1] += val*val1;
+      if(val>0 && val1>0)
+        this->stats.at(val1-1)++;
+    }
+  }
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){
+    if(variable != variableIndex && variable != regIndex)
+      return;
+    int varValue = net.discreteVariableValue(variableIndex,vert)-1;
+    int regValue = net.discreteVariableValue(regIndex,vert)-1;
+    newValue--;
+    //std::cout<<newValue<<varValue<<regValue<<" ";
+    if(variable == regIndex){
+      if(varValue>0){
+        if(regValue>0)
+          this->stats.at(regValue-1)--;
+        if( newValue >0)
+          this->stats.at(newValue-1)++;
+      }
+    }else{
+      if(varValue>0){
+        if(regValue>0)
+          this->stats.at(regValue-1)--;
+      }
+      if( newValue > 0){
+        if(regValue>0)
+          this->stats.at(regValue-1)++;
+      }
+    }
+  }
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){}
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+};
 
+typedef Stat<Directed, LogisticTopLevel<Directed> > DirectedLogisticTopLevel;
+typedef Stat<Undirected, LogisticTopLevel<Undirected> > UndirectedLogisticTopLevel;
+
+/*!
+ * A logistic regression statistic for variableName regressed the sum of neighbours regressorName.
+ */
+template<class Engine>
+class LogisticNeighbors : public BaseStat< Engine > {
+protected:
+  int nstats; /*!< the number of stats generated */
+typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+int nlevels;
+int variableIndex, regIndex;
+std::string variableName, regressorName;
+public:
+  LogisticNeighbors(){
+    nstats=nlevels=variableIndex=regIndex = 0;
+  }
+  
+  LogisticNeighbors(std::string out,std::string reg){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    variableName = out;
+    regressorName = reg;
+  }
+  
+  LogisticNeighbors(List params){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    try{
+      variableName = as<std::string>(params[0]);
+    }catch(...){
+      ::Rf_error("LogisticNeighborsModel requires a formula");
+    }
+    try{
+      regressorName = as<std::string>(params[1]);
+    }catch(...){
+      ::Rf_error("LogisticNeighborsModel requires a formula");
+    }
+  }
+  
+  std::string name(){
+    return "logisticNeighbors";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"logisticNeighbors");
+    return statnames;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    std::vector<std::string> vars = net.discreteVarNames();
+    variableIndex = -1;
+    regIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+      if(vars[i] == regressorName){
+        regIndex = i;
+      }
+    }
+    if(regIndex<0 || variableIndex<0)
+      Rf_error("invalid variables");
+    
+    // Get the neighbours values for each node
+    int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+    nstats = nlevels - 1;
+    this->stats = std::vector<double>(nstats,0.0);
+    if(this->thetas.size() != nstats)
+      this->thetas = std::vector<double>(nstats,0.0);
+    int val,val1;
+    
+    for(int i=0;i<net.size();i++){
+      NeighborIterator it = net.begin(i);
+      NeighborIterator end = net.end(i);
+      val = net.discreteVariableValue(variableIndex,i)-1;
+      
+      while(it != end){
+        val1 = net.discreteVariableValue(regIndex,*it)-1;
+        if(val>0 && val1<nstats){
+          this->stats.at(val1)++;
+        }
+        it++;
+      }
+    }
+  }
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){
+    
+    if(variable != variableIndex && variable != regIndex)
+      return;
+    
+    int varValue = net.discreteVariableValue(variableIndex,vert)-1;
+    int regValue = net.discreteVariableValue(regIndex,vert)-1;
+    newValue--;
+    //std::cout<<newValue<<varValue<<regValue<<" ";
+    if(variable == regIndex){
+      // need to step trough all neighbours and recalculate the effect
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      while(it != end){
+        int neighbor_varVal = net.discreteVariableValue(variableIndex,*it)-1;
+        if(neighbor_varVal>0){
+          if(regValue<nstats)
+            this->stats.at(regValue)--;
+          if(newValue<nstats)
+            this->stats.at(newValue)++;
+        }
+        it++;
+      }
+    }
+    
+    if(variable == variableIndex){
+      // need to step through all neighbours and recalculate the effect
+      // remove old values, and add back in new values - thats why there are two if clauses
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      
+      while(it != end){
+        int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
+        if(neighbor_regVal<nstats){
+          if(varValue > 0){
+            this->stats.at(neighbor_regVal)--;
+          }
+          if(newValue > 0){
+            this->stats.at(neighbor_regVal)++;
+          }
+        }
+        it++;
+      }
+    }
+  }
+  
+  //Need  to ADD this in now !
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    bool addingEdge = !net.hasEdge(from,to);
+    //get the variables
+    int fromVarValue = net.discreteVariableValue(variableIndex,from)-1;
+    int fromRegValue = net.discreteVariableValue(regIndex,from)-1;
+    int toVarValue = net.discreteVariableValue(variableIndex,to)-1;
+    int toRegValue = net.discreteVariableValue(regIndex,to)-1;
+    // If we are removing the edge may remove a value for both from  and to
+    if(addingEdge){
+      if(fromVarValue>0 && toRegValue<nstats){
+        this->stats.at(toRegValue)++;
+      }
+      if(toVarValue>0 && fromRegValue<nstats){
+        this->stats.at(fromRegValue)++;
+      }
+    }else{
+      if(fromVarValue>0 && toRegValue<nstats){
+        this->stats.at(toRegValue)--;
+      }
+      if(toVarValue>0 && fromRegValue<nstats){
+        this->stats.at(fromRegValue)--;
+      }
+    }
+  }
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+};
+typedef Stat<Directed, LogisticNeighbors<Directed> > DirectedLogisticNeighbors;
+typedef Stat<Undirected, LogisticNeighbors<Undirected> > UndirectedLogisticNeighbors;
+
+/*!
+ * A logistic regression statistic for variableName regressed the sum of neighbours regressorName.
+ */
+template<class Engine>
+class LogisticNeighborsTopLevel : public BaseStat< Engine > {
+protected:
+  int nstats; /*!< the number of stats generated */
+typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+int nlevels;
+int variableIndex, regIndex;
+std::string variableName, regressorName;
+public:
+  LogisticNeighborsTopLevel(){
+    nstats=nlevels=variableIndex=regIndex = 0;
+  }
+  
+  LogisticNeighborsTopLevel(std::string out,std::string reg){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    variableName = out;
+    regressorName = reg;
+  }
+  
+  LogisticNeighborsTopLevel(List params){
+    nstats=nlevels=variableIndex=regIndex = 0;
+    try{
+      variableName = as<std::string>(params[0]);
+    }catch(...){
+      ::Rf_error("logisticNeighborsTopLevelModel requires a formula");
+    }
+    try{
+      regressorName = as<std::string>(params[1]);
+    }catch(...){
+      ::Rf_error("logisticNeighborsTopLevelModel requires a formula");
+    }
+  }
+  
+  std::string name(){
+    return "logisticNeighborsTopLevel";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"logisticNeighborsTopLevel");
+    return statnames;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    std::vector<std::string> vars = net.discreteVarNames();
+    variableIndex = -1;
+    regIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+      if(vars[i] == regressorName){
+        regIndex = i;
+      }
+    }
+    if(regIndex<0 || variableIndex<0)
+      Rf_error("invalid variables");
+    
+    // Get the neighbours values for each node
+    int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+    nstats = nlevels - 1;
+    this->stats = std::vector<double>(nstats,0.0);
+    if(this->thetas.size() != nstats)
+      this->thetas = std::vector<double>(nstats,0.0);
+    int val,val1;
+    
+    for(int i=0;i<net.size();i++){
+      NeighborIterator it = net.begin(i);
+      NeighborIterator end = net.end(i);
+      val = net.discreteVariableValue(variableIndex,i)-1;
+      
+      while(it != end){
+        val1 = net.discreteVariableValue(regIndex,*it)-1;
+        if(val>0 && val1>0){
+          this->stats.at((val1-1))++;
+        }
+        it++;
+      }
+    }
+  }
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){
+    
+    if(variable != variableIndex && variable != regIndex)
+      return;
+    
+    int varValue = net.discreteVariableValue(variableIndex,vert)-1;
+    int regValue = net.discreteVariableValue(regIndex,vert)-1;
+    newValue--;
+    //std::cout<<newValue<<varValue<<regValue<<" ";
+    if(variable == regIndex){
+      // need to step trough all neighbours and recalculate the effect
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      
+      while(it != end){
+        int neighbor_varVal = net.discreteVariableValue(variableIndex,*it)-1;
+        if(neighbor_varVal>0){
+          if(regValue>0)
+            this->stats.at((regValue-1))--;
+          if(newValue>0)
+            this->stats.at((newValue-1))++;
+        }
+        it++;
+      }
+    }
+    
+    if(variable == variableIndex){
+      // need to step through all neighbours and recalculate the effect
+      // remove old values, and add back in new values - thats why there are two if clauses
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      
+      while(it != end){
+        int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
+        if(neighbor_regVal>0){
+          if(varValue > 0){
+            this->stats.at((neighbor_regVal-1))--;
+          }
+          if(newValue > 0){
+            this->stats.at((neighbor_regVal-1))++;
+          }
+        }
+        it++;
+      }
+    }
+  }
+  
+  //Need  to ADD this in now !
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    bool addingEdge = !net.hasEdge(from,to);
+    //get the variables
+    int fromVarValue = net.discreteVariableValue(variableIndex,from)-1;
+    int fromRegValue = net.discreteVariableValue(regIndex,from)-1;
+    int toVarValue = net.discreteVariableValue(variableIndex,to)-1;
+    int toRegValue = net.discreteVariableValue(regIndex,to)-1;
+    // If we are removing the edge may remove a value for both from  and to
+    if(addingEdge){
+      if(fromVarValue>0 && toRegValue>0){
+        this->stats.at((toRegValue-1))++;
+      }
+      if(toVarValue>0 && fromRegValue>0){
+        this->stats.at((fromRegValue-1))++;
+      }
+    }else{
+      if(fromVarValue>0 && toRegValue>0){
+        this->stats.at((toRegValue-1))--;
+      }
+      if(toVarValue>0 && fromRegValue>0){
+        this->stats.at((fromRegValue-1))--;
+      }
+    }
+  }
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+};
+
+typedef Stat<Directed, LogisticNeighborsTopLevel<Directed> > DirectedLogisticNeighborsTopLevel;
+typedef Stat<Undirected, LogisticNeighborsTopLevel<Undirected> > UndirectedLogisticNeighborsTopLevel;
 
 /**
  * Log variance of the degrees
@@ -1293,6 +1822,170 @@ public:
 typedef Stat<Directed, DegreeDispersion<Directed> > DirectedDegreeDispersion;
 typedef Stat<Undirected, DegreeDispersion<Undirected> > UndirectedDegreeDispersion;
 
+/*!
+ * Hamming distance - the number of edges that the network differs by 
+ */
+template<class Engine>
+class Hamming : public BaseStat< Engine > {
+protected:
+  //List edges;
+  boost::shared_ptr< std::vector< std::pair<int,int> > > edges;
+public:
+  Hamming(){
+    std::vector<double> v(1,0.0);
+    std::vector<double> t(1,0.0);
+    this->stats=v;
+    this->thetas =t;
+  }
+  
+  Hamming(Rcpp::List params){
+    
+    std::vector<double> v(1,0.0);
+    std::vector<double> t(1,0.0);
+    this->stats=v;
+    this->thetas =t;
+    
+    Rcpp::NumericMatrix edgeList = params[0];
+    boost::shared_ptr< std::vector< std::pair<int,int> > > edges_tmp(new std::vector<std::pair<int,int> >());
+    edges_tmp->reserve(edgeList.nrow());
+    for(int i=0;i<edgeList.nrow();i++){
+      // Do the minus one stuff since this is a R interface
+      int from = edgeList(i,0)-1;
+      int to = edgeList(i,1)-1;
+      if(from < 0 || to<0){
+        Rf_error("Edgelist indices out of range");
+      }
+      std::pair<int,int> p = std::make_pair(from,to);
+      edges_tmp->push_back(p);
+    }
+    edges = edges_tmp;
+  }
+  
+  std::string name(){
+    return "hamming";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"hamming");
+    return statnames;
+  }
+  
+  int hamming_dist(const BinaryNet<Engine>& net){
+    // Start by assuming they are completely the same
+    // Step through the edge list to calculate the edges that are missing
+    // Then use nEdges to get the additional edges
+    double v;
+    v = 0.0;
+    std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+    int shared = 0;
+    while(it != edges->end()){
+      if(!net.hasEdge(it->first,it->second)){
+        v += 1.0;
+      }else{
+        shared +=1;
+      }
+      it++;
+    }
+    
+    // add the surplus edges to the differing count
+    v += (net.nEdges() - shared);
+    return v;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    // Start by assuming they are completely the same
+    // Step through the edge list to calculate the edges that are missing
+    // Then use nEdges to get the additional edges
+    std::vector<double> v(1,0.0);
+    std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+    int shared = 0;
+    while(it != edges->end()){
+      if(!net.hasEdge(it->first,it->second)){
+        v[0] += 1;
+      }else{
+        shared +=1;
+      }
+      it++;
+    }
+    
+    // add the surplus edges to the differing count
+    v[0] += (net.nEdges() - shared);
+    this->stats = v;
+    return;
+  }
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    //Check if the toggle is in the edge list:
+    if(this->stats[0]==0){
+      this->stats[0] +=1;
+      return;
+    }
+    
+    bool net_ind = net.hasEdge(from,to);
+    int is_in_net = net_ind?1:0;
+    
+    int is_in_list = 0;
+    std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+    if(net.isDirected()){
+      while(it != edges->end()){
+        if(it->first == from and  it->second == to){
+          is_in_list = 1;
+          break;
+        } 
+        it++;
+      }
+    }else{
+      while(it != edges->end()){
+        if((it->first == from and it->second == to) or (it->first == to and it->second == from)){
+          is_in_list = 1;
+          break;
+        }
+        it++;
+      }
+    }
+    
+    // Debugging code:
+    // Find the moment when the new stat does not equal the new hamming distance
+    // boost::shared_ptr<BinaryNet<Engine>> net_tmp = net.clone();
+    // int old_stat = hamming_dist(*net_tmp);
+    // net_tmp->toggle(from,to);
+    // int new_stat = hamming_dist(*net_tmp);
+    // if(new_stat != (this->stats[0] + (is_in_list == is_in_net)*(1) + (is_in_list != is_in_net)*(-1)) ){
+    //   std::cout <<"PROBLEM!!!" <<"\n";
+    //   std::cout <<"dyad toggle from " << from << " to " << to <<"\n";
+    //   std::cout <<"is_in_list is " << is_in_list <<"\n";
+    //   std::cout <<"is_in_net is " << is_in_net <<"\n";
+    //   std::cout <<"result is: " << (is_in_list == is_in_net)*(1) + (is_in_list != is_in_net)*(-1) << "\n";
+    //   std::cout <<"current stat: " << this->stats[0] << "\n";
+    //   std::cout <<"new stat: " << this->stats[0] + (is_in_list == is_in_net)*(1) + (is_in_list != is_in_net)*(-1) << "\n";
+    //   std::cout <<"correct old stat: " << old_stat << "\n";
+    //   std::cout <<"correct new stat: " << new_stat << "\n";
+    //   std::cout <<"printing net edge list" <<"\n";
+    //   
+    //   boost::shared_ptr< std::vector< std::pair<int,int> > > el = net.edgelist();
+    //   std::vector< std::pair<int,int> > ::iterator it_2 = el->begin();
+    //   while(it_2!= el->end()){
+    //     std::cout <<"net has edge " << it_2->first << " to " << it_2->second <<"\n";
+    //     if(it_2->first > from){
+    //       break;
+    //     }
+    //     it_2++;
+    //   }
+    // }
+    
+    this->stats[0] += (is_in_list == is_in_net)?1:(-1);
+    return;
+  }
+  
+  // Don't do anything - purely edge statistic
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){}
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+};
+typedef Stat<Directed, Hamming<Directed> > DirectedHamming;
+typedef Stat<Undirected, Hamming<Undirected> > UndirectedHamming;
 
 template<class Engine>
 class DegreeSkew : public BaseStat< Engine > {
@@ -2023,6 +2716,16 @@ public:
 		n = 0.0;
 		direction = UNDIRECTED;
 	}
+  
+  //Differential homophily for undirected networks
+  Homophily(std::string name, bool mix, bool collapse){
+    variableName = name;
+    direction = UNDIRECTED;
+    includeMixing = mix;
+    collapseLevels = collapse;
+    nlevels = varIndex = 0;
+    n = 0.0;
+  }
 
 	Homophily(std::string name, EdgeDirection dir, bool mix, bool collapse){
 		variableName = name;
@@ -2925,9 +3628,11 @@ protected:
 	double oneexpa;
 	double expa;
 	std::vector< boost::container::flat_map<int,int> > sharedValues;
+	std::string variableName;
+	bool nodematch;
 public:
 
-	Gwesp() : alpha(.5), oneexpa(1.0 - exp(-alpha)), expa(exp(alpha)),
+	Gwesp() : alpha(.5), oneexpa(1.0 - exp(-alpha)), expa(exp(alpha)),nodematch(false), variableName(""),
 	sharedValues(){
 	}
 
@@ -2941,6 +3646,15 @@ public:
 		}catch(...){
 			::Rf_error("gwesp requires an alpha");
 		}
+	}
+	
+	//Differential homophily for undirected networks
+	Gwesp(double alpha,bool homogeneous, std::string name){
+	  variableName = name;
+	  nodematch = homogeneous;
+	  alpha = alpha;
+	  oneexpa = (1.0 - exp(-alpha));
+	  expa = exp(alpha);
 	}
 
 	std::string name(){
@@ -2958,40 +3672,66 @@ public:
 
 	//counts the number of shared neighbors between f and t.
 	//in directed networks this only counts | t --> f --> neighbor --> t | cycles.
-	int sharedNbrs(const BinaryNet<Engine>& net, int f, int t){
-		if(!net.isDirected()){
-			int tmp = f;
-			f = std::min(f,t);
-			t = std::max(tmp,t);
-		}
-		boost::container::flat_map<int,int>::iterator it = sharedValues[f].find(t);
-		if(it != sharedValues[f].end()){
-			return it->second;
-		}
-		NeighborIterator fit1, fend1, tit1, tend1;
-		if(!net.isDirected()){
-			fit1 = net.begin(f);
-			fend1 = net.end(f);
-			tit1 = net.begin(t);
-			tend1 = net.end(t);
-		}else{
-			fit1 = net.inBegin(f);
-			fend1 = net.inEnd(f);
-			tit1 = net.outBegin(t);
-			tend1 = net.outEnd(t);
-		}
-		int sn = 0;
-		while(fit1 != fend1 && tit1 != tend1){
-			if(*tit1 == *fit1){
-				sn++;
-				tit1++;
-				fit1++;
-			}else if(*tit1 < *fit1)
-				tit1 = std::lower_bound(tit1,tend1,*fit1);
-			else
-				fit1 = std::lower_bound(fit1,fend1,*tit1);
-		}
-		return sn;
+	//added in last variable for the varIndex for homogenous sharedneighbors
+	// if varValue is specified ignore value of f, and checks against varValue
+	int sharedNbrs(const BinaryNet<Engine>& net, int f, int t, int varIndex = -1,int varValue =-1){
+	  
+	  if(varIndex >= 0){
+	    int value1 = net.discreteVariableValue(varIndex,f) - 1;
+	    int value2 = net.discreteVariableValue(varIndex,t) - 1;
+	    if(varValue ==-1){
+	      boost::container::flat_map<int,int>::iterator it = sharedValues[f].find(t);
+	      if(it != sharedValues[f].end()){
+	        return it->second;
+	      }
+	      varValue = value1;
+	    }
+	    if(value2!=varValue){
+	      //std::cout<< "\n returning 0 from shared neighbor due to lack of homophilly on from and too, (based on varValue if specified) \n";
+	      return 0;}
+	  }
+	  
+	  if(!net.isDirected()){
+	    int tmp = f;
+	    f = std::min(f,t);
+	    t = std::max(tmp,t);
+	  }
+	  
+	  NeighborIterator fit1, fend1, tit1, tend1;
+	  if(!net.isDirected()){
+	    fit1 = net.begin(f);
+	    fend1 = net.end(f);
+	    tit1 = net.begin(t);
+	    tend1 = net.end(t);
+	  }else{
+	    fit1 = net.inBegin(f);
+	    fend1 = net.inEnd(f);
+	    tit1 = net.outBegin(t);
+	    tend1 = net.outEnd(t);
+	  }
+	  int sn = 0;
+	  while(fit1 != fend1 && tit1 != tend1){
+	    if(*tit1 == *fit1){
+	      if(varIndex <0){
+	        sn++;
+	      }else{
+	        int value3 = net.discreteVariableValue(varIndex,*tit1) - 1;
+	        //std::cout<<"\n in shared neighbor calc proposed shared neigh is "<< *tit1;
+	        //std::cout<<"\n proposed value is " << value3;
+	        //std::cout<<"\n value match is " << varValue;
+	        if(value3 == varValue){
+	          //std::cout<<"\n adding homophillous shared neighbor";
+	          sn++;
+	        }
+	      }
+	      tit1++;
+	      fit1++;
+	    }else if(*tit1 < *fit1)
+	      tit1 = std::lower_bound(tit1,tend1,*fit1);
+	    else
+	      fit1 = std::lower_bound(fit1,fend1,*tit1);
+	  }
+	  return sn;
 	}
 
 	void setSharedValue(const BinaryNet<Engine>& net, int f, int t, int nbrs){
@@ -3012,71 +3752,178 @@ public:
 	}
 
 	virtual void vCalculate(const BinaryNet<Engine>& net){
-		this->stats = std::vector<double>(1,0.0);
-		if(this->thetas.size()!=1)
-			this->thetas = std::vector<double>(1,0.0);
-		double result = 0.0;
-		sharedValues = std::vector< boost::container::flat_map<int,int> >();
-		for(int i = 0 ; i<net.size();i++)
-			sharedValues.push_back(boost::container::flat_map<int,int>());
-		boost::shared_ptr<std::vector< std::pair<int,int> > > el = net.edgelist();
-		for(int i=0;i<el->size();i++){
-			int from = el->at(i).first;
-			int to = el->at(i).second;
-			int sn = sharedNbrs(net, from, to);
-			setSharedValue(net,from,to,sn);
-			result += 1.0 - pow(oneexpa,sn);
-		}
-		this->stats[0] = expa * result;
+	  int varIndex = -1;
+	  if(nodematch == true){
+	    std::vector<std::string> vars = net.discreteVarNames();
+	    int variableIndex = -1;
+	    for(int i=0;i<vars.size();i++){
+	      if(vars[i] == variableName){
+	        variableIndex = i;
+	      }
+	    }
+	    if(variableIndex<0)
+	      ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+	    varIndex = variableIndex;
+	  }
+	  
+	  this->stats = std::vector<double>(1,0.0);
+	  if(this->thetas.size()!=1)
+	    this->thetas = std::vector<double>(1,0.0);
+	  double result = 0.0;
+	  sharedValues = std::vector< boost::container::flat_map<int,int> >();
+	  for(int i = 0 ; i<net.size();i++)
+	    sharedValues.push_back(boost::container::flat_map<int,int>());
+	  boost::shared_ptr<std::vector< std::pair<int,int> > > el = net.edgelist();
+	  for(int i=0;i<el->size();i++){
+	    int from = el->at(i).first;
+	    int to = el->at(i).second;
+	    int sn = sharedNbrs(net, from, to,varIndex);
+	    setSharedValue(net,from,to,sn);
+	    result += 1.0 - pow(oneexpa,sn);
+	  }
+	  this->stats[0] = expa * result;
 	}
 
 
 	void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
-		NeighborIterator fit, fend, tit, tend;
-		if(!net.isDirected()){
-			fit = net.begin(from);
-			fend = net.end(from);
-			tit = net.begin(to);
-			tend = net.end(to);
-		}else{
-			fit = net.inBegin(from);
-			fend = net.inEnd(from);
-			tit = net.outBegin(to);
-			tend = net.outEnd(to);
-		}
-		bool add = !net.hasEdge(from,to);
-		double change = 2.0 * (add - 0.5);
-		double delta = 0.0;
-		int sn = 0;
-		double mult = (1.0 - (!add ? 1.0/oneexpa : oneexpa));
-		while(fit != fend && tit != tend){
-			if(*tit == *fit){
-				sn++;
-				//tie from to --> shared neighbor
-				int tnsn = sharedNbrs(net,to,*tit);
-				setSharedValue(net,to,*tit,tnsn + (add ? 1 : -1));
-				delta += pow(oneexpa,tnsn) * mult;//pow(oneexpa,tnsn) - pow(oneexpa,tnsn + change);
-
-				//tie from shared neighbor --> from
-				int nfsn = sharedNbrs(net,*tit,from);
-				setSharedValue(net,*tit,from,nfsn + (add ? 1 : -1));
-				delta += pow(oneexpa,nfsn) * mult;
-				tit++;
-				fit++;
-			}else if(*tit < *fit)
-				tit = std::lower_bound(tit,tend,*fit);
-			else
-				fit = std::lower_bound(fit,fend,*tit);
-		}
-		if(add)
-			setSharedValue(net,from,to,sn);
-		else
-			eraseSharedValue(net,from,to);
-		this->stats[0] += expa * (delta + change * (1.0 - pow(oneexpa,sn)));
+	  int variableIndex = -1;
+	  if(nodematch == true){
+	    std::vector<std::string> vars = net.discreteVarNames();
+	    for(int i=0;i<vars.size();i++){
+	      if(vars[i] == variableName){
+	        variableIndex = i;
+	      }
+	    }
+	    if(variableIndex<0)
+	      ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+	  }
+	  int varIndex = variableIndex;
+	  if(varIndex >= 0){
+	    int value1 = net.discreteVariableValue(varIndex,from) - 1;
+	    int value2 = net.discreteVariableValue(varIndex,to) - 1;
+	    if(value1 != value2){return;}
+	  }
+	  
+	  NeighborIterator fit, fend, tit, tend;
+	  if(!net.isDirected()){
+	    fit = net.begin(from);
+	    fend = net.end(from);
+	    tit = net.begin(to);
+	    tend = net.end(to);
+	  }else{
+	    fit = net.inBegin(from);
+	    fend = net.inEnd(from);
+	    tit = net.outBegin(to);
+	    tend = net.outEnd(to);
+	  }
+	  bool add = !net.hasEdge(from,to);
+	  double change = 2.0 * (add - 0.5);
+	  double delta = 0.0;
+	  int sn = 0;
+	  double mult = (1.0 - (!add ? 1.0/oneexpa : oneexpa));
+	  while(fit != fend && tit != tend){
+	    if(*tit == *fit){
+	      //tie from to --> shared neighbor
+	      int tnsn = sharedNbrs(net,to,*tit,varIndex);
+	      //tie from shared neighbor --> from
+	      int nfsn = sharedNbrs(net,*tit,from,varIndex);
+	      if(varIndex >= 0){
+	        int value1 = net.discreteVariableValue(varIndex,from) - 1;
+	        int value3 = net.discreteVariableValue(varIndex,*tit) - 1;
+	        if(value3 == value1){
+	          sn++;
+	          setSharedValue(net,to,*tit,tnsn + (add ? 1 : -1));
+	          setSharedValue(net,*tit,from,nfsn + (add ? 1 : -1));
+	          delta += pow(oneexpa,tnsn) * mult;//pow(oneexpa,tnsn) - pow(oneexpa,tnsn + change);
+	          delta += pow(oneexpa,nfsn) * mult;
+	        }
+	      }else{
+	        sn++;
+	        setSharedValue(net,to,*tit,tnsn + (add ? 1 : -1));
+	        setSharedValue(net,*tit,from,nfsn + (add ? 1 : -1));
+	        delta += pow(oneexpa,tnsn) * mult;//pow(oneexpa,tnsn) - pow(oneexpa,tnsn + change);
+	        delta += pow(oneexpa,nfsn) * mult;
+	      }
+	      tit++;
+	      fit++;
+	    }else if(*tit < *fit)
+	      tit = std::lower_bound(tit,tend,*fit);
+	    else
+	      fit = std::lower_bound(fit,fend,*tit);
+	  }
+	  if(add)
+	    setSharedValue(net,from,to,sn);
+	  else
+	    eraseSharedValue(net,from,to);
+	  this->stats[0] += expa * (delta + change * (1.0 - pow(oneexpa,sn)));
 	}
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-					int variable, int newValue){}
+                           int variable, int newValue){
+	  
+	  if(nodematch){
+	    
+	    int variableIndex = -1;
+	    if(nodematch == true){
+	      std::vector<std::string> vars = net.discreteVarNames();
+	      for(int i=0;i<vars.size();i++){
+	        if(vars[i] == variableName){
+	          variableIndex = i;
+	        }
+	      }
+	      if(variableIndex<0)
+	        ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+	    }
+	    int varIndex = variableIndex;
+	    int oldValue = net.discreteVariableValue(varIndex,vert)-1;
+	    newValue = newValue - 1; // to use in shared neighbor function
+	    boost::shared_ptr<std::vector< std::pair<int,int> > > el = net.edgelist();
+	    
+	    // Find the homogenous gwesp terms that it turns off:
+	    for(int i=0;i<el->size();i++){
+	      int from = el->at(i).first;
+	      int to = el->at(i).second;
+	      if(to==vert){
+	        //removing old 
+	        int sn = sharedNbrs(net, to, from,varIndex,oldValue);
+	        this->stats[0] -= expa*(1.0 - pow(oneexpa,sn));
+	        
+	        //adding new
+	        sn = sharedNbrs(net, to, from,varIndex,newValue);
+	        this->stats[0] += expa*(1.0 - pow(oneexpa,sn));
+	      }
+	      if(from==vert){
+	        //removing old 
+	        int sn = sharedNbrs(net, from, to,varIndex,oldValue);
+	        this->stats[0] -= expa*(1.0 - pow(oneexpa,sn));
+	        
+	        //adding new
+	        sn = sharedNbrs(net, from, to,varIndex,newValue);
+	        this->stats[0] += expa*(1.0 - pow(oneexpa,sn));
+	      }
+	      //check if vert is a shared neighbor of both from and to:
+	      if(net.hasEdge(from,vert) && net.hasEdge(to,vert)){
+	        int value_to = net.discreteVariableValue(varIndex,to)-1;
+	        int value_from = net.discreteVariableValue(varIndex,from)-1;
+	        
+	        if(value_to == value_from && value_to == oldValue){
+	          //removing old
+	          //std::cout<<"\n removing a ESP that vert was in homogenous shared neighbor";
+	          int sn = sharedNbrs(net, from, to,varIndex,oldValue);
+	          this->stats[0] -= expa*(1.0 - pow(oneexpa,sn));
+	          this->stats[0] += expa*(1.0 - pow(oneexpa,std::max(0,sn-1)));
+	        }
+	        if(value_to == value_from && value_to == newValue){
+	          //adding new
+	          //std::cout<<"\n adding a ESP that vert was in homogenous shared neighbor";
+	          int sn = sharedNbrs(net, from, to,varIndex,newValue);
+	          this->stats[0] -= expa*(1.0 - pow(oneexpa,sn));
+	          this->stats[0] += expa*(1.0 - pow(oneexpa,(sn+1)));
+	        }
+	      }
+	    }
+	  }
+	}
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
 				int variable, double newValue){}
 };
@@ -3096,16 +3943,27 @@ typedef Stat<Undirected, Gwesp<Undirected> > UndirectedGwesp;
 template<class Engine>
 class GwDegree : public BaseStat< Engine > {
 protected:
+    typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
     double alpha;
     EdgeDirection direction; //same way of dealing with directionality as stars term. second param 1=IN , 2 =OUT
     double oneexpa;
     double expalpha;
+    bool nodematch;
+    std::string variableName;
 public:
     
-    GwDegree() : alpha(.5), direction(), oneexpa(0), expalpha(0){ //jc
+    GwDegree() : alpha(.5), direction(), oneexpa(0), expalpha(0), nodematch(false), variableName(""){ //jc
     }
     
     virtual ~GwDegree(){};
+  
+    GwDegree(double alpha,bool homogeneous, std::string name){
+      variableName = name;
+      nodematch = homogeneous;
+      alpha = alpha;
+      oneexpa = (1.0 - exp(-alpha));
+      expalpha = exp(alpha);
+    }
     
     GwDegree(List params) : oneexpa(0), expalpha(0){
         try{
@@ -3122,11 +3980,21 @@ public:
 				direction = OUT;
 			else
 				::Rf_error("invalid direction");
-		}catch(...){
-			direction = UNDIRECTED;
-		}
+  		}catch(...){
+  			direction = UNDIRECTED;
+  		}
         
-        
+      if(params.size() >2){
+        try{
+          nodematch = as<bool>(params[1]);
+          variableName = as<std::string>(params[2]);
+        }
+        catch(...){
+          ::Rf_error("gwdeg homogenous failed somehow");
+        }
+      }else{
+        nodematch = false;
+      }
     }
     
     std::string name(){
@@ -3141,57 +4009,198 @@ public:
         
 	}
     
+    int homoDegree(const BinaryNet<Engine>& net, int node,int varIndex = -1,int varValue = -1){
+      NeighborIterator it = net.begin(node);
+      NeighborIterator end = net.end(node);
+      
+      int value1 = net.discreteVariableValue(varIndex,node) - 1;
+      if(varValue>=0){
+        value1 = varValue;
+      }
+      int deg = 0;
+      while(it!=end){
+        int value2 = net.discreteVariableValue(varIndex,*it) - 1;
+        if(net.hasEdge(node,*it) && value1 == value2){
+          deg++;
+        }
+        it++;
+      }
+      return deg;
+    }
+    
     virtual void vCalculate(const BinaryNet<Engine>& net){
-        oneexpa = 1.0 - exp(-alpha);
-        expalpha = exp(alpha);
-        this->stats = std::vector<double>(1,0.0);
-        if(this->thetas.size()!=1)
-            this->thetas = std::vector<double>(1,0.0);
-        double result = 0.0;
-        if (!net.isDirected()) {
-            for(int i=0;i<net.size();i++){
-                result += 1.0 - pow(oneexpa,net.degree(i));
-            }
+      int varIndex = -1;
+      if(nodematch == true){
+        std::vector<std::string> vars = net.discreteVarNames();
+        int variableIndex = -1;
+        for(int i=0;i<vars.size();i++){
+          if(vars[i] == variableName){
+            variableIndex = i;
+          }
         }
-        else if (net.isDirected() && direction==IN) {
-            for(int i=0;i<net.size();i++){
-                result += 1.0 - pow(oneexpa,net.indegree(i));
-            }
-        } else {
-            for(int i=0;i<net.size();i++){
-                result += 1.0 - pow(oneexpa,net.outdegree(i));
-            }
+        if(variableIndex<0)
+          ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+        varIndex = variableIndex;
+      }
+      
+      oneexpa = 1.0 - exp(-alpha);
+      expalpha = exp(alpha);
+      this->stats = std::vector<double>(1,0.0);
+      if(this->thetas.size()!=1)
+        this->thetas = std::vector<double>(1,0.0);
+      double result = 0.0;
+      if (!net.isDirected()) {
+        for(int i=0;i<net.size();i++){
+          int deg = homoDegree(net,i,varIndex);
+          result += 1.0 - pow(oneexpa,deg);
+          // result += 1.0 - pow(oneexpa,net.degree(i));
         }
-        
-            
-        this->stats[0] = expalpha * result;
+      }
+      else if (net.isDirected() && direction==IN) {
+        for(int i=0;i<net.size();i++){
+          result += 1.0 - pow(oneexpa,net.indegree(i));
+        }
+      } else {
+        for(int i=0;i<net.size();i++){
+          result += 1.0 - pow(oneexpa,net.outdegree(i));
+        }
+      }
+      this->stats[0] = expalpha * result;
     }
     
     
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
-        //we'll toggle the dyad betwen from and to
-        double change = 2.0 * (!net.hasEdge(from,to) - 0.5); //change in edge value (1, -1)
-        double delta1 = 0.0;
-        double delta2 = 0.0;
-        
-        if(!net.isDirected()){ //does checking every time slow down the toggling?
-            delta1 = pow(oneexpa,net.degree(from)) - pow(oneexpa,net.degree(from)+change);
-            delta2 = pow(oneexpa,net.degree(to)) - pow(oneexpa,net.degree(to)+change);
+      //we'll toggle the dyad betwen from and to
+      double change = 2.0 * (!net.hasEdge(from,to) - 0.5); //change in edge value (1, -1)
+      double delta1 = 0.0;
+      double delta2 = 0.0;
+      
+      int varIndex = -1;
+      if(nodematch == true){
+        std::vector<std::string> vars = net.discreteVarNames();
+        int variableIndex = -1;
+        for(int i=0;i<vars.size();i++){
+          if(vars[i] == variableName){
+            variableIndex = i;
+          }
         }
+        if(variableIndex<0)
+          ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+        varIndex = variableIndex;
         
-        else if(net.isDirected() && direction==IN){
-            delta1 = pow(oneexpa,net.indegree(to)) - pow(oneexpa,net.indegree(to)+change);
-            delta2 = 0;
-        }else {
-            delta1 = pow(oneexpa,net.outdegree(from)) - pow(oneexpa,net.outdegree(from)+change);
-            delta2 = 0;
+      }
+      
+      if(!net.isDirected()){ //does checking every time slow down the toggling?
+        int from_deg = homoDegree(net,from,varIndex);
+        int to_deg = homoDegree(net,to,varIndex);
+        if(nodematch==true){
+          int value1 = net.discreteVariableValue(varIndex,from) - 1;
+          int value2 = net.discreteVariableValue(varIndex,to) - 1;
+          if(value1 == value2){
+            delta1 = pow(oneexpa,from_deg) - pow(oneexpa,from_deg+change);
+            delta2 = pow(oneexpa,to_deg) - pow(oneexpa,to_deg+change); 
+          }
+        }else{
+          delta1 = pow(oneexpa,from_deg) - pow(oneexpa,from_deg+change);
+          delta2 = pow(oneexpa,to_deg) - pow(oneexpa,to_deg+change);
         }
- 
-        this->stats[0] += expalpha*(delta1 + delta2);
+      }
+      
+      else if(net.isDirected() && direction==IN){
+        delta1 = pow(oneexpa,net.indegree(to)) - pow(oneexpa,net.indegree(to)+change);
+        delta2 = 0;
+      }else {
+        delta1 = pow(oneexpa,net.outdegree(from)) - pow(oneexpa,net.outdegree(from)+change);
+        delta2 = 0;
+      }
+      
+      this->stats[0] += expalpha*(delta1 + delta2);
     }
     
     void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-                              int variable, int newValue){}
+                              int variable, int newValue){
+      int variableIndex = -1;
+      if(nodematch == true){
+        std::vector<std::string> vars = net.discreteVarNames();
+        for(int i=0;i<vars.size();i++){
+          if(vars[i] == variableName){
+            variableIndex = i;
+          }
+        }
+        if(variableIndex<0)
+          ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+      }
+      int varIndex = variableIndex;
+      
+      if(nodematch && varIndex == variable){
+        
+        int oldValue = net.discreteVariableValue(varIndex,vert)-1;
+        newValue = newValue - 1; // to use in shared neighbor function
+        boost::shared_ptr<std::vector< std::pair<int,int> > > el = net.edgelist();
+        
+        // Find the homogenous gwdeg terms that it turns off:
+        
+        // homodegree terms that turning the vertex off turns off 
+        int deg = homoDegree(net,vert,varIndex);
+        //std::cout<<"\n removing old homo degree of "<<deg;
+        this->stats[0] -= expalpha*(1.0 - pow(oneexpa,deg));
+        deg = homoDegree(net,vert,varIndex,newValue);
+        //std::cout<<"\n adding new homo degree of "<<deg;
+        this->stats[0] += expalpha*(1.0 - pow(oneexpa,deg));
+        
+        for(int i=0;i<el->size();i++){
+          int from = el->at(i).first;
+          int to = el->at(i).second;
+          
+          int from_value = net.discreteVariableValue(varIndex,from)-1;
+          int to_value = net.discreteVariableValue(varIndex,to)-1;
+          if(to==vert){
+            //removing old
+            if(from_value == oldValue){
+              int deg = homoDegree(net,from,varIndex);
+              //std::cout<<"\n node "<< from << " removing old homo degree of "<<deg;
+              this->stats[0] -= expalpha*(1.0 - pow(oneexpa,deg));
+              
+              //adding new
+              //std::cout<<"\n node "<< from << " adding new homo degree on oldValue of "<<(deg-1);
+              this->stats[0] += expalpha*(1.0 - pow(oneexpa,(deg-1)));
+            }
+            //check if changing the value caused some more degrees elsewhere:
+            if(from_value == newValue){
+              int deg = homoDegree(net,from,varIndex);
+              //std::cout<<"\n node "<< from << " removing old homo degree on newValue of "<<deg;
+              this->stats[0] -= expalpha*(1.0 - pow(oneexpa,deg));
+              
+              //adding new
+              //std::cout<<"\n node "<< from << " adding new homo degree on newValue of "<<(deg+1);
+              this->stats[0] += expalpha*(1.0 - pow(oneexpa,(deg+1)));
+            }
+          }
+          
+          if(from==vert){
+            if(to_value == oldValue){
+              int deg = homoDegree(net,to,varIndex);
+              //std::cout<<"\n node "<< to << " removing old homo degree of "<<deg;
+              this->stats[0] -= expalpha*(1.0 - pow(oneexpa,deg));
+              
+              //adding new
+              //std::cout<<"\n node "<< to << " adding new homo degree on oldValue of "<<(deg-1);
+              this->stats[0] += expalpha*(1.0 - pow(oneexpa,(deg-1)));
+            }
+            //check if changing the value caused some more degrees elsewhere:
+            if(to_value == newValue){
+              int deg = homoDegree(net,to,varIndex);
+              //std::cout<<"\n node "<< to << " removing old homo degree of "<<deg;
+              this->stats[0] -= expalpha*(1.0 - pow(oneexpa,deg));
+              
+              //adding new
+              //std::cout<<"\n node "<< to << " adding new homo degree on newValue of "<<(deg+1);
+              this->stats[0] += expalpha*(1.0 - pow(oneexpa,(deg+1)));
+            }
+          }
+        }
+      }  
+    }
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
 				int variable, double newValue){}
 };

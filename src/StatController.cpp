@@ -57,9 +57,14 @@ RcppExport void initStats(){
 	registerStatistic( DirStatPtr( new DirectedTriangles() ) );
 	registerStatistic( DirStatPtr( new DirectedReciprocity() ) );
 	registerStatistic( DirStatPtr( new DirectedNodeCount() ) );
+	registerStatistic( DirStatPtr( new DirectedNodeCountTopLevel() ) );
 	registerStatistic( DirStatPtr( new DirectedNodeMatch() ) );
 //	registerStatistic( DirStatPtr( new DirectedDegree() ) );
 	registerStatistic( DirStatPtr( new DirectedLogistic() ) );
+	registerStatistic( DirStatPtr( new DirectedLogisticTopLevel() ) );
+	registerStatistic( DirStatPtr( new DirectedLogisticNeighbors() ) );
+	registerStatistic( DirStatPtr( new DirectedLogisticNeighborsTopLevel() ) );
+	registerStatistic( DirStatPtr( new DirectedHamming() ) );
 	registerStatistic( DirStatPtr( new DirectedDegreeDispersion() ) );
 	registerStatistic( DirStatPtr( new DirectedDegreeSkew() ) );
 	registerStatistic( DirStatPtr( new DirectedHomophily() ) );
@@ -97,6 +102,11 @@ RcppExport void initStats(){
 	registerStatistic( UndirStatPtr( new UndirectedHomophily() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeCount() ) );
 	registerStatistic( UndirStatPtr( new UndirectedLogistic() ) );
+	registerStatistic( UndirStatPtr( new UndirectedLogisticTopLevel() ) );
+	registerStatistic( UndirStatPtr( new UndirectedLogisticNeighbors() ) );
+	registerStatistic( UndirStatPtr( new UndirectedLogisticNeighborsTopLevel() ) );
+	registerStatistic( UndirStatPtr( new UndirectedHamming() ) );
+	registerStatistic( UndirStatPtr( new UndirectedNodeCountTopLevel() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegree() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeMatch() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegreeDispersion() ) );
@@ -125,6 +135,7 @@ RcppExport void initStats(){
 	registerOffset( UndirOffsetPtr( new UndirectedFixedNodeConstraint() ) );
 	registerOffset( UndirOffsetPtr( new UndirectedFixedDegreeConstraint() ) );
     registerOffset( UndirOffsetPtr( new UndirectedStarPenalty() ) );
+    registerOffset( UndirOffsetPtr( new UndirectedHammingOffset() ) );
 	//Make registration available outside ernm compilation unit
 	R_RegisterCCallable("ernm",
 			"registerUndirectedStatistic",(DL_FUNC) &registerUndirectedStatistic);

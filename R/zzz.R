@@ -3,8 +3,8 @@
 
 loadModule("ernm",TRUE)
 .onLoad <- function(libname, pkgname){
-	.C("initStats")
-	.C("initToggles")
+	.Call("initStats")
+	.Call("initToggles")
 }
 
 .onUnload <- function(libpath) {}
