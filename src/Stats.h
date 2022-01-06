@@ -3646,6 +3646,17 @@ public:
 		}catch(...){
 			::Rf_error("gwesp requires an alpha");
 		}
+		if(params.size() >2){
+		  try{
+		    nodematch = as<bool>(params[1]);
+		    variableName = as<std::string>(params[2]);
+		  }
+		  catch(...){
+		    ::Rf_error("gwesp homogenous failed somehow");
+		  }
+		}else{
+		  nodematch = false;
+		}
 	}
 	
 	//Differential homophily for undirected networks
@@ -3661,12 +3672,11 @@ public:
 		return "gwesp";
 	}
     
-    std::vector<std::string> statNames(){
-        std::string a = asString(alpha);
-        std::string termname = "gwesp."+a;
-        std::vector<std::string> statnames(1,termname);
-        return statnames;
-        
+  std::vector<std::string> statNames(){
+      std::string a = asString(alpha);
+      std::string termname = "gwesp."+a;
+      std::vector<std::string> statnames(1,termname);
+      return statnames;
 	}
 
 
