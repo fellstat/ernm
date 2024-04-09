@@ -213,6 +213,12 @@ std::string asString(T item){
 	return static_cast<std::ostringstream*>( &(std::ostringstream() << item) )->str();
 }
 
+template<class T>
+std::string asStringD(T item){
+	int i = item;
+	return static_cast<std::ostringstream*>( &(std::ostringstream() << i) )->str();
+}
+
 
 /*!
  * hash for a pair<int,int>

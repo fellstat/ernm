@@ -2948,7 +2948,7 @@ public:
 	}
     
     std::vector<std::string> statNames(){
-        std::string a = asString(alpha);
+        std::string a = asStringD(alpha);
         std::string termname = "gwesp."+a;
         std::vector<std::string> statnames(1,termname);
         return statnames;
@@ -3134,7 +3134,7 @@ public:
     }
     
     std::vector<std::string> statNames(){
-        std::string a = asString(alpha);
+        std::string a = asStringD(alpha);
         std::string termname = "gwdegree."+a;
         std::vector<std::string> statnames(1,termname);
         return statnames;
@@ -3225,7 +3225,7 @@ public:
     }
     
     std::vector<std::string> statNames(){
-        std::string a = asString(alpha);
+        std::string a = asStringD(alpha);
         std::string termname = "gwdsp."+a;
         std::vector<std::string> statnames(1,termname);
         return statnames;
