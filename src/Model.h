@@ -516,12 +516,10 @@ public:
 	}
   
   void dyadUpdateR(int from, int to){
-    for(int k=0;k<stats.size();k++){
+    for(int k=0;k<stats.size();k++)
       stats[k]->vDyadUpdate(*net, (from-1), (to-1));
-    }
-    for(int k=0;k<offsets.size();k++){
+    for(int k=0;k<offsets.size();k++)
       offsets[k]->vDyadUpdate(*net, (from-1), (to-1));
-    }
   }
 
 	void discreteVertexUpdate(int vertex, int variable, int newValue){
