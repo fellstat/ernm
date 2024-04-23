@@ -57,7 +57,7 @@ RcppExport void initStats(){
 	registerStatistic( DirStatPtr( new DirectedTriangles() ) );
 	registerStatistic( DirStatPtr( new DirectedReciprocity() ) );
 	registerStatistic( DirStatPtr( new DirectedNodeCount() ) );
-	registerStatistic( DirStatPtr( new DirectedNodeCountTopLevel() ) );
+    registerStatistic( DirStatPtr( new DirectedNodeCountTopLevel() ) );
 	registerStatistic( DirStatPtr( new DirectedNodeMatch() ) );
 //	registerStatistic( DirStatPtr( new DirectedDegree() ) );
 	registerStatistic( DirStatPtr( new DirectedLogistic() ) );
