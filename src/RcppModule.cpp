@@ -7,7 +7,6 @@
 #include "VertexToggles.h"
 #include "MetropolisHastings.h"
 #include "CdSampler.h"
-#include "LatentOrderLikelihood.h"
 
 /*
  * Handles all functions and methods exported to R.
@@ -16,47 +15,6 @@
 RCPP_MODULE(ernm){
 	using namespace Rcpp ;
 	using namespace ernm;
-
-//	typedef MetropolisHastings< SimpleToggle<Directed>, Model<Directed> > SimpleMetropolisDirected;
-//	typedef MetropolisHastings< TDBasicToggle<Directed>, Model<Directed> > TDBasicMetropolisDirected;
-//	typedef MetropolisHastings< TDToggle<Directed>, Model<Directed> > TDMetropolisDirected;
-/*
-	typedef MetropolisHastingsVertex< TDToggle<Directed>, DefaultVertexToggle<Directed>,
-			Model<Directed> > DirectedVertexMetropolis;
-	typedef MetropolisHastingsVertex< TDToggle<Undirected>, DefaultVertexToggle<Undirected>,
-				Model<Undirected> > UndirectedVertexMetropolis;
-
-	typedef MetropolisHastingsVertex< NTDNonObservedToggle<Directed>,
-				NonObservedVertexToggle<Directed>,
-				Model<Directed> > DirectedNonObservedVertexMetropolis;
-	typedef MetropolisHastingsVertex< NTDNonObservedToggle<Undirected>,
-					NonObservedVertexToggle<Undirected>,
-					Model<Undirected> > UndirectedNonObservedVertexMetropolis;
-	typedef MetropolisHastingsVertex< RDSToggle<Undirected>,
-						NonObservedVertexToggle<Undirected>,
-						Model<Undirected> > RDSMetropolis;
-	//NeighborhoodToggle<Undirected>
-	typedef MetropolisHastingsVertex< UndirectedNTDNBRToggle,
-			DefaultVertexToggle<Undirected>,
-					Model<Undirected> > UndirectedNTDNBRMetropolis;
-	typedef MetropolisHastingsVertex< DirectedNTDNBRToggle,
-				DefaultVertexToggle<Directed>,
-						Model<Directed> > DirectedNTDNBRMetropolis;
-
-	typedef MetropolisHastingsVertex< UndirectedNTDNBRNonObservedToggle,
-			NonObservedVertexToggle<Undirected>,
-					Model<Undirected> > UndirectedNTDNBRNonObservedMetropolis;
-	typedef MetropolisHastingsVertex< DirectedNTDNBRNonObservedToggle,
-			NonObservedVertexToggle<Directed>,
-						Model<Directed> > DirectedNTDNBRNonObservedMetropolis;
-
-	typedef MetropolisHastingsVertex< RandomNonObservedToggle<Undirected>,
-			NonObservedVertexToggle<Undirected>,
-					Model<Undirected> > UndirectedRandomNonObservedMetropolis;
-	typedef MetropolisHastingsVertex< RandomNonObservedToggle<Directed>,
-			NonObservedVertexToggle<Directed>,
-						Model<Directed> > DirectedRandomNonObservedMetropolis;
-*/
 
 	class_<DirectedNet >("DirectedNet")
 			.constructor<Rcpp::IntegerMatrix,int>()
@@ -115,161 +73,6 @@ RCPP_MODULE(ernm){
 			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR2)
 			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR3)
 ;
-
-	//function("rcppHelloWorld",&rcppHelloWorld);
-
-	//function("rcppTester",&rcppTester);
-/*
-	class_<Edges<Directed> >("DirectedEdges")
-		.constructor()
-		.method("calculate",&Edges<Directed>::calculate)
-		.method("setTheta",&Edges<Directed>::setTheta)
-		.method("statistics",&Edges<Directed>::statistics)
-		;
-	class_<Istar<Directed> >("Istar")
-			.constructor< vector<int> >()
-			.method("calculate",&Istar<Directed>::calculate)
-			.method("setTheta",&Istar<Directed>::setTheta)
-			.method("statistics",&Istar<Directed>::statistics)
-			;*/
-//	class_<SimpleMetropolisDirected>("SimpleMetropolisDirected")
-//		.constructor<Model<Directed> >()
-//		.method("setModel",&SimpleMetropolisDirected::setModel)
-//		.method("getModel",&SimpleMetropolisDirected::getModelR)
-//		.method("generateSample", &SimpleMetropolisDirected::generateSample)
-//		.method("generateSampleStatistics", &SimpleMetropolisDirected::generateSampleStatistics)
-//		;
-//	class_<TDBasicMetropolisDirected>("TDBasicMetropolisDirected")
-//		.constructor<Model<Directed> >()
-//		.method("setModel",&TDBasicMetropolisDirected::setModel)
-//		.method("getModel",&TDBasicMetropolisDirected::getModelR)
-//		.method("generateSample", &TDBasicMetropolisDirected::generateSample)
-//		;
-//	class_<TDMetropolisDirected>("TDMetropolisDirected")
-//		.constructor<Model<Directed> >()
-//		.method("setModel",&TDMetropolisDirected::setModel)
-//		.method("getModel",&TDMetropolisDirected::getModelR)
-//		.method("generateSample", &TDMetropolisDirected::generateSample)
-//		.method("generateSampleStatistics", &TDMetropolisDirected::generateSampleStatistics)
-//		;
-/*	class_<DirectedVertexMetropolis>("DirectedVertexMetropolis")
-		.constructor<Model<Directed> >()
-		.constructor<Model<Directed>,double >()
-		.method("setModel",&DirectedVertexMetropolis::setModel)
-		.method("getModel",&DirectedVertexMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&DirectedVertexMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&DirectedVertexMetropolis::setDyadProbability)
-		.method("generateSample", &DirectedVertexMetropolis::generateSample)
-		.method("generateSampleStatistics", &DirectedVertexMetropolis::generateSampleStatistics)
-				;
-	class_<DirectedNonObservedVertexMetropolis>("DirectedNonObservedVertexMetropolis")
-		.constructor<Model<Directed> >()
-		.constructor<Model<Directed>,double >()
-		.method("setModel",&DirectedNonObservedVertexMetropolis::setModel)
-		.method("getModel",&DirectedNonObservedVertexMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&DirectedNonObservedVertexMetropolis::toggleDiscreteVars)
-		.method("generateSample", &DirectedNonObservedVertexMetropolis::generateSample)
-		.method("setDyadProbability",&DirectedNonObservedVertexMetropolis::setDyadProbability)
-		.method("generateSampleStatistics", &DirectedNonObservedVertexMetropolis::generateSampleStatistics)
-		.method("generateSampleStatisticsSupplimental", &DirectedNonObservedVertexMetropolis::generateSampleStatisticsSupplimental)
-		;
-	class_<UndirectedNonObservedVertexMetropolis>("UndirectedNonObservedVertexMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&UndirectedNonObservedVertexMetropolis::setModel)
-		.method("getModel",&UndirectedNonObservedVertexMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&UndirectedNonObservedVertexMetropolis::toggleDiscreteVars)
-		.method("generateSample", &UndirectedNonObservedVertexMetropolis::generateSample)
-		.method("setDyadProbability",&UndirectedNonObservedVertexMetropolis::setDyadProbability)
-		.method("generateSampleStatistics", &UndirectedNonObservedVertexMetropolis::generateSampleStatistics)
-		.method("generateSampleStatisticsSupplimental", &UndirectedNonObservedVertexMetropolis::generateSampleStatisticsSupplimental)
-		;
-
-	class_<UndirectedVertexMetropolis>("UndirectedVertexMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&UndirectedVertexMetropolis::setModel)
-		.method("getModel",&UndirectedVertexMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&UndirectedVertexMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&UndirectedVertexMetropolis::setDyadProbability)
-		.method("generateSample", &UndirectedVertexMetropolis::generateSample)
-		.method("generateSampleStatistics", &UndirectedVertexMetropolis::generateSampleStatistics)
-	;
-
-	class_<UndirectedNTDNBRMetropolis>("UndirectedNTDNBRMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&UndirectedNTDNBRMetropolis::setModel)
-		.method("getModel",&UndirectedNTDNBRMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&UndirectedNTDNBRMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&UndirectedNTDNBRMetropolis::setDyadProbability)
-		.method("generateSample", &UndirectedNTDNBRMetropolis::generateSample)
-		.method("generateSampleStatistics", &UndirectedNTDNBRMetropolis::generateSampleStatistics)
-		;
-	class_<DirectedNTDNBRMetropolis>("DirectedNTDNBRMetropolis")
-		.constructor<Model<Directed> >()
-		.constructor<Model<Directed>,double >()
-		.method("setModel",&DirectedNTDNBRMetropolis::setModel)
-		.method("getModel",&DirectedNTDNBRMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&DirectedNTDNBRMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&DirectedNTDNBRMetropolis::setDyadProbability)
-		.method("generateSample", &DirectedNTDNBRMetropolis::generateSample)
-		.method("generateSampleStatistics", &DirectedNTDNBRMetropolis::generateSampleStatistics)
-		;
-
-	class_<UndirectedNTDNBRNonObservedMetropolis>("UndirectedNTDNBRNonObservedMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&UndirectedNTDNBRNonObservedMetropolis::setModel)
-		.method("getModel",&UndirectedNTDNBRNonObservedMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&UndirectedNTDNBRNonObservedMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&UndirectedNTDNBRNonObservedMetropolis::setDyadProbability)
-		.method("generateSample", &UndirectedNTDNBRNonObservedMetropolis::generateSample)
-		.method("generateSampleStatistics", &UndirectedNTDNBRNonObservedMetropolis::generateSampleStatistics)
-		;
-	class_<RDSMetropolis>("UndirectedRDSMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&RDSMetropolis::setModel)
-		.method("getModel",&RDSMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&RDSMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&RDSMetropolis::setDyadProbability)
-		.method("generateSample", &RDSMetropolis::generateSample)
-		.method("generateSampleStatistics", &RDSMetropolis::generateSampleStatistics)
-		;
-	class_<DirectedNTDNBRNonObservedMetropolis>("DirectedNTDNBRNonObservedMetropolis")
-		.constructor<Model<Directed> >()
-		.constructor<Model<Directed>,double >()
-		.method("setModel",&DirectedNTDNBRNonObservedMetropolis::setModel)
-		.method("getModel",&DirectedNTDNBRNonObservedMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&DirectedNTDNBRNonObservedMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&DirectedNTDNBRNonObservedMetropolis::setDyadProbability)
-		.method("generateSample", &DirectedNTDNBRNonObservedMetropolis::generateSample)
-		.method("generateSampleStatistics", &DirectedNTDNBRNonObservedMetropolis::generateSampleStatistics)
-		;
-
-
-	class_<UndirectedRandomNonObservedMetropolis>("UndirectedRandomNonObservedMetropolis")
-		.constructor<Model<Undirected> >()
-		.constructor<Model<Undirected>,double >()
-		.method("setModel",&UndirectedRandomNonObservedMetropolis::setModel)
-		.method("getModel",&UndirectedRandomNonObservedMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&UndirectedRandomNonObservedMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&UndirectedRandomNonObservedMetropolis::setDyadProbability)
-		.method("generateSample", &UndirectedRandomNonObservedMetropolis::generateSample)
-		.method("generateSampleStatistics", &UndirectedRandomNonObservedMetropolis::generateSampleStatistics)
-		;
-	class_<DirectedRandomNonObservedMetropolis>("DirectedRandomNonObservedMetropolis")
-		.constructor<Model<Directed> >()
-		.constructor<Model<Directed>,double >()
-		.method("setModel",&DirectedRandomNonObservedMetropolis::setModel)
-		.method("getModel",&DirectedRandomNonObservedMetropolis::getModelR)
-		//.method("toggleDiscreteVars",&DirectedRandomNonObservedMetropolis::toggleDiscreteVars)
-		.method("setDyadProbability",&DirectedRandomNonObservedMetropolis::setDyadProbability)
-		.method("generateSample", &DirectedRandomNonObservedMetropolis::generateSample)
-		.method("generateSampleStatistics", &DirectedRandomNonObservedMetropolis::generateSampleStatistics)
-		;
-*/
 
 	class_<MetropolisHastings<Directed> >("DirectedMetropolisHastings")
 			//.constructor<ReModel<Directed> >()
@@ -392,28 +195,6 @@ RCPP_MODULE(ernm){
 		.method("centers",&ReModel<Directed>::centerParams)
 		.method("isThetaDependent",&ReModel<Directed>::isThetaDependent)
 		.method("thetaDependent",&ReModel<Directed>::thetaDependent)
-		;
-
-	class_<LatentOrderLikelihood<Undirected> >("UndirectedLatentOrderLikelihood")
-		.constructor< Model<Undirected> >()
-		.method("setModel",&LatentOrderLikelihood<Undirected>::setModel)
-		.method("getModel",&LatentOrderLikelihood<Undirected>::getModelR)
-		.method("setThetas",&LatentOrderLikelihood<Undirected>::setThetas)
-		.method("setOrder",&LatentOrderLikelihood<Undirected>::setOrder)
-		.method("fullLogLik",&LatentOrderLikelihood<Undirected>::fullLogLik)
-		.method("fullLogLikWithFunc",&LatentOrderLikelihood<Undirected>::fullLogLikWithFunc)
-		.method("generateNetwork",&LatentOrderLikelihood<Undirected>::generateNetwork)
-		;
-
-	class_<LatentOrderLikelihood<Directed> >("DirectedLatentOrderLikelihood")
-		.constructor< Model<Directed> >()
-		.method("setModel",&LatentOrderLikelihood<Directed>::setModel)
-		.method("getModel",&LatentOrderLikelihood<Directed>::getModelR)
-		.method("setThetas",&LatentOrderLikelihood<Directed>::setThetas)
-		.method("setOrder",&LatentOrderLikelihood<Directed>::setOrder)
-		.method("fullLogLik",&LatentOrderLikelihood<Directed>::fullLogLik)
-		.method("fullLogLikWithFunc",&LatentOrderLikelihood<Directed>::fullLogLikWithFunc)
-		.method("generateNetwork",&LatentOrderLikelihood<Directed>::generateNetwork)
 		;
 
 	function("initErnmStatistics",&initStats);

@@ -9,7 +9,6 @@
 #include "StatTests.h"
 #include "ConstraintTests.h"
 #include "ToggleTests.h"
-#include "LatentTests.h"
 #include "ReModelTests.h"
 #include <Rcpp/iostream/Rstreambuf.h>
 
