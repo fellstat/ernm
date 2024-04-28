@@ -739,7 +739,112 @@ public:
 typedef Offset<Directed, REffect<Directed> > DirectedREffectOffset;
 typedef Offset<Undirected, REffect<Undirected> > UndirectedREffectOffset;
 
-}
+// Hamming offset for tapering to MRF models
+// Define to be count of edges that are different between 2 networks
+// Have this offset to "taper into a MRF model" 
+// when taper_param = state space is sufficietly restricted to be exactly an MRF
+template<class Engine>
+class HammingOffset : public BaseOffset< Engine > {
+protected:
+    //List edges;
+    boost::shared_ptr< std::vector< std::pair<int,int> > > edges;
+    double taper_param;
+public:
+    HammingOffset(){
+        std::vector<double> v(1,0.0);
+        this->stats=v;
+        taper_param = 1;
+    }
+    HammingOffset(Rcpp::List params){
+        
+        std::vector<double> v(1,0.0);
+        this->stats=v;
+        taper_param = params[1];
+        
+        Rcpp::NumericMatrix edgeList = params[0];
+        boost::shared_ptr< std::vector< std::pair<int,int> > > edges_tmp(new std::vector<std::pair<int,int> >());
+        edges_tmp->reserve(edgeList.nrow());
+        for(int i=0;i<edgeList.nrow();i++){
+            // Do the minus one stuff since this is a R interface
+            int from = edgeList(i,0)-1;
+            int to = edgeList(i,1)-1;
+            if(from < 0 || to<0){
+                Rf_error("Edgelist indices out of range");
+            }
+            std::pair<int,int> p = std::make_pair(from,to);
+            edges_tmp->push_back(p);
+        }
+        edges = edges_tmp;
+    }
+    
+    std::string name(){
+        return "hamming";
+    }
+    
+    void calculate(const BinaryNet<Engine>& net){
+        // Start by assuming they are completely the same
+        // Step through the edge list to calculate the edges that are missing
+        // Then use nEdges to get the additional edges
+        std::vector<double> v(1,0.0);
+        std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+        int shared = 0;
+        while(it != edges->end()){
+            if(!net.hasEdge(it->first,it->second)){
+                v[0] += 1;
+            }else{
+                shared +=1;
+            }
+            it++;
+        }
+        // add the surplus edges to the differing count
+        v[0] += (net.nEdges() - shared);
+        v[0] = v[0]*taper_param;
+        this->stats = v;
+        return;
+    }
+    
+    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+        //Check if the toggle is in the edge list:
+        if(this->stats[0]==0){
+            this->stats[0] +=1;
+            return;
+        }
+        
+        bool net_ind = net.hasEdge(from,to);
+        int is_in_net = net_ind?1:0;
+        
+        int is_in_list = 0;
+        std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+        if(net.isDirected()){
+            while(it != edges->end()){
+                if(it->first == from and  it->second == to){
+                    is_in_list = 1;
+                    break;
+                } 
+                it++;
+            }
+        }else{
+            while(it != edges->end()){
+                if((it->first == from and it->second == to) or (it->first == to and it->second == from)){
+                    is_in_list = 1;
+                    break;
+                }
+                it++;
+            }
+        }
+        
+        this->stats[0] += (taper_param)*((is_in_list == is_in_net)?1:(-1));
+        return;
+    }
+    
+    // Don't do anything - purely edge statistic
+    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,int variable, int newValue){}
+    void continVertexUpdate(const BinaryNet<Engine>& net, int vert,int variable, double newValue){}
+};
 
+typedef Offset<Directed, HammingOffset<Directed> > DirectedHammingOffset;
+typedef Offset<Undirected, HammingOffset<Undirected> > UndirectedHammingOffset;
+
+}
 
 #endif /* OFFSETS_H_ */

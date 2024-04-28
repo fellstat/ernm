@@ -76,6 +76,7 @@ RcppExport void initStats(){
     registerStatistic( DirStatPtr( new DirectedGauss() ) );
     registerStatistic( DirStatPtr( new DirectedGamma() ) );
     registerStatistic( DirStatPtr( new DirectedLogDegreeMoment() ) );
+    registerStatistic( DirStatPtr( new DirectedHamming() ) );
 	////////			Offsets				/////////
     //registerOffset( DirOffsetPtr( new DirectedREffectOffset() ) );
 	registerOffset( DirOffsetPtr( new DirectedBiasedSeedOffset() ) );
@@ -116,6 +117,7 @@ RcppExport void initStats(){
     registerStatistic( UndirStatPtr( new UndirectedLogDegreeMoment() ) );
     registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
     registerStatistic( UndirStatPtr( new UndirectedPreferentialAttachment() ) );
+    registerStatistic( UndirStatPtr( new UndirectedHamming() ) );
 
 	////////			Offsets				/////////
     registerOffset( UndirOffsetPtr( new UndirectedREffectOffset() ) );
@@ -125,6 +127,7 @@ RcppExport void initStats(){
 	registerOffset( UndirOffsetPtr( new UndirectedFixedNodeConstraint() ) );
 	registerOffset( UndirOffsetPtr( new UndirectedFixedDegreeConstraint() ) );
     registerOffset( UndirOffsetPtr( new UndirectedStarPenalty() ) );
+    registerOffset( UndirOffsetPtr( new UndirectedHammingOffset() ) );
 	//Make registration available outside ernm compilation unit
 	R_RegisterCCallable("ernm",
 			"registerUndirectedStatistic",(DL_FUNC) &registerUndirectedStatistic);
