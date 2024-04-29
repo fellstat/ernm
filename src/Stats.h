@@ -2005,7 +2005,7 @@ public:
         if (params.size() < 2) {
             ::Rf_error("Insufficient parameters passed to HammingOffset constructor");
         }
-        if (!Rcpp::is<Rcpp::IntegerMatrix>(params(0))) {
+        if (!Rcpp::is<Rcpp::NumericMatrix>(params(0))) {
             ::Rf_error("Expected a numeric matrix for the first parameter");
         }
         
@@ -2018,7 +2018,7 @@ public:
         Rcpp::NumericMatrix edgeList = params(0);
         boost::shared_ptr< BinaryNet<Engine>> compareNet(new
             BinaryNet<Engine>(
-                Rcpp::as<Rcpp::IntegerMatrix>(params(0)),
+                Rcpp::as<Rcpp::NumericMatrix>(params(0)),
                 Rcpp::as<int>(params(1))
             )
         );
