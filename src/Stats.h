@@ -1992,6 +1992,7 @@ class Hamming : public BaseStat< Engine > {
 protected:
     //List edges;
     boost::shared_ptr< std::vector< std::pair<int,int> > > edges;
+    boost::shared_ptr< BinaryNet<Engine>> compareNet;
 public:
     Hamming(){
         std::vector<double> v(1,0.0);
@@ -2001,13 +2002,27 @@ public:
     }
     
     Hamming(Rcpp::List params){
+        if (params.size() < 2) {
+            ::Rf_error("Insufficient parameters passed to HammingOffset constructor");
+        }
+        if (!Rcpp::is<Rcpp::IntegerMatrix>(params(0))) {
+            ::Rf_error("Expected a numeric matrix for the first parameter");
+        }
         
         std::vector<double> v(1,0.0);
         std::vector<double> t(1,0.0);
         this->stats=v;
-        this->thetas =t;
+        this->thetas=t;
         
-        Rcpp::NumericMatrix edgeList = params[0];
+        // Keep the edge list and a network version of it
+        Rcpp::NumericMatrix edgeList = params(0);
+        boost::shared_ptr< BinaryNet<Engine>> compareNet(new
+            BinaryNet<Engine>(
+                Rcpp::as<Rcpp::IntegerMatrix>(params(0)),
+                Rcpp::as<int>(params(1))
+            )
+        );
+        
         boost::shared_ptr< std::vector< std::pair<int,int> > > edges_tmp(new std::vector<std::pair<int,int> >());
         edges_tmp->reserve(edgeList.nrow());
         for(int i=0;i<edgeList.nrow();i++){
@@ -2054,35 +2069,11 @@ public:
     }
     
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
-        //Check if the toggle is in the edge list:
-        if(this->stats[0]==0){
-            this->stats[0] +=1;
-            return;
-        }
-        
-        bool net_ind = net.hasEdge(from,to);
-        int is_in_net = net_ind?1:0;
-        
-        int is_in_list = 0;
-        std::vector< std::pair<int,int> > ::iterator it = edges->begin();
-        if(net.isDirected()){
-            while(it != edges->end()){
-                if(it->first == from and  it->second == to){
-                    is_in_list = 1;
-                    break;
-                } 
-                it++;
-            }
-        }else{
-            while(it != edges->end()){
-                if((it->first == from and it->second == to) or (it->first == to and it->second == from)){
-                    is_in_list = 1;
-                    break;
-                }
-                it++;
-            }
-        }
-        this->stats[0] += (is_in_list == is_in_net)?1:(-1);
+    
+        // Check if edge is in the compareNet
+        int is_in_net = net.hasEdge(from,to)?1:0;
+        int is_in_compare_net = compareNet->hasEdge(from,to)?1:0;
+        this->stats[0] += (is_in_compare_net == is_in_net)?1:(-1);
         return;
     }
     
