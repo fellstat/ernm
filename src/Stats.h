@@ -1984,6 +1984,107 @@ public:
 typedef Stat<Directed, DegreeChangeCounter<Directed> > DirectedDegreeChangeCounter;
 typedef Stat<Undirected, DegreeChangeCounter<Undirected> > UndirectedDegreeChangeCounter;
 
+/*!
+ * Hamming distance - the number of edges that the network differs by 
+ */
+template<class Engine>
+class Hamming : public BaseStat< Engine > {
+protected:
+    //List edges;
+    boost::shared_ptr< std::vector< std::pair<int,int> > > edges;
+    boost::shared_ptr< BinaryNet<Engine>> compareNet;
+public:
+    Hamming(){
+        std::vector<double> v(1,0.0);
+        std::vector<double> t(1,0.0);
+        this->stats=v;
+        this->thetas =t;
+    }
+    
+    Hamming(Rcpp::List params){
+        if (params.size() < 2) {
+            ::Rf_error("Insufficient parameters passed to HammingOffset constructor");
+        }
+        if (!Rcpp::is<Rcpp::NumericMatrix>(params(0))) {
+            ::Rf_error("Expected a numeric matrix for the first parameter");
+        }
+        
+        std::vector<double> v(1,0.0);
+        std::vector<double> t(1,0.0);
+        this->stats=v;
+        this->thetas=t;
+        
+        // Keep the edge list and a network version of it
+        Rcpp::NumericMatrix edgeList = params(0);
+        this->compareNet.reset(new BinaryNet<Engine>(
+                Rcpp::as<Rcpp::IntegerMatrix>(params(0)),
+                Rcpp::as<int>(params(1))
+        ));
+        
+        boost::shared_ptr< std::vector< std::pair<int,int> > > edges_tmp(new std::vector<std::pair<int,int> >());
+        edges_tmp->reserve(edgeList.nrow());
+        for(int i=0;i<edgeList.nrow();i++){
+            // Do the minus one stuff since this is a R interface
+            int from = edgeList(i,0)-1;
+            int to = edgeList(i,1)-1;
+            if(from < 0 || to<0)
+                Rf_error("Edgelist indices out of range");
+            std::pair<int,int> p = std::make_pair(from,to);
+            edges_tmp->push_back(p);
+        }
+        this->edges = edges_tmp;
+    }
+    
+    std::string name(){
+        return "hamming";
+    }
+    
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"hamming");
+        return statnames;
+    }
+
+    void calculate(const BinaryNet<Engine>& net){
+        // Start by assuming they are completely the same
+        // Step through the edge list to calculate the edges that are missing
+        // Then use nEdges to get the additional edges
+        std::vector<double> v(1,0.0);
+        std::vector< std::pair<int,int> > ::iterator it = this->edges->begin();
+        int shared = 0;
+        while(it != this->edges->end()){
+            if(!net.hasEdge(it->first,it->second)){
+                v[0] += 1;
+            }else{
+                shared +=1;
+            }
+            it++;
+        }
+        
+        // add the surplus edges to the differing count
+        v[0] += (net.nEdges() - shared);
+        this->stats = v;
+        return;
+    }
+    
+    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    
+        // Check if edge is in the compareNet
+        int is_in_net = net.hasEdge(from,to)?1:0;
+        int is_in_compare_net = this->compareNet->hasEdge(from,to)?1:0;
+        this->stats[0] += (is_in_compare_net == is_in_net)?1:(-1);
+        return;
+    }
+    
+    // Don't do anything - purely edge statistic
+    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                              int variable, int newValue){}
+    
+    void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, double newValue){}
+};
+typedef Stat<Directed, Hamming<Directed> > DirectedHamming;
+typedef Stat<Undirected, Hamming<Undirected> > UndirectedHamming;
+
 
 /*!
  * ERNM's native homophily statistic. see paper
