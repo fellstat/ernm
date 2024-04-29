@@ -767,12 +767,10 @@ public:
         std::vector<double> v(1,0.0);
         this->stats=v;
         Rcpp::NumericMatrix edgeList = params(0);
-        boost::shared_ptr< BinaryNet<Engine>> compareNet(new
-                       BinaryNet<Engine>(
-                           Rcpp::as<Rcpp::NumericMatrix>(params(0)),
-                           Rcpp::as<int>(params(1))
-                       )
-        );   
+        this->compareNet.reset(new BinaryNet<Engine>(
+                Rcpp::as<Rcpp::IntegerMatrix>(params(0)),
+                Rcpp::as<int>(params(1))
+        ));
         taper_param = params(2);
         
 
@@ -788,7 +786,7 @@ public:
             std::pair<int,int> p = std::make_pair(from,to);
             edges_tmp->push_back(p);
         }
-        edges = edges_tmp;
+        this->edges = edges_tmp;
     }
     
     std::string name(){
@@ -800,9 +798,9 @@ public:
         // Step through the edge list to calculate the edges that are missing
         // Then use nEdges to get the additional edges
         std::vector<double> v(1,0.0);
-        std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+        std::vector< std::pair<int,int> > ::iterator it = this->edges->begin();
         int shared = 0;
-        while(it != edges->end()){
+        while(it != this->edges->end()){
             if(!net.hasEdge(it->first,it->second)){
                 v[0] += 1;
             }else{
@@ -820,7 +818,7 @@ public:
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
         // Check if edge is in the compareNet
         int is_in_net = net.hasEdge(from,to)?1:0;
-        int is_in_compare_net = compareNet->hasEdge(from,to)?1:0;
+        int is_in_compare_net = this->compareNet->hasEdge(from,to)?1:0;
         this->stats[0] += (taper_param)*(is_in_compare_net == is_in_net)?1:(-1);
         return;
     }

@@ -2016,12 +2016,10 @@ public:
         
         // Keep the edge list and a network version of it
         Rcpp::NumericMatrix edgeList = params(0);
-        boost::shared_ptr< BinaryNet<Engine>> compareNet(new
-            BinaryNet<Engine>(
-                Rcpp::as<Rcpp::NumericMatrix>(params(0)),
+        this->compareNet.reset(new BinaryNet<Engine>(
+                Rcpp::as<Rcpp::IntegerMatrix>(params(0)),
                 Rcpp::as<int>(params(1))
-            )
-        );
+        ));
         
         boost::shared_ptr< std::vector< std::pair<int,int> > > edges_tmp(new std::vector<std::pair<int,int> >());
         edges_tmp->reserve(edgeList.nrow());
@@ -2034,7 +2032,7 @@ public:
             std::pair<int,int> p = std::make_pair(from,to);
             edges_tmp->push_back(p);
         }
-        edges = edges_tmp;
+        this->edges = edges_tmp;
     }
     
     std::string name(){
@@ -2051,9 +2049,9 @@ public:
         // Step through the edge list to calculate the edges that are missing
         // Then use nEdges to get the additional edges
         std::vector<double> v(1,0.0);
-        std::vector< std::pair<int,int> > ::iterator it = edges->begin();
+        std::vector< std::pair<int,int> > ::iterator it = this->edges->begin();
         int shared = 0;
-        while(it != edges->end()){
+        while(it != this->edges->end()){
             if(!net.hasEdge(it->first,it->second)){
                 v[0] += 1;
             }else{
@@ -2072,7 +2070,7 @@ public:
     
         // Check if edge is in the compareNet
         int is_in_net = net.hasEdge(from,to)?1:0;
-        int is_in_compare_net = compareNet->hasEdge(from,to)?1:0;
+        int is_in_compare_net = this->compareNet->hasEdge(from,to)?1:0;
         this->stats[0] += (is_in_compare_net == is_in_net)?1:(-1);
         return;
     }
