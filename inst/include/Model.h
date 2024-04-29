@@ -518,7 +518,9 @@ public:
     void dyadUpdateR(int from, int to){
         if(from > net->size() || to > net->size())
             ::Rf_error("one of the vertex indices in the dyad update is bigger than the size of the network");
-        this->dyadUpdateR((from-1),(to-1));
+        if(from <1 || to <1)
+            ::Rf_error("one of the vertex indices in the dyad update is less than or equal to 0");
+        this->dyadUpdate((from-1),(to-1));
     }
 
 	void discreteVertexUpdate(int vertex, int variable, int newValue){
