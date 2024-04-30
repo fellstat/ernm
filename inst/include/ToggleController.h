@@ -113,13 +113,13 @@ void registerToggle(boost::shared_ptr< AbstractVertexToggle<Engine> > ps){
 	ToggleController<Engine>::addToggle(ps);
 }
 
+} /* namespace ernm */
+
+
 /*!
  * Called upon loading ERNM, registering built-in togglers
  */
-RcppExport void initToggles();
-
-
-} /* namespace ernm */
+void initToggles();
 
 void registerDirectedDyadToggle(Rcpp::XPtr< ernm::AbstractDyadToggle<ernm::Directed> > ps);
 

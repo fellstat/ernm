@@ -2,11 +2,11 @@
 #ifndef INSIDE
 
 #include <Rcpp.h>
-#include "BinaryNet.h"
-#include "DyadToggles.h"
-#include "VertexToggles.h"
-#include "MetropolisHastings.h"
-#include "CdSampler.h"
+#include <BinaryNet.h>
+#include <DyadToggles.h>
+#include <VertexToggles.h>
+#include <MetropolisHastings.h>
+#include <CdSampler.h>
 
 /*
  * Handles all functions and methods exported to R.
@@ -196,8 +196,10 @@ RCPP_MODULE(ernm){
 		.method("isThetaDependent",&ReModel<Directed>::isThetaDependent)
 		.method("thetaDependent",&ReModel<Directed>::thetaDependent)
 		;
-
-	function("initErnmStatistics",&initStats);
+    
+    // function("initErnmStatistics",&initStats);
+    // function("initErnmToggles",&initToggles);
+    
 
 	function("registerDirectedStatistic",&registerDirectedStatistic);
 	function("registerUndirectedStatistic",&registerUndirectedStatistic);

@@ -5,7 +5,7 @@
  *      Author: ianfellows
  */
 
-#include "VarAttrib.h"
+#include <VarAttrib.h>
 #include <Rcpp.h>
 
 namespace ernm{

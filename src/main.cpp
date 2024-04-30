@@ -9,28 +9,28 @@
 
 #include <vector>
 #include <Rcpp.h>
-#include "BinaryNet.h"
+#include <BinaryNet.h>
 #include <RInside.h> // for the embedded R via RInside
-#include "Stat.h"
-#include "Stats.h"
-#include "StatController.h"
-#include "Offset.h"
-#include "Offsets.h"
-#include "Constraint.h"
-#include "Constraints.h"
-#include "Model.h"
-#include "DyadToggles.h"
-#include "MetropolisHastings.h"
-#include "VarAttrib.h"
-#include "VertexToggle.h"
-#include "VertexToggles.h"
-#include "ToggleController.h"
+#include <Stat.h>
+#include <Stats.h>
+#include <StatController.h>
+#include <Offset.h>
+#include <Offsets.h>
+#include <Constraint.h>
+#include <Constraints.h>
+#include <Model.h>
+#include <DyadToggles.h>
+#include <MetropolisHastings.h>
+#include <VarAttrib.h>
+#include <VertexToggle.h>
+#include <VertexToggles.h>
+#include <ToggleController.h>
 #include <memory>
 #include <boost/shared_ptr.hpp>
 #include <assert.h>
-#include "tests/tests.h"
-#include "Quasi.h"
-#include "CdSampler.h"
+#include <tests.h>
+#include <Quasi.h>
+#include <CdSampler.h>
 #include <boost/container/flat_set.hpp>
 #include <ctime>
 #undef NDEBUG
@@ -784,6 +784,9 @@ void flatSetTest(){
  * Main entry point when called from outside R (with R embedded via RInside).
  */
 int main(int argc, char *argv[]) {
+    RInside R(argc, argv); // create an embedded R instance
+    initToggles();
+    initStats();
 /**/
     RInside R(argc, argv);              // create an embedded R instance
     initToggles();
