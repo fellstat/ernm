@@ -86,7 +86,7 @@ as.BinaryNet <- function(x,...){
 		return(x)	
 	if(!inherits(x,"network"))
 		stop("x must be a BinaryNet or network object")
-	directed <- is.directed(x)
+	directed <- network::is.directed(x)
 	el <- as.matrix(x,matrix.type="edgelist")
 	n <- attr(el,"n")
 	if(directed)

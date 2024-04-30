@@ -5,12 +5,8 @@
  *      Author: ianfellows
  */
 #include <Rcpp.h>
-#ifdef INSIDE
-#include "../BinaryNet.h"
-#else
-#include "BinaryNet.h"
-#endif
-#include "tests.h"
+#include <BinaryNet.h>
+#include <tests.h>
 
 namespace ernm{
 namespace tests{
