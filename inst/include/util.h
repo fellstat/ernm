@@ -209,10 +209,11 @@ inline int indexOf(T &element,std::vector<T> vec){
  * Coerse a type into a string
  */
 template<class T>
-std::string asString(T item){
-	return static_cast<std::ostringstream*>( &(std::ostringstream() << item) )->str();
+std::string asString(const T &item){
+    std::ostringstream ss;
+    ss << item;
+    return ss.str();
 }
-
 
 /*!
  * hash for a pair<int,int>
