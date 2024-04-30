@@ -23,3 +23,4 @@ Suggests:
     network,
     inline
 RcppModules: ernm
+RoxygenNote: 7.2.3

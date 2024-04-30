@@ -116,7 +116,7 @@ void registerToggle(boost::shared_ptr< AbstractVertexToggle<Engine> > ps){
 /*!
  * Called upon loading ERNM, registering built-in togglers
  */
-RcppExport void initToggles();
+void initToggles();
 
 
 } /* namespace ernm */

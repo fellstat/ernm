@@ -5,12 +5,13 @@
  *      Author: ianfellows
  */
 
-#include "ToggleController.h"
-#include "DyadToggle.h"
-#include "VertexToggle.h"
-#include "DyadToggles.h"
-#include "VertexToggles.h"
-#include "CdSampler.h"
+#include <ToggleController.h>
+#include <DyadToggle.h>
+#include <VertexToggle.h>
+#include <DyadToggles.h>
+#include <VertexToggles.h>
+#include <CdSampler.h>
+
 namespace ernm {
 
 
@@ -33,8 +34,8 @@ template<> UnDtMapPtr ToggleController<Undirected>::dyadMapPtr =
 template<> UnVtMapPtr ToggleController<Undirected>::vertexMapPtr =
 		UnVtMapPtr(new std::map< std::string, UndirVertexTogglePtr >);
 
-
-RcppExport void initToggles(){
+//[[Rcpp::export(name=".initToggles")]]
+void initToggles(){
 
 	registerToggle(boost::shared_ptr< AbstractDyadToggle<Directed> >(new DirectedRandomDyadToggle()));
 	registerToggle(boost::shared_ptr< AbstractDyadToggle<Directed> >(new DirectedTieDyadToggle()));

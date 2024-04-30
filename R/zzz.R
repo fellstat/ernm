@@ -1,16 +1,6 @@
-
-
-
 loadModule("ernm",TRUE)
 .onLoad <- function(libname, pkgname){
-	.C("initStats")
-	.C("initToggles")
+	.Call("_ernm_initStats")
+	.Call("_ernm_initToggles")
 }
-
 .onUnload <- function(libpath) {}
-
-
-
-#setwd("/Users/ianfellows/Documents/Eclipse_workspace/")
-#library(roxygen2)
-#roxygenize('ernm',roclets='rd')

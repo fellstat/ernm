@@ -1,11 +1,11 @@
-#include "StatController.h"
-#include "Stat.h"
-#include "Stats.h"
-#include "Offset.h"
-#include "Offsets.h"
-#include "Constraint.h"
-#include "Constraints.h"
-#include "Temporary.h"
+#include <StatController.h>
+#include <Stat.h>
+#include <Stats.h>
+#include <Offset.h>
+#include <Offsets.h>
+#include <Constraint.h>
+#include <Constraints.h>
+#include <Temporary.h>
 namespace ernm{
 
 
@@ -48,8 +48,8 @@ template<> UndirOffsetMapPtr StatController<Undirected>::offsetMapPtr =
 //UndirOffsetMapPtr StatController<Undirected>::offsetMapPtr =
 //		UndirOffsetMapPtr(new std::map< std::string, UndirOffsetPtr >);
 
-
-RcppExport void initStats(){
+//[[Rcpp::export(name=".initStats")]]
+void initStats(){
 	/*
 	 * Directed network statistics
 	 */

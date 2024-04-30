@@ -105,7 +105,7 @@ void registerOffset(boost::shared_ptr< AbstractOffset<Engine> > ps){
 /*!
  * Called upon loading ERNM, registering default stats/offsets
  */
-RcppExport void initStats();
+void initStats();
 
 }
 
