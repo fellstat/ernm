@@ -102,12 +102,12 @@ void registerOffset(boost::shared_ptr< AbstractOffset<Engine> > ps){
 	StatController<Engine>::addOffset(ps);
 }
 
+}
+
 /*!
  * Called upon loading ERNM, registering default stats/offsets
  */
 void initStats();
-
-}
 
 void registerDirectedStatistic(Rcpp::XPtr< ernm::AbstractStat<ernm::Directed> > ps);
 

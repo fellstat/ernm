@@ -27,29 +27,11 @@ template<> UndirStatMapPtr StatController<Undirected>::statMapPtr =
 template<> UndirOffsetMapPtr StatController<Undirected>::offsetMapPtr =
 		UndirOffsetMapPtr(new std::map< std::string, UndirOffsetPtr >);
 
-
-//typedef boost::shared_ptr< AbstractStat<Directed> > DirStatPtr;
-//typedef boost::shared_ptr< std::map< std::string, DirStatPtr > > StatMapPtr;
-//typedef boost::shared_ptr< AbstractOffset<Directed> > DirOffsetPtr;
-//typedef boost::shared_ptr< std::map< std::string, DirOffsetPtr > > OffsetMapPtr;
-//StatMapPtr StatController<Directed>::statMapPtr =
-//		StatMapPtr(new std::map< std::string, DirStatPtr >);
-
-
-
-
-//typedef boost::shared_ptr< AbstractStat<Undirected> > UndirStatPtr;
-//typedef boost::shared_ptr< std::map< std::string, UndirStatPtr > > UndirStatMapPtr;
-//typedef boost::shared_ptr< AbstractOffset<Undirected> > UndirOffsetPtr;
-//typedef boost::shared_ptr< std::map< std::string, UndirOffsetPtr > > UndirOffsetMapPtr;
-
-//UndirStatMapPtr StatController<Undirected>::statMapPtr =
-//		UndirStatMapPtr(new std::map< std::string, UndirStatPtr >);
-//UndirOffsetMapPtr StatController<Undirected>::offsetMapPtr =
-//		UndirOffsetMapPtr(new std::map< std::string, UndirOffsetPtr >);
+}
 
 //[[Rcpp::export(name=".initStats")]]
 void initStats(){
+    using namespace ernm;
 	/*
 	 * Directed network statistics
 	 */
@@ -133,9 +115,6 @@ void initStats(){
 			"registerUndirectedStatistic",(DL_FUNC) &registerUndirectedStatistic);
 	R_RegisterCCallable("ernm",
 			"registerUndirectedOffset",(DL_FUNC) &registerUndirectedOffset);
-
-}
-
 
 }
 

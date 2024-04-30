@@ -14,7 +14,6 @@
 
 namespace ernm {
 
-
 typedef boost::shared_ptr< AbstractDyadToggle<Directed> > DirDyadTogglePtr;
 typedef boost::shared_ptr< std::map< std::string, DirDyadTogglePtr > > DtMapPtr;
 typedef boost::shared_ptr< AbstractVertexToggle<Directed> > DirVertexTogglePtr;
@@ -33,10 +32,11 @@ template<> UnDtMapPtr ToggleController<Undirected>::dyadMapPtr =
 		UnDtMapPtr(new std::map< std::string, UndirDyadTogglePtr >);
 template<> UnVtMapPtr ToggleController<Undirected>::vertexMapPtr =
 		UnVtMapPtr(new std::map< std::string, UndirVertexTogglePtr >);
+}
 
 //[[Rcpp::export(name=".initToggles")]]
 void initToggles(){
-
+	using namespace ernm;
 	registerToggle(boost::shared_ptr< AbstractDyadToggle<Directed> >(new DirectedRandomDyadToggle()));
 	registerToggle(boost::shared_ptr< AbstractDyadToggle<Directed> >(new DirectedTieDyadToggle()));
 	registerToggle(boost::shared_ptr< AbstractDyadToggle<Directed> >(new DirectedNeighborhoodToggle()));
@@ -81,10 +81,6 @@ void initToggles(){
 
 
 }
-
-
-} /* namespace ernm */
-
 
 void registerDirectedDyadToggle(Rcpp::XPtr< ernm::AbstractDyadToggle<ernm::Directed> > ps){
 	ernm::ToggleController<ernm::Directed>::addToggle(
