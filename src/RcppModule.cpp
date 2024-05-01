@@ -7,6 +7,7 @@
 #include <VertexToggles.h>
 #include <MetropolisHastings.h>
 #include <CdSampler.h>
+#include <tests.h>
 
 /*
  * Handles all functions and methods exported to R.
@@ -203,16 +204,13 @@ RCPP_MODULE(ernm){
 		.method("thetaDependent",&ReModel<Directed>::thetaDependent)
 		;
     
-    // function("initErnmStatistics",&initStats);
-    // function("initErnmToggles",&initToggles);
-    
-
+    // functions to register statistics with the controller
 	function("registerDirectedStatistic",&registerDirectedStatistic);
 	function("registerUndirectedStatistic",&registerUndirectedStatistic);
 	function("registerDirectedStatistic",&registerDirectedOffset);
 	function("registerUndirectedStatistic",&registerUndirectedOffset);
-	//TODO: have not figured out how to get MakeVars to compile/link the tests dir
-	//function(".runCppTests",&tests::runTests);
+    // test functions to be exposed and then run by testthat
+	function("runErnmCppTests",&ernm::tests::runErnmTests);
 }                     
 
 

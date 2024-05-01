@@ -7,33 +7,19 @@
 
 
 #include <Rcpp.h>
-#ifdef INSIDE
-#include "../BinaryNet.h"
-#include "../Stat.h"
-#include "../Stats.h"
-#include "../Offsets.h"
-#include "../Constraint.h"
-#include "../Constraints.h"
-#include "../Model.h"
-#include "../DyadToggles.h"
-#include "../MetropolisHastings.h"
-#include "../VarAttrib.h"
-#include "../VertexToggles.h"
-#else
-#include "BinaryNet.h"
-#include "Stat.h"
-#include "Stats.h"
-#include "Offsets.h"
-#include "Constraint.h"
-#include "Constraints.h"
-#include "Model.h"
-#include "DyadToggles.h"
-#include "MetropolisHastings.h"
-#include "VarAttrib.h"
-#include "VertexToggles.h"
-#endif
-#include "tests.h"
-#include "ConstraintTests.h"
+#include <BinaryNet.h>
+#include <Stat.h>
+#include <Stats.h>
+#include <Offsets.h>
+#include <Constraint.h>
+#include <Constraints.h>
+#include <Model.h>
+#include <DyadToggles.h>
+#include <MetropolisHastings.h>
+#include <VarAttrib.h>
+#include <VertexToggles.h>
+#include <tests.h>
+#include <test_Constraint.h>
 namespace ernm {
 
 namespace tests{

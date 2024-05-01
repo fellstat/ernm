@@ -1,27 +1,21 @@
-/*
- * tests.h
- *
- *  Created on: Oct 22, 2012
- *      Author: ianfellows
- */
-
 #ifndef TESTS_H_
 #define TESTS_H_
 #include <assert.h>
 #include <Rcpp.h>
 #include <Rcpp/iostream/Rstreambuf.h>
 #include <string>
-#ifdef INSIDE
-#include "../util.h"
-#else
 #include "util.h"
-#endif
 
 namespace ernm{
 namespace tests{
 
-extern std::string testContext;
 
+extern std::string testContext;
+extern std::map< std::string, void(*)()> testFunctions;
+
+void addTestFunction(std::string name, void(*test)() );
+
+void registerErnmTests();
 
 
 /*
@@ -64,6 +58,7 @@ extern std::string testContext;
 		::Rf_error("failed");\
 	}
 
+#ifdef INSIDE
 #define RUN_TEST(x) try{ \
 		Rcpp::Rcout << testContext <<" : "<< #x << " : "; \
 		x;\
@@ -73,11 +68,22 @@ extern std::string testContext;
 		<< __LINE__ << " of file " << __FILE__ <<"\n"; \
 		::Rf_error("failed");\
 	}
+#endif
+
+#ifndef INSIDE
+#define RUN_TEST(x) try{                                      \
+x;                                                            \
+}catch(int e){                                                \
+  Rcpp::Rcout << "Test produced error. (" << #x <<") : line " \
+              << __LINE__ << " of file " << __FILE__ <<"\n";  \
+  ::Rf_error("failed");                                       \
+}
+#endif
 
 /*!
  * Runs all tests
  */
-RcppExport void runErnmTests();
+void runErnmTests();
 
 
 }
