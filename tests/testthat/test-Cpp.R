@@ -1,8 +1,8 @@
-# 
-# context("C++ tests")
-# library(testthat)
-# 
-# test_that("C++", {
-#   runErnmCppTests()
-#   expect_true(TRUE)
-# })
+
+context("C++ tests")
+library(testthat)
+
+test_that("C++", {
+  runErnmCppTests()
+  expect_true(TRUE)
+})

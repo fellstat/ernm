@@ -779,7 +779,7 @@ void flatSetTest(){
 }
 
 
-
+RcppExport SEXP _rcpp_module_boot_ernm(){return NULL;}
 /*!
  * Main entry point when called from outside R (with R embedded via RInside).
  */

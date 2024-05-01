@@ -24,7 +24,6 @@ void registerErnmTests(){
     addTestFunction("testReModel", testReModel);
 }
 
-
 void runErnmTests(){
 #ifdef INSIDE
     Rcpp::Rcout << "\n\t";
@@ -39,7 +38,6 @@ void runErnmTests(){
     Rcpp::Rcout << "All C++ Tests Complete\n";
 #endif
 }
-
 
 }
 }

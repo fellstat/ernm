@@ -210,7 +210,7 @@ RCPP_MODULE(ernm){
 	function("registerDirectedStatistic",&registerDirectedOffset);
 	function("registerUndirectedStatistic",&registerUndirectedOffset);
     // test functions to be exposed and then run by testthat
-	// function("runErnmCppTests",&tests::runErnmTests);
+	function("runErnmCppTests",&ernm::tests::runErnmTests);
 }                     
 
 
