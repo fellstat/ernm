@@ -154,6 +154,9 @@ RCPP_MODULE(ernm){
 		.method("hasRandomGraph",&Model<Undirected>::hasRandomGraph)
 		.method("setRandomVariables",&Model<Undirected>::setRandomVariablesR)
 		.method("getRandomVariables",&Model<Undirected>::getRandomVariablesR)
+        .method("dyadUpdate",&Model<Undirected>::dyadUpdateR)
+        .method("discreteVertexUpdate",&Model<Undirected>::discreteVertexUpdateR)
+        .method("continVertexUpdate",&Model<Undirected>::continVertexUpdateR)
 		;
 	class_<Model<Directed> >("DirectedModel")
 		.constructor()
@@ -171,6 +174,9 @@ RCPP_MODULE(ernm){
 		.method("hasRandomGraph",&Model<Directed>::hasRandomGraph)
 		.method("setRandomVariables",&Model<Directed>::setRandomVariablesR)
 		.method("getRandomVariables",&Model<Directed>::getRandomVariablesR)
+        .method("dyadUpdate",&Model<Directed>::dyadUpdateR)
+        .method("discreteVertexUpdate",&Model<Directed>::discreteVertexUpdateR)
+        .method("continVertexUpdate",&Model<Directed>::continVertexUpdateR)
 		;
 
 	class_<ReModel<Undirected> >("UndirectedReModel")

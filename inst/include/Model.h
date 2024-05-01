@@ -514,7 +514,14 @@ public:
 			offsets[k]->vDyadUpdate(*net, from, to);
 		}
 	}
-
+    
+    void dyadUpdateR(int from, int to){
+        if(from > net->size() || to > net->size())
+            ::Rf_error("one of the vertex indices in the dyad update is bigger than the size of the network");
+        if(from <1 || to <1)
+            ::Rf_error("one of the vertex indices in the dyad update is less than or equal to 0");
+        this->dyadUpdate((from-1),(to-1));
+    }
 
 	void discreteVertexUpdate(int vertex, int variable, int newValue){
 		for(int k=0;k<stats.size();k++)
@@ -522,6 +529,22 @@ public:
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
 	}
+    
+    void discreteVertexUpdateR(int vertex, std::string varName, int newValue){
+        if(vertex > net->size())
+            ::Rf_error("vertex index is bigger than the size of the network");
+        std::vector<std::string> vars = net->discreteVarNames();
+        int variable = -1;
+        for(int i=0;i<vars.size();i++){
+            if(vars[i] == varName){
+                variable = i;
+            }
+        }
+        if(variable<0){
+            ::Rf_error("UpdateR::nodal attribute not found in network");
+        }
+        this->discreteVertexUpdate((vertex-1),variable,newValue);
+    }
 
 	void continVertexUpdate(int vertex, int variable, double newValue){
 		for(int k=0;k<stats.size();k++)
@@ -529,6 +552,22 @@ public:
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vContinVertexUpdate(*net,vertex, variable, newValue);
 	}
+    
+    void continVertexUpdateR(int vertex, std::string varName, int newValue){
+        if(vertex > net->size())
+            ::Rf_error("vertex index is bigger than the size of the network");
+        std::vector<std::string> vars = net->continVarNames();
+        int variable = -1;
+        for(int i=0;i<vars.size();i++){
+            if(vars[i] == varName){
+                variable = i;
+            }
+        }
+        if(variable<0){
+            ::Rf_error("UpdateR::nodal attribute not found in network");
+        }
+        this->continVertexUpdate((vertex-1),variable,newValue);
+    }
 
 	/*!
 	 * get the network
