@@ -1076,8 +1076,8 @@ class Logistic : public BaseStat< Engine > {
 protected:
 	int nstats; /*!< the number of stats generated */
 	int nlevels;
-	int variableIndex, regIndex;
-	std::string variableName, regressorName;
+	int variableIndex, regIndex,baseIndex;
+	std::string variableName, regressorName, baseValue;
 public:
 	Logistic(){
 		nstats=nlevels=variableIndex=regIndex = 0;
@@ -1087,7 +1087,15 @@ public:
 		nstats=nlevels=variableIndex=regIndex = 0;
 		variableName = out;
 		regressorName = reg;
+		baseValue = "";
 	}
+    
+    Logistic(std::string out,std::string reg,std::string base_val){
+        nstats=nlevels=variableIndex=regIndex = 0;
+        variableName = out;
+        regressorName = reg;
+        baseValue = base_val;
+    }
 
 	Logistic(List params){
 		nstats=nlevels=variableIndex=regIndex = 0;
@@ -1100,6 +1108,11 @@ public:
 			regressorName = as<std::string>(params[1]);
 		}catch(...){
 			::Rf_error("LogisticModel requires a formula");
+		}
+		try{
+		    baseValue = as<std::string>(params[2]);
+		}catch(...){
+		    baseValue = "";
 		}
 	}
 
@@ -1116,6 +1129,7 @@ public:
 		std::vector<std::string> vars = net.discreteVarNames();
 		variableIndex = -1;
 		regIndex = -1;
+		baseIndex = -1;
 		for(int i=0;i<vars.size();i++){
 			if(vars[i] == variableName){
 				variableIndex = i;
@@ -1126,6 +1140,17 @@ public:
 		}
 		if(regIndex<0 || variableIndex<0)
 			Rf_error("invalid variables");
+		// Find which level is the base level
+		std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels()
+		    for(int i=0;i<levels.size();i++){
+		        if(levels[i] == baseValue){
+		            baseIndex = i;
+		        }
+		    }
+		if(baseValue != "" && baseIndex<0)
+		    baseIndex = 0;
+        if(baseIndex<0)
+            Rf_error("invalid baseIndex");
 		int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
 		nstats = nlevels - 1;
 		this->stats = std::vector<double>(nstats,0.0);
@@ -1135,10 +1160,14 @@ public:
 		for(int i=0;i<net.size();i++){
 			val = net.discreteVariableValue(variableIndex,i)-1;
 			val1 = net.discreteVariableValue(regIndex,i)-1;
-			//this->stats[0] +=val;
-			//this->stats[1] += val*val1;
-			if(val>0 && val1<nstats)
-				this->stats.at(val1)++;
+
+			// if the variable is !=0 and the val is not equal to the baselevel we add one on
+			// note that tsince the base level could be anywhere in the n-vector of stats
+			// need to be a little careful
+			if(val>0 && val1 > baseIndex)
+				this->stats.at((val1-1))++;
+			if(val>0 && val1 < baseIndex)
+			    this->stats.at((val1))++;
 		}
 	}
 
@@ -1149,22 +1178,32 @@ public:
 		int varValue = net.discreteVariableValue(variableIndex,vert)-1;
 		int regValue = net.discreteVariableValue(regIndex,vert)-1;
 		newValue--;
-		//cout<<newValue<<varValue<<regValue<<" ";
 		if(variable == regIndex){
 			if(varValue>0){
-				if(regValue<nstats)
-					this->stats.at(regValue)--;
-				if( newValue < nstats)
-					this->stats.at(newValue)++;
+			    // if the variable is !=0 and the old val is not equal to the baselevel we remove one
+				if(regValue > baseIndex)
+					this->stats.at((regValue-1))--;
+				if(regValue < baseIndex)
+				    this->stats.at(regValue)--;
+				// if the variable is !=0 and the new val is not equal to the baselevel we add one on
+				if(newValue > baseIndex)
+				    this->stats.at((newValue-1))++;
+				if(newValue < baseIndex)
+				    this->stats.at(newValue)++;
 			}
 		}else{
+		    // must mean variable == variableIndex
 			if(varValue>0){
-				if(regValue<nstats)
-					this->stats.at(regValue)--;
+			    if(regValue > baseIndex)
+			        this->stats.at((regValue-1))--;
+			    if(regValue < baseIndex)
+			        this->stats.at(regValue)--;
 			}
-			if( newValue > 0){
-				if(regValue<nstats)
-					this->stats.at(regValue)++;
+			if(newValue>0){
+			    if(regValue > baseIndex)
+			        this->stats.at((regValue-1))++;
+			    if(regValue < baseIndex)
+			        this->stats.at(regValue)++;
 			}
 		}
 	}
