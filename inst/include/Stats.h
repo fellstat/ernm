@@ -2005,8 +2005,9 @@ public:
         if (params.size() < 2) {
             ::Rf_error("Insufficient parameters passed to HammingOffset constructor");
         }
-        if (!Rcpp::is<Rcpp::NumericMatrix>(params(0))) {
-            ::Rf_error("Expected a numeric matrix for the first parameter");
+        if (!Rcpp::is<Rcpp::NumericMatrix>(params(0)) and !Rcpp::is<Rcpp::IntegerMatrix>(params(0))) {
+            ::Rf_error("Parameter should be an integer of numeric matrix, type passed was this: %s", Rcpp::type2name(params(0)));
+            
         }
         
         std::vector<double> v(1,0.0);

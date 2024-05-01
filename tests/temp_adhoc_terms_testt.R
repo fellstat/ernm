@@ -22,7 +22,7 @@
 #   set.vertex.attribute(net,"var_2",as.character(apply(rmultinom(100,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
 #   set.vertex.attribute(net,"var_3",as.character(apply(rmultinom(100,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
 #   summary(as.factor(get.vertex.attribute(net,"var_1")))
-#   
+# 
 #   net <- add_treated_neighs(net,"var_1")
 #   net <- add_treated_neighs(net,"var_2")
 #   net <- add_treated_neighs(net,"var_3")
@@ -102,21 +102,21 @@
 #                   mcmcBurnIn = 100)
 # for(i in which(net %v% "var_2"== "2")[-1]){
 #   net_2 <- net
-#   net_2[i,2] <- 1 - net_2[i,2] 
-#   
+#   net_2[i,2] <- 1 - net_2[i,2]
+# 
 #   change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighbors("var_2","var_2") | var_2) - ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2") | var_2)
-#   
+# 
 #   model <- tmp_model
-#   
+# 
 #   model <- model$m$sample$getModel()
 #   model$setNetwork(as.BinaryNet(net))
 #   model$calculate()
-#   
+# 
 #   stat1 <- model$statistics()
 #   model$dyadUpdate(2,i)
 #   stat2 <- model$statistics()
 #   change_2 <- stat2-stat1
-#   
+# 
 #   if(change_1 != change_2){
 #     print("PROBLEM")
 #     print(i)
@@ -124,9 +124,9 @@
 #     print(change_2)
 #   }
 # }
-#  # looks okay 
+#  # looks okay
 # 
-# # test for changing a node value to 
+# # test for changing a node value to
 # 
 # for(i in 1:(net%n% "n")){
 #   net_2 <- net
@@ -136,20 +136,20 @@
 #     new_value <- "1"
 #   }
 #   set.vertex.attribute(net_2,"var_2",new_value,i)
-#   
+# 
 #   change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighbors("var_2","var_2") | var_2) - ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2") | var_2)
-#   
+# 
 #   model <- tmp_model
-#   
+# 
 #   model <- model$m$sample$getModel()
 #   model$setNetwork(as.BinaryNet(net))
 #   model$calculate()
-#   
+# 
 #   stat1 <- model$statistics()
 #   model$discreteVertexUpdate(i,"var_2",as.numeric(new_value))
 #   stat2 <- model$statistics()
 #   change_2 <- stat2-stat1
-#   
+# 
 #   if(change_1 != change_2){
 #     print("PROBLEM")
 #     print(i)
@@ -158,7 +158,7 @@
 #   }
 # }
 # 
-# # looks fine ! 
+# # looks fine !
 # 
 # # =====================================================================
 # # Logistic Neighbors Top Level
@@ -175,21 +175,21 @@
 #                   mcmcBurnIn = 100)
 # for(i in which(net %v% "var_2"== "2")[-1]){
 #   net_2 <- net
-#   net_2[i,2] <- 1 - net_2[i,2] 
+#   net_2[i,2] <- 1 - net_2[i,2]
 # 
 #   change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighborsTopLevel("var_2","var_2") | var_2) - ernm::calculateStatistics(net ~ logisticNeighborsTopLevel("var_2","var_2") | var_2)
-#   
+# 
 #   model <- tmp_model
-#   
+# 
 #   model <- model$m$sample$getModel()
 #   model$setNetwork(as.BinaryNet(net))
 #   model$calculate()
-#   
+# 
 #   stat1 <- model$statistics()
 #   model$dyadUpdate(2,i)
 #   stat2 <- model$statistics()
 #   change_2 <- stat2-stat1
-#   
+# 
 #   if(change_1 != change_2){
 #     print("PROBLEM")
 #     print(i)
@@ -206,20 +206,20 @@
 #     new_value <- "1"
 #   }
 #   set.vertex.attribute(net_2,"var_2",new_value,i)
-#   
+# 
 #   change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighborsTopLevel("var_2","var_2") | var_2) - ernm::calculateStatistics(net ~ logisticNeighborsTopLevel("var_2","var_2") | var_2)
-#   
+# 
 #   model <- tmp_model
-#   
+# 
 #   model <- model$m$sample$getModel()
 #   model$setNetwork(as.BinaryNet(net))
 #   model$calculate()
-#   
+# 
 #   stat1 <- model$statistics()
 #   model$discreteVertexUpdate(i,"var_2",as.numeric(new_value))
 #   stat2 <- model$statistics()
 #   change_2 <- stat2-stat1
-#   
+# 
 #   if(change_1 != change_2){
 #     print("PROBLEM")
 #     print(i)
@@ -232,7 +232,7 @@
 # # =====================================================================
 # # Differential Homophilly
 # # =====================================================================
-# # Already includeed ! 
+# # Already includeed !
 # ernm::calculateStatistics(net ~ homophily(name = "var_1", collapse = F, mix = F) | var_2)
 # ergm::summary_formula(net ~ nodematch("var_1",diff = T))
 # 
@@ -240,7 +240,7 @@
 # # Homophillous ESP
 # # =====================================================================
 # tmp <- sapply(unique(net %v% "var_1"),function(i){
-#   remove <- which((net %v% "var_1") != i) 
+#   remove <- which((net %v% "var_1") != i)
 #   net_tmp <-net
 #   delete.vertices(net_tmp,remove)
 #   return(ergm::summary_formula(net_tmp ~ gwesp(0.5,fixed = T)))
@@ -264,20 +264,20 @@
 #   for(j in 1:(net%n%"n")){
 #     if(i==j){next}
 #     net_2 <- net
-#     net_2[i,j] <- 1 - net_2[i,j] 
-#     change_1 <- ernm::calculateStatistics(net_2 ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_1")) - 
+#     net_2[i,j] <- 1 - net_2[i,j]
+#     change_1 <- ernm::calculateStatistics(net_2 ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_1")) -
 #       ernm::calculateStatistics(net ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_1"))
-#   
+# 
 #     model <- tmp_model
 #     model <- model$m$sample$getModel()
 #     model$setNetwork(as.BinaryNet(net))
 #     model$calculate()
-#     
+# 
 #     stat1 <- model$statistics()
 #     model$dyadUpdate(i,j)
 #     stat2 <- model$statistics()
 #     change_2 <- stat2-stat1
-#     
+# 
 #     if(abs(change_1 -  change_2) > 10**-3){
 #       print("PROBLEM")
 #       print(i)
@@ -301,7 +301,7 @@
 #   print(i)
 #   tmp <- as.BinaryNet(net)
 # }
-# # after enough calls something in c++ breaks.. 
+# # after enough calls something in c++ breaks..
 # 
 # 
 # delete.vertex.attribute(net,"na")
@@ -311,13 +311,13 @@
 #     print(i)
 #     print(j)
 #     net_2 <- net
-#     net_2[i,j] <- 1 - net_2[i,j] 
-#     change_1 <- tryCatch({ernm::calculateStatistics(net_2 ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_2")) - 
+#     net_2[i,j] <- 1 - net_2[i,j]
+#     change_1 <- tryCatch({ernm::calculateStatistics(net_2 ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_2")) -
 #       ernm::calculateStatistics(net ~ gwesp(alpha = 0.5,homogenous = T,variableName = "var_2"))},
 #       error = function(e){return(10**10)})
-#     
+# 
 #     model <- tmp_model$m$sampler$getModel()
-#     
+# 
 #     model$setNetwork(as.BinaryNet(net))
 #     model$calculate()
 #     stat1 <- tryCatch({model$statistics()},error = function(e){10**5})
@@ -345,13 +345,13 @@
 # head(edges)
 # 
 # hamming_calc = function(edges,net){
-#   
+# 
 #   e_list = as.edgelist(net)*1.0
 #   e_list = cbind(as.double(e_list[,1]),as.double(e_list[,2]))
-#   
+# 
 #   tmp = rbind(e_list,edges)
 #   shared = sum(duplicated(tmp))
-#   
+# 
 #   dist = (dim(e_list)[1] - shared) + (dim(edges)[1] - shared)
 #   return(dist)
 # }

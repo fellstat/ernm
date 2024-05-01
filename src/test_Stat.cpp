@@ -135,7 +135,14 @@ void changeStatTest(std::string statName){
     else if(statName == "DegreeCrossProd")
     	stat = boost::shared_ptr< Stat<Engine, DegreeCrossProd<Engine> > >(
     			new Stat<Engine, DegreeCrossProd<Engine> >());
-    else if(statName == "Star"){
+    else if(statName == "Hamming"){
+        Rcpp::List ncpar;
+        IntegerMatrix hamming_edge_list(0,2);
+        ncpar.push_back(hamming_edge_list);
+        ncpar.push_back(30);
+        stat = boost::shared_ptr< Stat<Engine, Hamming<Engine> > >(
+            new Stat<Engine, Hamming<Engine> >(ncpar));
+    }else if(statName == "Star"){
     	vector<int> tmp;
     	tmp.push_back(2);
     	tmp.push_back(3);
@@ -256,6 +263,8 @@ void testStats(){
     RUN_TEST(changeStatTest<Directed>("Gauss"));
     RUN_TEST(changeStatTest<Directed>("Triangles"));
     RUN_TEST(changeStatTest<Directed>("LogDegreeMoment"));
+    RUN_TEST(changeStatTest<Directed>("Hamming"));
+    
 
 	RUN_TEST(changeStatTest<Undirected>("Transitivity"));
 	RUN_TEST(changeStatTest<Undirected>("Triangles"));
@@ -278,6 +287,7 @@ void testStats(){
     RUN_TEST(changeStatTest<Undirected>("Gauss"));
     RUN_TEST(changeStatTest<Undirected>("LogDegreeMoment"));
     RUN_TEST(changeStatTest<Undirected>("DegreeCrossProd"));
+    RUN_TEST(changeStatTest<Undirected>("Hamming"));
 }
 
 
