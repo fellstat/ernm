@@ -902,7 +902,6 @@ public:
 	}
 
 	NodeCount(List params){
-	    Rcpp::Rcout << "Constructing NodeCount \n";
 		varIndex=nstats=0;
 		try{
 			variableName = as< std::string >(params(0));
