@@ -41,15 +41,19 @@ test_that("Stats", {
     v1 = (net %v% "var_2")
     v2 = (net %v% "var_3")
     
-    r_stat_1 = sum((v1=="2")[v2=="2"])
-    model <- ernm(net ~ nodeCount("var_2","2") | var_2 ,maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100)
+    r_stat_1 = sum((v1=="2"))
+    cpp_stat_1 = as.numeric(ernm::calculateStatistics(net ~ nodeCount("var_2","1")))
     
-    cpp_stat_1 = as.numeric(ernm::calculateStatistics(net ~ nodeCount("var_2","2") | var_2))
+    model <- ernm(net ~ nodeCount("var_2","1")| var_2 ,maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
     
     # Flip var 2 from 0 to 1 when var 3 is 0
     y_pos = which(net %v% "var_2"== "2")
     vert = y_pos[1]
-    model$discreteVertexUpdate(vert, "var_2",1)
+    model$discreteVertexUpdate(vert,"var_2",1)
     cpp_stat_2 <- model$statistics()
     r_stat_2 <- r_stat_1 - 1
     #reset:
@@ -58,7 +62,7 @@ test_that("Stats", {
     y_neg = which(net %v% "var_2"== "1")
     vert = y_neg[1]
     model$discreteVertexUpdate(vert, "var_2",2)
-    cpp_stat_2 <- model$statistics()
+    cpp_stat_3 <- model$statistics()
     r_stat_3 <- r_stat_1 + 1
     #reset:
     model$calculate()
