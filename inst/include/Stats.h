@@ -877,7 +877,7 @@ typedef Stat<Directed, NodeMix<Directed> > DirectedNodeMix;
 typedef Stat<Undirected, NodeMix<Undirected> > UndirectedNodeMix;
 
 /*!
- * The counts of the number of nodes in each category (except for the last)
+ * The counts of the number of nodes in each category (except for the specified baseIndex)
  *  of variableName.
  */
 template<class Engine>
@@ -891,15 +891,18 @@ public:
 		variableName="";
 		varIndex=nstats=0;
 		baseIndex = 0;
+		baseValue = "";
 	}
 
 	NodeCount(std::string name){
 		variableName=name;
 		varIndex=nstats=0;
 		baseIndex = 0;
+		baseValue = "";
 	}
 
 	NodeCount(List params){
+	    Rcpp::Rcout << "Constructing NodeCount \n";
 		varIndex=nstats=0;
 		try{
 			variableName = as< std::string >(params(0));
@@ -957,25 +960,18 @@ public:
 		int nlevels = net.discreteVariableAttributes(variableIndex).labels().size();
 		nstats = nlevels-1;
 		this->stats = std::vector<double>(nstats,0.0);
+		if(nlevels<2){
+		    ::Rf_error("NodeCount::calculate: variable has only one level, you need to remove it from the network");
+		}
 		if(this->thetas.size() != nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		int val = 0;
 		for(int i=0;i<net.size();i++){
-			val = net.discreteVariableValue(varIndex,i);
+			val = net.discreteVariableValue(varIndex,i)-1;
 		    if(val > baseIndex)
 		        this->stats.at((val-1))++;
 		    if(val < baseIndex)
 		        this->stats.at((val))++;
-		}
-		//At the end of the calculation we print everything we know about the class
-		std::cout << "variableName: " << variableName << std::endl;
-		std::cout << "varIndex: " << varIndex << std::endl;
-		std::cout << "nstats: " << nstats << std::endl;
-		std::cout << "baseValue: " << baseValue << std::endl;
-		std::cout << "baseIndex: " << baseIndex << std::endl;
-		std::cout << "stats: ";
-		for(int i=0;i<this->stats.size();i++){
-			std::cout<< "  " << this->stats[i] << " ";
 		}
 	}
 
@@ -985,7 +981,15 @@ public:
 			int variable, int newValue){
 		if(variable != varIndex)
 			return;
-		int val = net.discreteVariableValue(varIndex,vert);
+		//Check if the new value is contained in the vector of current values
+		std::vector<std::string> levels = net.discreteVariableAttributes(varIndex).labels();
+		int nlevels = levels.size();
+		if(newValue < 1 || newValue > nlevels){
+		    ::Rf_error("NodeCount::discreteVertexUpdate: new value not in levels");
+		}
+		
+		int val = net.discreteVariableValue(varIndex,vert)-1;
+		newValue--;
 		if(val > baseIndex)
 		    this->stats.at((val-1))--;
 		if(val < baseIndex)
