@@ -78,7 +78,7 @@ ernmFit <- function(sampler,theta0,
 				theta0=theta0,
 				stats=stats))
 			if(inherits(tty,"try-error"))
-				browser()
+				# browser()
 			if(!trustRes$converged)
 				warning("Trust: convergance not met")
 			theta0 <- trustRes$argument
