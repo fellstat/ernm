@@ -1099,6 +1099,9 @@ public:
 
 	Logistic(List params){
 		nstats=nlevels=variableIndex=regIndex = 0;
+	    if(params.size() < 2){
+	        ::Rf_error("LogisticModel requires at least two arguments passed");
+	    }
 		try{
 			variableName = as<std::string>(params[0]);
 		}catch(...){
@@ -1109,9 +1112,13 @@ public:
 		}catch(...){
 			::Rf_error("LogisticModel requires a formula");
 		}
-		try{
-		    baseValue = as<std::string>(params[2]);
-		}catch(...){
+		if(params.size() > 2){
+		    try{
+		        baseValue = as<std::string>(params[2]);
+		    }catch(...){
+		        baseValue = "";
+		    }
+		}else{
 		    baseValue = "";
 		}
 	}
@@ -1141,14 +1148,15 @@ public:
 		if(regIndex<0 || variableIndex<0)
 			Rf_error("invalid variables");
 		// Find which level is the base level
-		std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels()
+		std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels();
 		    for(int i=0;i<levels.size();i++){
 		        if(levels[i] == baseValue){
 		            baseIndex = i;
 		        }
 		    }
-		if(baseValue != "" && baseIndex<0)
+		if(baseIndex<0){
 		    baseIndex = 0;
+		}
         if(baseIndex<0)
             Rf_error("invalid baseIndex");
 		int nlevels = net.discreteVariableAttributes(regIndex).labels().size();

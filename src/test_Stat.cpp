@@ -118,10 +118,21 @@ void changeStatTest(std::string statName){
     else if(statName == "Triangles")
     	stat = boost::shared_ptr< Stat<Engine, Triangles<Engine> > >(
         		new Stat<Engine, Triangles<Engine> >());
-    else if(statName == "Logistic")
-    	stat =boost::shared_ptr< Stat<Engine, Logistic<Engine> > >(
-    		new Stat<Engine, Logistic<Engine> >(log));
-    else if(statName == "DiffActivity")
+    else if(statName == "Logistic"){
+        // Note current testing framerowk only allows one test per stat - may need to change 
+        Rcpp::List ncpar;
+        std::string variableName = "fact";
+        std::string regressorName = "out";
+        std::string baseValue = "b";
+        
+        ncpar.push_back(variableName);
+        ncpar.push_back(regressorName);
+        ncpar.push_back(baseValue);
+        
+    	stat = boost::shared_ptr< Stat<Engine, Logistic<Engine> > >(
+    		new Stat<Engine, Logistic<Engine> >(ncpar));
+    
+    }else if(statName == "DiffActivity")
     	stat =boost::shared_ptr< Stat<Engine, DiffActivity<Engine> > >(new Stat<Engine,DiffActivity<Engine> >(fact));
     else if(statName == "Homophily")
     	stat = boost::shared_ptr< Stat<Engine, Homophily<Engine> > >(
