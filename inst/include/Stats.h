@@ -1406,24 +1406,18 @@ public:
         int toVarValue = net.discreteVariableValue(variableIndex,to)-1;
         int toRegValue = net.discreteVariableValue(regIndex,to)-1;
         // If we are removing the edge may remove a value for both from  and to
-        if(addingEdge){
-            if(fromVarValue>0 && toRegValue>baseIndex)
-                this->stats.at(toRegValue-1)++;
-            if(fromVarValue>0 && toRegValue<baseIndex)
-                this->stats.at(toRegValue)++;
-            if(toVarValue>0 && fromRegValue>baseIndex)
-                this->stats.at(fromRegValue-1)++;
-            if(toVarValue>0 && fromRegValue<baseIndex)
-                this->stats.at(fromRegValue)++;
-        }else{
-            if(fromVarValue>0 && toRegValue>baseIndex)
-                this->stats.at(toRegValue-1)--;
-            if(fromVarValue>0 && toRegValue<baseIndex)
-                this->stats.at(toRegValue)--;
-            if(toVarValue>0 && fromRegValue>baseIndex)
-                this->stats.at(fromRegValue-1)--;
-            if(toVarValue>0 && fromRegValue<baseIndex)
-                this->stats.at(fromRegValue)--;
+        int add = net.hasEdge(from,to)?-1:1;
+        if(fromVarValue>0){
+           if(toRegValue>baseIndex)
+               this->stats.at(toRegValue-1)+=add;
+           if(toRegValue<baseIndex)
+               this->stats.at(toRegValue)+=add;
+        }
+        if(toVarValue>0){
+           if(fromRegValue>baseIndex)
+               this->stats.at(fromRegValue-1)+=add;
+           if(fromRegValue<baseIndex)
+               this->stats.at(fromRegValue)+=add;
         }
     }
     
