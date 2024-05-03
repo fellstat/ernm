@@ -883,18 +883,20 @@ typedef Stat<Undirected, NodeMix<Undirected> > UndirectedNodeMix;
 template<class Engine>
 class NodeCount : public BaseStat< Engine > {
 protected:
-	std::string variableName; /*!< the name of the matching variable */
-	int varIndex; /*!< the index of the variable in the network */
+	std::string variableName,baseValue; /*!< the name of the matching variable */
+	int varIndex,baseIndex; /*!< the index of the variable in the network */
 	int nstats; /*!< the number of stats generated (i.e. the number of levels) */
 public:
 	NodeCount(){
 		variableName="";
 		varIndex=nstats=0;
+		baseIndex = 0;
 	}
 
 	NodeCount(std::string name){
 		variableName=name;
 		varIndex=nstats=0;
+		baseIndex = 0;
 	}
 
 	NodeCount(List params){
@@ -903,6 +905,15 @@ public:
 			variableName = as< std::string >(params(0));
 		}catch(...){
 			::Rf_error("NodeCount requires a nodal variable name");
+		}
+		if(params.size() > 1){
+		    try{
+		        baseValue = as<std::string>(params[1]);
+		    }catch(...){
+		        baseValue = "";
+		    }
+		}else{
+		    baseValue = "";
 		}
 	}
 
@@ -921,8 +932,6 @@ public:
     
         
 	void calculate(const BinaryNet<Engine>& net){
-
-
 		std::vector<std::string> vars = net.discreteVarNames();
 		int variableIndex = -1;
 		for(int i=0;i<vars.size();i++){
@@ -933,20 +942,40 @@ public:
 		if(variableIndex<0)
 			::Rf_error("nodal attribute not found in network");
 		varIndex = variableIndex;
+		// Find which level is the base level
+		std::vector<std::string> levels = net.discreteVariableAttributes(varIndex).labels();
+		for(int i=0;i<levels.size();i++){
+		    if(levels[i] == baseValue){
+		        baseIndex = i;
+		    }
+		}
+		if(baseIndex<0){
+		    baseIndex = 0;
+		}
+		if(baseIndex<0)
+		    Rf_error("invalid baseIndex");
 		int nlevels = net.discreteVariableAttributes(variableIndex).labels().size();
 		nstats = nlevels-1;
 		this->stats = std::vector<double>(nstats,0.0);
 		if(this->thetas.size() != nstats)
 			this->thetas = std::vector<double>(nstats,0.0);
 		int val = 0;
-		std::vector<double> tmp = std::vector<double>(nlevels,0.0);
 		for(int i=0;i<net.size();i++){
 			val = net.discreteVariableValue(varIndex,i);
-			tmp[val-1]++;
+		    if(val > baseIndex)
+		        this->stats.at((val-1))++;
+		    if(val < baseIndex)
+		        this->stats.at((val))++;
 		}
-		for(int i=0;i<nlevels;i++){
-			if(i<nlevels-1)
-				this->stats[i] = tmp[i];
+		//At the end of the calculation we print everything we know about the class
+		std::cout << "variableName: " << variableName << std::endl;
+		std::cout << "varIndex: " << varIndex << std::endl;
+		std::cout << "nstats: " << nstats << std::endl;
+		std::cout << "baseValue: " << baseValue << std::endl;
+		std::cout << "baseIndex: " << baseIndex << std::endl;
+		std::cout << "stats: ";
+		for(int i=0;i<this->stats.size();i++){
+			std::cout<< "  " << this->stats[i] << " ";
 		}
 	}
 
@@ -957,12 +986,14 @@ public:
 		if(variable != varIndex)
 			return;
 		int val = net.discreteVariableValue(varIndex,vert);
-		if(val<(nstats+1)){
-			this->stats[val-1]--;
-		}
-		if(newValue<(nstats+1)){
-			this->stats[newValue-1]++;
-		}
+		if(val > baseIndex)
+		    this->stats.at((val-1))--;
+		if(val < baseIndex)
+		    this->stats.at((val))--;
+		if(newValue > baseIndex)
+		    this->stats.at((newValue-1))++;
+		if(newValue < baseIndex)
+		    this->stats.at((newValue))++;
 	}
 
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
@@ -1381,16 +1412,18 @@ public:
             while(it != end){
                 int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
                 if(neighbor_regVal<nstats){
-                    if(varValue > 0)
+                    if(varValue > 0){
                         if(neighbor_regVal < baseIndex)
                             this->stats.at(neighbor_regVal)--;
                         if(neighbor_regVal > baseIndex)
                             this->stats.at((neighbor_regVal-1))--;
-                    if(newValue > 0)
+                    }
+                    if(newValue > 0){
                         if(neighbor_regVal < baseIndex)
                             this->stats.at(neighbor_regVal)++;
                         if(neighbor_regVal > baseIndex)
                             this->stats.at((neighbor_regVal-1))++;
+                    }
                 }
                 it++;
             }
@@ -2968,7 +3001,6 @@ public:
 		}catch(...){
 			::Rf_error("NodeCount requires a nodal variable name");
 		}
-
 		try{
 			int tmp = as< int >(params(1));
 			if(tmp==0)
