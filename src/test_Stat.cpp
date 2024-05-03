@@ -131,7 +131,19 @@ void changeStatTest(std::string statName){
         
     	stat = boost::shared_ptr< Stat<Engine, Logistic<Engine> > >(
     		new Stat<Engine, Logistic<Engine> >(ncpar));
-    
+    }else if(statName == "LogisticNeighbors"){
+        // Note current testing framerowk only allows one test per stat - may need to change 
+        Rcpp::List ncpar;
+        std::string variableName = "fact";
+        std::string regressorName = "out";
+        std::string baseValue = "b";
+        
+        ncpar.push_back(variableName);
+        ncpar.push_back(regressorName);
+        ncpar.push_back(baseValue);
+        
+        stat = boost::shared_ptr< Stat<Engine, Logistic<Engine> > >(
+            new Stat<Engine, Logistic<Engine> >(ncpar));
     }else if(statName == "DiffActivity")
     	stat =boost::shared_ptr< Stat<Engine, DiffActivity<Engine> > >(new Stat<Engine,DiffActivity<Engine> >(fact));
     else if(statName == "Homophily")
@@ -264,6 +276,7 @@ void testStats(){
 	RUN_TEST(changeStatTest<Directed>("DegreeDispersion"));
 	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
 	RUN_TEST(changeStatTest<Directed>("Logistic"));
+	RUN_TEST(changeStatTest<Directed>("LogisticNeighbors"));
 	RUN_TEST(changeStatTest<Directed>("DiffActivity"));
 	RUN_TEST(changeStatTest<Directed>("Degree"));
 	RUN_TEST(changeStatTest<Directed>("Star"));
@@ -285,6 +298,7 @@ void testStats(){
 	RUN_TEST(changeStatTest<Undirected>("DegreeDispersion"));
 	RUN_TEST(changeStatTest<Undirected>("DegreeSkew"));
 	RUN_TEST(changeStatTest<Undirected>("Logistic"));
+	RUN_TEST(changeStatTest<Undirected>("LogisticNeighbors"));
 	RUN_TEST(changeStatTest<Undirected>("DiffActivity"));
 	RUN_TEST(changeStatTest<Undirected>("Degree"));
 	RUN_TEST(changeStatTest<Undirected>("Star"));

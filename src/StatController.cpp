@@ -42,6 +42,7 @@ void initStats(){
 	registerStatistic( DirStatPtr( new DirectedNodeMatch() ) );
 //	registerStatistic( DirStatPtr( new DirectedDegree() ) );
 	registerStatistic( DirStatPtr( new DirectedLogistic() ) );
+	registerStatistic( DirStatPtr( new DirectedLogisticNeighbors() ) );
 	registerStatistic( DirStatPtr( new DirectedDegreeDispersion() ) );
 	registerStatistic( DirStatPtr( new DirectedDegreeSkew() ) );
 	registerStatistic( DirStatPtr( new DirectedHomophily() ) );
@@ -80,6 +81,7 @@ void initStats(){
 	registerStatistic( UndirStatPtr( new UndirectedHomophily() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeCount() ) );
 	registerStatistic( UndirStatPtr( new UndirectedLogistic() ) );
+	registerStatistic( UndirStatPtr( new UndirectedLogisticNeighbors() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegree() ) );
 	registerStatistic( UndirStatPtr( new UndirectedNodeMatch() ) );
 	registerStatistic( UndirStatPtr( new UndirectedDegreeDispersion() ) );

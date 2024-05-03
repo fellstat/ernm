@@ -1224,7 +1224,214 @@ public:
 typedef Stat<Directed, Logistic<Directed> > DirectedLogistic;
 typedef Stat<Undirected, Logistic<Undirected> > UndirectedLogistic;
 
-
+/*!
+ * A logistic regression statistic for variableName regressed the sum of neighbours regressorName.
+ */
+template<class Engine>
+class LogisticNeighbors : public BaseStat< Engine > {
+protected:
+    int nstats; /*!< the number of stats generated */
+    typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+    int nlevels;
+    int variableIndex, regIndex, baseIndex;
+    std::string variableName, regressorName, baseValue;
+public:
+    LogisticNeighbors(){
+        nstats=nlevels=variableIndex=regIndex = 0;
+    }
+    
+    LogisticNeighbors(std::string out,std::string reg){
+        nstats=nlevels=variableIndex=regIndex = 0;
+        variableName = out;
+        regressorName = reg;
+        baseValue = "";
+    }
+    
+    LogisticNeighbors(std::string out,std::string reg,std::string base_val){
+        nstats=nlevels=variableIndex=regIndex = 0;
+        variableName = out;
+        regressorName = reg;
+        baseValue = base_val;
+    }
+    
+    LogisticNeighbors(List params){
+        nstats=nlevels=variableIndex=regIndex = 0;
+        if(params.size() < 2){
+            ::Rf_error("LogisticNeighbors requires at least two arguments passed");
+        }
+        try{
+            variableName = as<std::string>(params[0]);
+        }catch(...){
+            ::Rf_error("LogisticNeighbors requires a formula");
+        }
+        try{
+            regressorName = as<std::string>(params[1]);
+        }catch(...){
+            ::Rf_error("LogisticNeighbors requires a formula");
+        }
+        if(params.size() > 2){
+            try{
+                baseValue = as<std::string>(params[2]);
+            }catch(...){
+                baseValue = "";
+            }
+        }else{
+            baseValue = "";
+        }
+    }
+    
+    std::string name(){
+        return "logisticNeighbors";
+    }
+    
+    std::vector<std::string> statNames(){
+        std::vector<std::string> statnames(1,"logisticNeighbors");
+        return statnames;
+    }
+    
+    void calculate(const BinaryNet<Engine>& net){
+        std::vector<std::string> vars = net.discreteVarNames();
+        variableIndex = -1;
+        regIndex = -1;
+        baseIndex = -1;
+        for(int i=0;i<vars.size();i++){
+            if(vars[i] == variableName)
+                variableIndex = i;
+            if(vars[i] == regressorName)
+                regIndex = i;
+        }
+        if(regIndex<0 || variableIndex<0)
+            Rf_error("invalid variables");
+        // Find which level is the base level
+        std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels();
+        for(int i=0;i<levels.size();i++){
+            if(levels[i] == baseValue){
+                baseIndex = i;
+            }
+        }
+        if(baseIndex<0){
+            baseIndex = 0;
+        }
+        if(baseIndex<0)
+            Rf_error("invalid baseIndex");
+        // Get the neighbours values for each node
+        int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+        nstats = nlevels - 1;
+        this->stats = std::vector<double>(nstats,0.0);
+        if(this->thetas.size() != nstats)
+            this->thetas = std::vector<double>(nstats,0.0);
+        int val,val1;
+        
+        for(int i=0;i<net.size();i++){
+            NeighborIterator it = net.begin(i);
+            NeighborIterator end = net.end(i);
+            val = net.discreteVariableValue(variableIndex,i)-1;
+            
+            if(val>0){
+                while(it != end){
+                    val1 = net.discreteVariableValue(regIndex,*it)-1;
+                    if(val1>baseIndex){
+                        this->stats.at(val1-1)++;
+                    }
+                    if(val1<baseIndex){
+                        this->stats.at(val1)++;
+                    }
+                    it++;
+                }
+            }
+        }
+    }
+    
+    void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                              int variable, int newValue){
+        
+        if(variable != variableIndex && variable != regIndex)
+            return;
+        
+        int varValue = net.discreteVariableValue(variableIndex,vert)-1;
+        int regValue = net.discreteVariableValue(regIndex,vert)-1;
+        newValue--;
+        if(variable == regIndex){
+            // need to step trough all neighbours and recalculate the effect
+            NeighborIterator it = net.begin(vert);
+            NeighborIterator end = net.end(vert);
+            while(it != end){
+                int neighbor_varVal = net.discreteVariableValue(variableIndex,*it)-1;
+                if(neighbor_varVal>0){
+                    if(regValue > baseIndex)
+                        this->stats.at((regValue-1))--;
+                    if(regValue < baseIndex)
+                        this->stats.at(regValue)--;
+                    // if the variable is !=0 and the new val is not equal to the baselevel we add one on
+                    if(newValue > baseIndex)
+                        this->stats.at((newValue-1))++;
+                    if(newValue < baseIndex)
+                        this->stats.at(newValue)++;
+                }
+                it++;
+            }
+        }
+        
+        if(variable == variableIndex){
+            // need to step through all neighbours and recalculate the effect
+            // remove old values, and add back in new values - thats why there are two if clauses
+            NeighborIterator it = net.begin(vert);
+            NeighborIterator end = net.end(vert);
+            
+            while(it != end){
+                int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
+                if(neighbor_regVal<nstats){
+                    if(varValue > 0)
+                        if(neighbor_regVal < baseIndex)
+                            this->stats.at(neighbor_regVal)--;
+                        if(neighbor_regVal > baseIndex)
+                            this->stats.at((neighbor_regVal-1))--;
+                    if(newValue > 0)
+                        if(neighbor_regVal < baseIndex)
+                            this->stats.at(neighbor_regVal)++;
+                        if(neighbor_regVal > baseIndex)
+                            this->stats.at((neighbor_regVal-1))++;
+                }
+                it++;
+            }
+        }
+    }
+    
+    //Need  to ADD this in now !
+    void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+        bool addingEdge = !net.hasEdge(from,to);
+        //get the variables
+        int fromVarValue = net.discreteVariableValue(variableIndex,from)-1;
+        int fromRegValue = net.discreteVariableValue(regIndex,from)-1;
+        int toVarValue = net.discreteVariableValue(variableIndex,to)-1;
+        int toRegValue = net.discreteVariableValue(regIndex,to)-1;
+        // If we are removing the edge may remove a value for both from  and to
+        if(addingEdge){
+            if(fromVarValue>0 && toRegValue>baseIndex)
+                this->stats.at(toRegValue-1)++;
+            if(fromVarValue>0 && toRegValue<baseIndex)
+                this->stats.at(toRegValue)++;
+            if(toVarValue>0 && fromRegValue>baseIndex)
+                this->stats.at(fromRegValue-1)++;
+            if(toVarValue>0 && fromRegValue<baseIndex)
+                this->stats.at(fromRegValue)++;
+        }else{
+            if(fromVarValue>0 && toRegValue>baseIndex)
+                this->stats.at(toRegValue-1)--;
+            if(fromVarValue>0 && toRegValue<baseIndex)
+                this->stats.at(toRegValue)--;
+            if(toVarValue>0 && fromRegValue>baseIndex)
+                this->stats.at(fromRegValue-1)--;
+            if(toVarValue>0 && fromRegValue<baseIndex)
+                this->stats.at(fromRegValue)--;
+        }
+    }
+    
+    void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, double newValue){}
+};
+typedef Stat<Directed, LogisticNeighbors<Directed> > DirectedLogisticNeighbors;
+typedef Stat<Undirected, LogisticNeighbors<Undirected> > UndirectedLogisticNeighbors;
 
 /**
  * Log variance of the degrees

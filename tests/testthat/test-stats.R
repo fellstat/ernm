@@ -106,6 +106,98 @@ test_that("Stats", {
     logistic_test_7 <- (r_stat_7 == cpp_stat_7)
     
     # ================
+    # Logistic Neighbors
+    # ================
+    
+    # Calculate for base level = "2"
+    r_stat_1 = sum(as.numeric(net %v% "var_2_neighbors")[which(net %v% "var_2" == "1")])
+    cpp_stat_1 = ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2","2") | var_2)
+    
+    # Calculate for base level = "1"
+    r_stat_2 = sum(as.numeric(net %v% "var_2_neighbors")[which(net %v% "var_2" == "2")])
+    cpp_stat_2 = ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2","1") | var_2)
+    
+    # Test over all the nets to be sure:
+    r_stat_3 = T
+    cpp_stat_3 = T
+    for(i in 1:length(nets)){
+        method_1 = sum(as.numeric(nets[[i]] %v% "var_2_neighbors")[which(nets[[i]] %v% "var_2" == "1")])
+        method_2 = as.numeric(ernm::calculateStatistics(nets[[i]] ~ logisticNeighbors("var_2","var_2","2") | var_2))
+        if(method_1 != method_2){
+            print(paste("failed on net ",i))
+            r_stat_3 = F
+        }
+    }
+    
+    # test the dyadUpdate function :
+    which(net %v% "var_2"== "2")
+    net_2 <- net
+    tmp_model <- ernm(net ~ logisticNeighbors("var_2","var_2","2") | var_2,
+                      maxIter = 2,
+                      mcmcSampleSize = 1000,
+                      mcmcBurnIn = 100)
+    r_stat_4 = T
+    cpp_stat_4 = T
+    for(i in which(net %v% "var_2"== "2")[-1]){
+        net_2 <- net
+        net_2[i,2] <- 1 - net_2[i,2]
+        
+        change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighbors("var_2","var_2","2") | var_2) -
+            ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2","2") | var_2)
+        
+        model <- tmp_model
+        
+        model <- model$m$sample$getModel()
+        model$setNetwork(as.BinaryNet(net))
+        model$calculate()
+        
+        stat1 <- model$statistics()
+        model$dyadUpdate(2,i)
+        stat2 <- model$statistics()
+        change_2 <- stat2-stat1
+        
+        if(change_1 != change_2){
+            r_stat_4 = F
+        }
+    }
+    
+    # test for changing a node value to
+    r_stat_5 = T
+    cpp_stat_5 = T
+    for(i in 1:(net%n% "n")){
+        net_2 <- net
+        if((net_2 %v% "var_2")[i] == "1"){
+            new_value <- "2"
+        }else{
+            new_value <- "1"
+        }
+        set.vertex.attribute(net_2,"var_2",new_value,i)
+        
+        change_1 <- ernm::calculateStatistics(net_2 ~ logisticNeighbors("var_2","var_2","2") | var_2) - ernm::calculateStatistics(net ~ logisticNeighbors("var_2","var_2","2") | var_2)
+        
+        model <- tmp_model
+        
+        model <- model$m$sample$getModel()
+        model$setNetwork(as.BinaryNet(net))
+        model$calculate()
+        
+        stat1 <- model$statistics()
+        model$discreteVertexUpdate(i,"var_2",as.numeric(new_value))
+        stat2 <- model$statistics()
+        change_2 <- stat2-stat1
+        
+        if(change_1 != change_2){
+            r_stat_5 = F
+        }
+    }
+    
+    logistic_neighbot_test_1 <- (r_stat_1 == cpp_stat_1)
+    logistic_neighbot_test_2 <- (r_stat_2 == cpp_stat_2)
+    logistic_neighbot_test_3 <- (r_stat_3 == cpp_stat_3)
+    logistic_neighbot_test_4 <- (r_stat_4 == cpp_stat_4)
+    logistic_neighbot_test_5 <- (r_stat_5 == cpp_stat_5)
+
+    # ================
     # Hamming Distance
     # ================
     
