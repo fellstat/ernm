@@ -1414,19 +1414,17 @@ public:
             
             while(it != end){
                 int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
-                if(neighbor_regVal<nstats){
-                    if(varValue > 0){
-                        if(neighbor_regVal < baseIndex)
-                            this->stats.at(neighbor_regVal)--;
-                        if(neighbor_regVal > baseIndex)
-                            this->stats.at((neighbor_regVal-1))--;
-                    }
-                    if(newValue > 0){
-                        if(neighbor_regVal < baseIndex)
-                            this->stats.at(neighbor_regVal)++;
-                        if(neighbor_regVal > baseIndex)
-                            this->stats.at((neighbor_regVal-1))++;
-                    }
+                if(varValue > 0){
+                    if(neighbor_regVal < baseIndex)
+                        this->stats.at(neighbor_regVal)--;
+                    if(neighbor_regVal > baseIndex)
+                        this->stats.at((neighbor_regVal-1))--;
+                }
+                if(newValue > 0){
+                    if(neighbor_regVal < baseIndex)
+                        this->stats.at(neighbor_regVal)++;
+                    if(neighbor_regVal > baseIndex)
+                        this->stats.at((neighbor_regVal-1))++;
                 }
                 it++;
             }
