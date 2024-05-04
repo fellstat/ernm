@@ -946,6 +946,7 @@ public:
 		varIndex = variableIndex;
 		// Find which level is the base level
 		std::vector<std::string> levels = net.discreteVariableAttributes(varIndex).labels();
+		baseIndex=-1;
 		for(int i=0;i<levels.size();i++){
 		    if(levels[i] == baseValue){
 		        baseIndex = i;
