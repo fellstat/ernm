@@ -42,7 +42,7 @@ test_that("Stats", {
     v2 = (net %v% "var_3")
     
     r_stat_1 = sum((v1=="2"))
-    cpp_stat_1 = as.numeric(ernm::calculateStatistics(net ~ nodeCount("var_2","1")))
+    cpp_stat_1 = as.numeric(ernm::calculateStatistics(net ~ nodeCount("var_2")))
     
     model <- ernm(net ~ nodeCount("var_2","1")| var_2 ,maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100)
     model <- model$m$sampler$getModel()
