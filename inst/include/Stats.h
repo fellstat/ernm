@@ -1204,14 +1204,15 @@ public:
 			val = net.discreteVariableValue(variableIndex,i)-1;
 			val1 = net.discreteVariableValue(regIndex,i)-1;
 
-			// if the variable is !=0 and the val is not equal to the baselevel we add one on
-			// note that tsince the base level could be anywhere in the n-vector of stats
-			// need to be a little careful
-			if(val>0 && val1 > baseIndex)
-				this->stats.at((val1-1))++;
-			if(val>0 && val1 < baseIndex)
-			    this->stats.at((val1))++;
-		}
+        	// if the variable is !=0 and the val is not equal to the baselevel we add one on
+        	// note that since the base level could be anywhere in the n-vector of stats
+        	// need to be a little careful
+        	if(val>0){
+        	    if(val1 > baseIndex)
+        	        this->stats.at((val1-1))++;
+        	    if(val1 < baseIndex)
+        	        this->stats.at((val1))++;
+        	}
 	}
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
