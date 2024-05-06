@@ -1213,6 +1213,7 @@ public:
         	    if(val1 < baseIndex)
         	        this->stats.at((val1))++;
         	}
+		}
 	}
 
 	void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
