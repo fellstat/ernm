@@ -64,7 +64,7 @@ public:
 	 * \param to toggled edge (to)
 	 */
 	virtual void vDyadUpdate(const BinaryNet<Engine>& net, int from, int to) = 0;
-
+	
 	/*!
 	 * calculate the change in the statistics from a hypothetical vertex toggle,
 	 * assuming that the network has not changed since the statistic was last calculated.
@@ -134,6 +134,13 @@ public:
 	 * \return stats * thetas
 	 */
 	virtual double vLogLik() = 0;
+	
+	/*!
+	 * tells you whether it is safe to used cached stats rather than rerunning dyadUpdate
+	 */
+	virtual bool vGetDyadUpdateSafe() =0;
+	virtual bool vGetDiscreteVertexUpdateSafe() =0;
+	virtual bool vGetContinVertexUpdateSafe() =0;
 
 };
 
@@ -379,6 +386,33 @@ public:
 	inline double logLik(){
 		return stat.logLik();
 	}
+    
+    /*!
+     * update Cache safety methods
+     */
+    virtual bool vGetDyadUpdateSafe(){
+        return getDyadUpdateSafe();
+    }
+    
+    inline bool getDyadUpdateSafe(){
+        return stat.getDyadUpdateSafe();
+    }
+    
+    virtual bool vGetDiscreteVertexUpdateSafe(){
+        return getDiscreteVertexUpdateSafe();
+    }
+    
+    inline bool getDiscreteVertexUpdateSafe(){
+        return stat.getDiscreteVertexUpdateSafe();
+    }
+    
+    virtual bool vGetContinVertexUpdateSafe(){
+        return getContinVertexUpdateSafe();
+    }
+    
+    inline bool getContinVertexUpdateSafe(){
+        return stat.getContinVertexUpdateSafe();
+    }
 
 };
 
@@ -397,13 +431,12 @@ template<class Engine>
 class BaseStat : public BaseOffset<Engine>{
 protected:
 	std::vector<double> thetas;/*!< the parameter values */
+    
 public:
 
 	BaseStat(){}
 
 	virtual ~BaseStat(){}
-
-
 
 	/*!
 	 * set the model parameter values

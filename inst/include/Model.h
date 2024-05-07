@@ -343,6 +343,35 @@ public:
 				}
 			}
 		}
+    
+    /*!
+     * set model statistics (useful instead of full dyad toggle in case of cached statistics)
+     * function copied from setTheta used above
+     */
+    void  setStatistics(std::vector<double> newStatVals){
+        Rcpp::Rcout << "Printing stats from setStatistics: ";
+        for(int j=0;j<newStatVals.size();j++){
+            Rcpp::Rcout << "newStatVals: " << j << " is " << newStatVals[j] << " \n " ;
+        }
+        int n=0;
+        for(int i=0;i<stats.size();i++){
+            n += stats.at(i)->vSize();
+        }
+        if(newStatVals.size()!= n){
+            //Rcpp::Rcout << n  << " " << newThetas.size() << " ";
+            ::Rf_error("Model.setStatistics: size mismatch:");
+        }
+        int c=0;
+        for(int i=0;i<stats.size();i++){
+            std::vector<double>* vals = &stats.at(i)->vStatistics();
+            for(int j=0;j<vals->size();j++){
+                Rcpp::Rcout << "Setting stats: " << c << " to " << newStatVals[c] << " from " << (*vals)[j] << " \n ";
+                (*vals)[j] = newStatVals[c];
+                //cout << stats.at(i)->theta()[j];
+                c++;
+            }
+        }
+    }
 
 	/*!
 	 * returns statistics with names for R
@@ -515,6 +544,30 @@ public:
 		}
 	}
     
+    void dyadUpdateCache(int from, int to,std::vector<double>& cacheStats){
+        if(cacheStats.size() != stats.size())
+            ::Rf_error("cacheStats size does not match the number of stats in the model");
+        int c=0;
+        for(int k=0;k<stats.size();k++){
+            std::vector<double> vals = stats.at(k)->vValues();
+            if(stats[k]->vGetDyadUpdateSafe()){
+                std::vector<double> v(stats.at(k)->vSize(),0);
+                for(int j=0;j<v.size();j++){
+                    v[j] = cacheStats[c];
+                    c++;
+                }
+                stats[k]->vSetStatistics(v);
+            }else{
+                stats[k]->vDyadUpdate(*net, from, to);
+                c+=vals.size();
+            }
+        }
+    
+        for(int k=0;k<offsets.size();k++){
+            offsets[k]->vDyadUpdate(*net, from, to);
+        }
+    }
+    
     void dyadUpdateR(int from, int to){
         if(from > net->size() || to > net->size())
             ::Rf_error("one of the vertex indices in the dyad update is bigger than the size of the network");
@@ -529,6 +582,28 @@ public:
 		for(int k=0;k<offsets.size();k++)
 			offsets[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
 	}
+    
+    void discreteVertexUpdateCache(int vertex, int variable, int newValue,std::vector<double>& cacheStats){
+        if(cacheStats.size() != stats.size())
+            ::Rf_error("cacheStats size does not match the number of stats in the model");
+        int c=0;
+        for(int k=0;k<stats.size();k++){
+            std::vector<double> vals = stats.at(k)->vValues();
+            if(stats[k]->vGetDyadUpdateSafe()){
+                std::vector<double> v(stats.at(k)->vSize(),0);
+                for(int j=0;j<v.size();j++){
+                    v[j] = cacheStats[c];
+                    c++;
+                }
+                stats[k]->vSetStatistics(v);
+            }else{
+                stats[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
+                c+=vals.size();
+            }
+        }
+        for(int k=0;k<offsets.size();k++)
+            offsets[k]->vDiscreteVertexUpdate(*net,vertex, variable, newValue);
+    }
     
     void discreteVertexUpdateR(int vertex, std::string varName, int newValue){
         if(vertex > net->size())

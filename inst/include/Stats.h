@@ -1272,6 +1272,7 @@ protected:
     int nlevels;
     int variableIndex, regIndex, baseIndex;
     std::string variableName, regressorName, baseValue;
+    
 public:
     LogisticNeighbors(){
         nstats=nlevels=variableIndex=regIndex = 0;
@@ -1434,7 +1435,7 @@ public:
         }
     }
     
-    //Need  to ADD this in now !
+    //Since updateing dyads may change the neighbourhood - need to have a dyad update function
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
         bool addingEdge = !net.hasEdge(from,to);
         //get the variables
@@ -1460,6 +1461,11 @@ public:
     
     void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
                             int variable, double newValue){}
+    
+    // safe to cache the dyad update
+    bool getDyadUpdateSafe(){return true;}
+    bool getDiscreteVertexUpdateSafe(){return true;}
+    bool getContinVertexUpdateSafe(){return true;}
 };
 typedef Stat<Directed, LogisticNeighbors<Directed> > DirectedLogisticNeighbors;
 typedef Stat<Undirected, LogisticNeighbors<Undirected> > UndirectedLogisticNeighbors;
@@ -2278,6 +2284,7 @@ protected:
     //List edges;
     boost::shared_ptr< std::vector< std::pair<int,int> > > edges;
     boost::shared_ptr< BinaryNet<Engine>> compareNet;
+    
 public:
     Hamming(){
         std::vector<double> v(1,0.0);
@@ -2367,6 +2374,12 @@ public:
     
     void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
                             int variable, double newValue){}
+    
+    // safe to cache the dyad update
+    bool getDyadUpdateSafe(){return true;}
+    bool getDiscreteVertexUpdateSafe(){return true;}
+    bool getContinVertexUpdateSafe(){return true;}
+    
 };
 typedef Stat<Directed, Hamming<Directed> > DirectedHamming;
 typedef Stat<Undirected, Hamming<Undirected> > UndirectedHamming;
@@ -3907,6 +3920,7 @@ public:
                               int variable, int newValue){}
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
 				int variable, double newValue){}
+    
 };
 
 typedef Stat<Directed, Esp<Directed> > DirectedEsp;

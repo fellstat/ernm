@@ -90,6 +90,33 @@ public:
 			int variable, double newValue){
 		this->off.updateLogLik(this->off.continVertexUpdateDistance(net, vert, variable, newValue));
 	}
+    
+    /*!
+     * \ get if its safe to cache the dyad update
+     */
+    virtual bool vGetDyadUpdateSafe(){
+        return getDyadUpdateSafe();
+    }
+    
+    inline bool getDyadUpdateSafe(){
+        return this->getDyadUpdateSafe();
+    }
+    
+    virtual bool vGetDiscreteVertexUpdateSafe(){
+        return getDiscreteVertexUpdateSafe();
+    }
+    
+    inline bool getDiscreteVertexUpdateSafe(){
+        return this->getDiscreteVertexUpdateSafe();
+    }
+    
+    virtual bool vGetContinVertexUpdateSafe(){
+        return getContinVertexUpdateSafe();
+    }
+    
+    inline bool getContinVertexUpdateSafe(){
+        return this->getContinVertexUpdateSafe();
+    }
 
 };
 
@@ -168,6 +195,21 @@ public:
 	 */
 	int size(){
 		return 1;
+	}
+	
+	bool getDyadUpdateSafe(){
+	    Rf_error("BaseConstraint calculate should not be called");
+	    return false;
+	}
+	
+	bool getDiscreteVertexUpdateSafe(){
+	    Rf_error("BaseConstraint calculate should not be called");
+	    return false;
+	}
+	
+	bool getContinVertexUpdateSafe(){
+	    Rf_error("BaseConstraint calculate should not be called");
+	    return false;
 	}
 
 	void calculate(const BinaryNet<Engine>& net){
