@@ -946,6 +946,7 @@ public:
 		varIndex = variableIndex;
 		// Find which level is the base level
 		std::vector<std::string> levels = net.discreteVariableAttributes(varIndex).labels();
+		baseIndex=-1;
 		for(int i=0;i<levels.size();i++){
 		    if(levels[i] == baseValue){
 		        baseIndex = i;
@@ -1203,13 +1204,15 @@ public:
 			val = net.discreteVariableValue(variableIndex,i)-1;
 			val1 = net.discreteVariableValue(regIndex,i)-1;
 
-			// if the variable is !=0 and the val is not equal to the baselevel we add one on
-			// note that tsince the base level could be anywhere in the n-vector of stats
-			// need to be a little careful
-			if(val>0 && val1 > baseIndex)
-				this->stats.at((val1-1))++;
-			if(val>0 && val1 < baseIndex)
-			    this->stats.at((val1))++;
+        	// if the variable is !=0 and the val is not equal to the baselevel we add one on
+        	// note that since the base level could be anywhere in the n-vector of stats
+        	// need to be a little careful
+        	if(val>0){
+        	    if(val1 > baseIndex)
+        	        this->stats.at((val1-1))++;
+        	    if(val1 < baseIndex)
+        	        this->stats.at((val1))++;
+        	}
 		}
 	}
 
@@ -1414,19 +1417,17 @@ public:
             
             while(it != end){
                 int neighbor_regVal = net.discreteVariableValue(regIndex,*it)-1;
-                if(neighbor_regVal<nstats){
-                    if(varValue > 0){
-                        if(neighbor_regVal < baseIndex)
-                            this->stats.at(neighbor_regVal)--;
-                        if(neighbor_regVal > baseIndex)
-                            this->stats.at((neighbor_regVal-1))--;
-                    }
-                    if(newValue > 0){
-                        if(neighbor_regVal < baseIndex)
-                            this->stats.at(neighbor_regVal)++;
-                        if(neighbor_regVal > baseIndex)
-                            this->stats.at((neighbor_regVal-1))++;
-                    }
+                if(varValue > 0){
+                    if(neighbor_regVal < baseIndex)
+                        this->stats.at(neighbor_regVal)--;
+                    if(neighbor_regVal > baseIndex)
+                        this->stats.at((neighbor_regVal-1))--;
+                }
+                if(newValue > 0){
+                    if(neighbor_regVal < baseIndex)
+                        this->stats.at(neighbor_regVal)++;
+                    if(neighbor_regVal > baseIndex)
+                        this->stats.at((neighbor_regVal-1))++;
                 }
                 it++;
             }
