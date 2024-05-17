@@ -107,7 +107,10 @@ public:
 	 * \return stats * thetas
 	 */
 	virtual double vLogLik() = 0;
-
+	
+	virtual bool vGetDyadUpdateSafe() =0;
+	virtual bool vGetDiscreteVertexUpdateSafe() =0;
+	virtual bool vGetContinVertexUpdateSafe() =0;
 };
 
 
@@ -283,7 +286,33 @@ public:
 	inline double logLik(){
 		return off.logLik();
 	}
-
+    
+    /*!
+     * \ get if its safe to cache the dyad update
+     */
+    virtual bool vGetDyadUpdateSafe(){
+        return getDyadUpdateSafe();
+    }
+    
+    inline bool getDyadUpdateSafe(){
+        return off.getDyadUpdateSafe();
+    }
+    
+    virtual bool vGetDiscreteVertexUpdateSafe(){
+        return getDiscreteVertexUpdateSafe();
+    }
+    
+    inline bool getDiscreteVertexUpdateSafe(){
+        return off.getDiscreteVertexUpdateSafe();
+    }
+    
+    virtual bool vGetContinVertexUpdateSafe(){
+        return getContinVertexUpdateSafe();
+    }
+    
+    inline bool getContinVertexUpdateSafe(){
+        return off.getContinVertexUpdateSafe();
+    }
 };
 
 
@@ -307,10 +336,17 @@ protected:
 	virtual void vCalculate(const BinaryNet<Engine>& net){
 		Rf_error("Either calculate, dyadUpdate, etc. _OR_ vCalculate must be implemented in the subclass.");
 	}
+	
+	// Flags to indicate which update functions are "safe"
+	// Here safe means that the dyad update functions simply amend the stats vector
+	// An example of an unsafe dyadUpdate cane be found in the ernm native homophilly term, as it updates the degreeCounts which is stored by the stat class.
+	// This allows for safe stats to make use of cached values, so updates only need to called once ~potential 2x speedup
 
 public:
 
 	BaseOffset() {};
+    
+    BaseOffset(bool) {};
 
 	virtual ~BaseOffset(){};
 
@@ -395,7 +431,7 @@ public:
 	int size(){
 		return stats.size();
 	}
-
+	
 	/*!
 	 * \return names for the statistics
 	 */
@@ -433,7 +469,18 @@ public:
 			ll += stats[i];
 		return ll;
 	}
-
+	
+	bool getDyadUpdateSafe(){
+	    return false;
+	}
+	
+	bool getDiscreteVertexUpdateSafe(){
+	    return false;
+	}
+	
+	bool getContinVertexUpdateSafe(){
+	    return false;
+	}
 };
 
 

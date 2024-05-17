@@ -508,9 +508,9 @@ public:
 				if(ind2>=ind)
 					ind2++;
 				NbrSet::iterator it = nbrs.begin();
-				advance(it,ind);
+				std::advance(it,ind);
 				NbrSet::iterator it2 = nbrs.begin();
-				advance(it2,ind2);
+				std::advance(it2,ind2);
 				toggle[0] = std::pair<int,int>(*it,*it2);
 				lr = 0.0;
 				lastMethod = 1;

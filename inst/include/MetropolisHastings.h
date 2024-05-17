@@ -198,6 +198,8 @@ public:
 		bool isDyadToggle = false;
 		for(int i=0;i<steps;i++){
 			isDyadToggle = Rf_runif(0.0,1.0) < pd;
+		    std::vector<double> oldStats = std::vector<double>(model->terms().size(),-1);
+		    model->statistics(oldStats);
 			if(isDyadToggle){
 				dyadToggle->vGenerate();
 
@@ -221,7 +223,8 @@ public:
 					dyadToggle->vTogglesAccepted(true);
 				}else{
 					for(int j=0;j<tieToggles.size();j++){
-						model->dyadUpdate(tieToggles[j].first, tieToggles[j].second);
+						// model->dyadUpdate(tieToggles[j].first, tieToggles[j].second);
+					    model->dyadUpdateCache(tieToggles[j].first, tieToggles[j].second,oldStats);
 						model->network()->toggle(tieToggles[j].first,tieToggles[j].second);
 					}
 					dyadToggle->vTogglesAccepted(false);
@@ -275,10 +278,15 @@ public:
 					vertToggle->vTogglesAccepted(true);
 				}else{
 					for(int j=((int)disToggles.size())-1;j>=0;j--){
-						model->discreteVertexUpdate(
-							disToggles[j].first,
-							disToggles[j].second.first ,
-							oldDisValues.at(j));
+						// model->discreteVertexUpdate(
+						// 	disToggles[j].first,
+						// 	disToggles[j].second.first ,
+						// 	oldDisValues.at(j));
+					    model->discreteVertexUpdateCache(
+					            disToggles[j].first,
+					            disToggles[j].second.first ,
+					            oldDisValues.at(j),
+					            oldStatValues);
 						model->network()->setDiscreteVariableValue(
 							disToggles[j].second.first,
 							disToggles[j].first,
