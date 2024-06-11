@@ -17,7 +17,8 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
 #' @param modelClass The trailing name of the model class. For now, either Model or ReModel
-createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, modelClass="Model"){
+#' @param modelParams a list of model parameters that need to be passed to the model (e.g. tapering params for reduced entropy models)
+createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, modelClass="Model",modelParams=NULL){
 	form <- formula
 	env <- environment(form)
 	net <- as.BinaryNet(eval(form[[2]],envir=env))
@@ -144,6 +145,13 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 	model$setRandomGraph(!noDyad)
 	if(!is.null(theta))
 		model$setThetas(theta)
+	if(modelClass == "ReModel"){
+	    model$setBetas(modelParams$betas)
+	    model$setCenters(modelParams$centers)
+	    if(!is.null(modelParams$thetaDependent)){
+	        model$thetaDependent(modelParams$thetaDependent)
+	    }
+	}
 	model
 }
 
@@ -211,6 +219,9 @@ calculateStatistics <- function(formula){
 #' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
 #' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
 #' @param nodeSamplingPercentage how often are nodal variates toggled
+#' @param modelType either FullErnmModel or MissingErnmModel if NULL will check for missingness
+#' @param modelClass the trailing name of the model class. For now, either Model or ReModel
+#' @param modelParams a list of model parameters passed to createCppModel
 #' @param ... additional parameters for ernmFit
 #' library(network)
 #' data(flo)
@@ -223,12 +234,14 @@ ernm <- function(formula, modelArgs=list(),
 		missingToggles=c("Compound_NodeTieDyadMissing_NeighborhoodMissing",
 				"VertexMissing"),
 		nodeSamplingPercentage=0.2,
-		..., modelType=NULL){
+		..., modelType=NULL,modelClass="Model",modelParams = NULL){
 
 	fullCppSampler <- createCppSampler(formula,
 			dyadToggle=fullToggles[1],
 			vertexToggle=fullToggles[2],
-			nodeSamplingPercentage=nodeSamplingPercentage[1])	
+			nodeSamplingPercentage=nodeSamplingPercentage[1],
+			modelClass = modelClass,
+			modelParams = modelParams)	
 	net <- fullCppSampler$getModel()$getNetwork()
 	
 	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
