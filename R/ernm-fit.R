@@ -12,10 +12,18 @@
 #' @param meanStats if non-missing, these are the target statistics
 #' @param verbose level of verbosity 0, 1, or 2
 #' @param method the optimization method to use
-ernmFit <- function(sampler,theta0,
-		mcmcBurnIn=10000, mcmcInterval=100, mcmcSampleSize=10000,
-		minIter=3, maxIter=40, objectiveTolerance=.5, gradTolerance=.25,
-		meanStats,verbose=1,method=c("bounded","newton")){
+ernmFit <- function(sampler,
+                    theta0,
+                    mcmcBurnIn=10000,
+                    mcmcInterval=100,
+                    mcmcSampleSize=10000,
+                    minIter=3,
+                    maxIter=40,
+                    objectiveTolerance=.5,
+                    gradTolerance=.25,
+                    meanStats,
+                    verbose=1,
+                    method=c("bounded","newton")){
 	method <- match.arg(method)
 	sampler$initialize()
 	stats <- sampler$modelStatistics()
@@ -30,9 +38,6 @@ ernmFit <- function(sampler,theta0,
 	
 	iter<-1
 	converged <- FALSE
-	if(verbose==0){
-		cat("calculating: ")
-	}
 	likHistory <- c()
 	gradHistory <- list()
 	trace <- list()
@@ -54,10 +59,7 @@ ernmFit <- function(sampler,theta0,
 			print(sampStats)		
 			cat("       std:\n")
 			print(t(sampSd))
-		}else{
-			cat(".")
 		}
-		
 		if(verbose>1){
 			nr <- mcmcSampleSize
 			nc <- ncol(sampler$statistics(sample)[[1]])
@@ -78,7 +80,6 @@ ernmFit <- function(sampler,theta0,
 				theta0=theta0,
 				stats=stats))
 			if(inherits(tty,"try-error"))
-				# browser()
 			if(!trustRes$converged)
 				warning("Trust: convergance not met")
 			theta0 <- trustRes$argument
@@ -88,9 +89,6 @@ ernmFit <- function(sampler,theta0,
 			#theta0 <- theta0 - drop(qr.solve(llk$hessian) %*% llk$grad)
 		}
 		llik <- sampler$logLikelihood(theta0,sample,lastTheta,stats)$value
-		#browser()
-		#grad <- sampler$logLikelihood(lastTheta,sample,lastTheta,stats)$gradient
-		#scaledGrad <- grad/sampSd
 		if(verbose>0){
 			cat("\nlog likelihood improved by: ",llik,"\n",
 					"maximum scaled gradient: ",maxGrad,"\n")
@@ -121,6 +119,7 @@ ernmFit <- function(sampler,theta0,
 #' print
 #' @param x x
 #' @param ... unused
+#' @export
 #' @method print ernm
 print.ernm <- function(x,...){
 	cat("                          ",x$m$name(),"\n")
@@ -150,6 +149,7 @@ print.ernm <- function(x,...){
 #' summary
 #' @param object object
 #' @param ... unused
+#' @export
 #' @method summary ernm
 summary.ernm <- function(object,...){
 	
@@ -166,6 +166,7 @@ summary.ernm <- function(object,...){
 #' parameter covariance matrix
 #' @param object object
 #' @param ... unused
+#' @export
 #' @method vcov ernm
 vcov.ernm <- function(object,...){
 	solve(object$info)
@@ -175,6 +176,7 @@ vcov.ernm <- function(object,...){
 #' plot an ernm object
 #' @param  x the object
 #' @param ... unused
+#' @export
 #' @method plot ernm
 plot.ernm <- function(x,...){
 	plot(x$likelihoodHistory,main="Likelihood convergance",

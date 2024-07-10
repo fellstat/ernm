@@ -2,13 +2,12 @@
 % Please edit documentation in R/likelihoods.R
 \name{GmmObjective}
 \alias{GmmObjective}
-\title{(E(g(X)) - g(x_o)^2 for ReGibbs}
+\title{(E(g(X)) - g(x_o)^2 for TaperedModel}
 \usage{
 GmmObjective(
   theta,
   centers,
-  betas,
-  isThetaDependent,
+  tau,
   sample,
   theta0,
   stats,
@@ -28,5 +27,5 @@ GmmObjective(
 \item{minEss}{minimum effective sample size}
 }
 \description{
-(E(g(X)) - g(x_o)^2 for ReGibbs
+(E(g(X)) - g(x_o)^2 for TaperedModel
 }

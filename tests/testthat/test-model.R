@@ -21,14 +21,14 @@ test_that("models", {
     samplike <- as.network(samplike_undir, directed = FALSE)
     
     # Test MRF version of ERNM
-    MRF <- ernm(samplike_undir ~ edges + homophily("group") + logisticNeighbors('group','group','Loyal') | group)
+    MRF <- ernm(samplike_undir ~ edges + homophily("group") + logisticNeighbors('group','group','Loyal') | group,verbose = FALSE)
     
     # Test ERGM verision of ERNM
-    ERGM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal'))
+    ERGM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal'),verbose = FALSE)
     
     # Test ERNM
     t_1 <- proc.time()[3]
-    ERNM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal') | group)
+    ERNM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal') | group,verbose = FALSE)
     t_1 <- proc.time()[3] - t_1
     
     # Test tapered ERNM:
@@ -36,10 +36,10 @@ test_that("models", {
     stats <- ernm::calculateStatistics(ERNM_formula)
     t_2 <- proc.time()[3]
     ERNM_tapered_1 <- ernm(ERNM_formula,
-                         modelClass = 'ReModel',
-                         modelParams = list(betas = rep(2,length(stats)),
-                                            thetaDependent = TRUE,
-                                            centers = stats))
+                           modelArgs = list(tau = 1/(2*stats),
+                                            centers = stats,
+                                            modelClass = 'TaperedModel'),
+                           verbose = TRUE)
     t_2 <- proc.time()[3] - t_2
     
     # Test tapered ERNM:
@@ -47,10 +47,11 @@ test_that("models", {
     ERNM_formula <- as.formula("samplike_undir ~ edges + triangles() + star(2) + homophily('group') + logisticNeighbors('group','group','Loyal') | group")
     stats <- ernm::calculateStatistics(ERNM_formula)
     ERNM_tapered_2 <- ernm(ERNM_formula,
-                         modelClass = 'ReModel',
-                         modelParams = list(betas = rep(2,length(stats)),
-                                            thetaDependent = TRUE,
-                                            centers = stats))
+                           modelArgs = list(modelClass = 'TaperedModel',
+                                            tau = 1/(2*stats),
+                                            centers = stats),
+                           verbose = FALSE)
+    
     
     # ERNM taper should be quicker due to not having to sample from bad theta suggestions:
     testthat::expect_true(t_2 < t_1)

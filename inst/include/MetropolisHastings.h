@@ -75,14 +75,14 @@ public:
 		probDyad=pdyad;
 	}
 
-	MetropolisHastings(ReModel<Engine> mod){
+	MetropolisHastings(TaperedModel<Engine> mod){
 		model = (&mod)->vClone();
 		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
 		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
 		probDyad=.8;
 	}
 
-	MetropolisHastings(ReModel<Engine> mod, double pdyad){
+	MetropolisHastings(TaperedModel<Engine> mod, double pdyad){
 		model = (&mod)->vClone();
 		dyadToggle = DyadTogglePtr(new DyadToggle<Engine, CompoundNodeTieDyadNieghborhood<Engine> >(*mod.network()));
 		vertToggle = VertexTogglePtr(new VertexToggle<Engine, DefaultVertex<Engine> >(*mod.network()));
@@ -148,7 +148,7 @@ public:
 	 * Get model exposed to R
 	 */
 	SEXP getModelR(){
-		if(boost::shared_ptr< ReModel<Engine> > m = boost::dynamic_pointer_cast< ReModel<Engine> >(model)){
+		if(boost::shared_ptr< TaperedModel<Engine> > m = boost::dynamic_pointer_cast< TaperedModel<Engine> >(model)){
 			//std::cout << "here";
 			return wrap(*m);
 		}

@@ -16,9 +16,12 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
-#' @param modelClass The trailing name of the model class. For now, either Model or ReModel
-#' @param modelParams a list of model parameters that need to be passed to the model (e.g. tapering params for reduced entropy models)
-createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, modelClass="Model",modelParams=NULL){
+#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+createCppModel <- function(formula,
+                           ignoreMnar=TRUE,
+                           cloneNet=TRUE,
+                           theta=NULL,
+                           modelArgs = list(modelClass='Model')){
 	form <- formula
 	env <- environment(form)
 	net <- as.BinaryNet(eval(form[[2]],envir=env))
@@ -65,7 +68,7 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 	}
 	clss <- class(net)
 	networkEngine <- substring(clss,6,nchar(clss)-3)
-	ModelType <- eval(parse(text=paste(networkEngine,modelClass,sep="")))
+	ModelType <- eval(parse(text=paste(networkEngine,modelArgs$modelClass,sep="")))
 	
 	model <- new(ModelType)
 	model$setNetwork(net)
@@ -145,11 +148,18 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 	model$setRandomGraph(!noDyad)
 	if(!is.null(theta))
 		model$setThetas(theta)
-	if(modelClass == "ReModel"){
-	    model$setBetas(modelParams$betas)
-	    model$setCenters(modelParams$centers)
-	    if(!is.null(modelParams$thetaDependent)){
-	        model$thetaDependent(modelParams$thetaDependent)
+	if(modelArgs$modelClass == "TaperedModel"){
+        if(is.null(modelArgs$centers)){
+            stop("centers must be specified in modelArgs for a tapered model")
+        }
+	    if(is.null(modelArgs$tau)){
+	        warning("no tau must be specified in modelArgs for a tapered model \n will set it to 1/(2*mu)")
+	        modelArgs$tau <- 1/(2*modelArgs$centers)
+	    }
+	    model$setTau(modelArgs$tau)
+	    model$setCenters(modelArgs$centers)
+	    if(!is.null(modelArgs$thetaDependent)){
+	        model$thetaDependent(modelArgs$thetaDependent)
 	    }
 	}
 	model
@@ -157,6 +167,7 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 
 #' create a sampler
 #' @param formula the model formula
+#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
 #' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
 #' @param vertexToggle the method of vertex attribuate sampling to use.
 #' @param nodeSamplingPercentage how often the nodes should be toggled
@@ -169,9 +180,17 @@ createCppModel <- function(formula,ignoreMnar=TRUE,cloneNet=TRUE,theta=NULL, mod
 #' mod <- createCppModel(nw ~ edges() + triangles(),theta=c(-.5,0))
 #' samp <- createCppSampler(nw ~ edges() + triangles(),theta=c(-.5,0))
 #' samp$generateSampleStatistics(100,100,100)
-createCppSampler <- function(formula, dyadToggle = NULL, dyadArgs=list(), vertexToggle = NULL,
-		vertexArgs=list(), nodeSamplingPercentage=0.2, ignoreMnar=TRUE, theta=NULL, ...){
-	cppModel <- createCppModel(formula, ignoreMnar=ignoreMnar, theta=theta, ...)
+createCppSampler <- function(formula,
+                             modelArgs = list(modelClass='Model'),
+                             dyadToggle = NULL,
+                             dyadArgs=list(),
+                             vertexToggle = NULL,
+                             vertexArgs=list(),
+                             nodeSamplingPercentage=0.2,
+                             ignoreMnar=TRUE,
+                             theta=NULL,
+                             ...){
+	cppModel <- createCppModel(formula, ignoreMnar=ignoreMnar, theta=theta,modelArgs=modelArgs,...)
 	net <- cppModel$getNetwork()
 	clss <- class(net)
 	networkEngine <- substring(clss,6,nchar(clss)-3)	
@@ -196,11 +215,17 @@ createCppSampler <- function(formula, dyadToggle = NULL, dyadArgs=list(), vertex
 #' @param mcmcInterval interval
 #' @param mcmcSampleSize sample size
 #' @param ignoreMnar ignore missing not at random offsets
+#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
 #' @param ... additional arguments to createCppSampler
-simulateStatistics <- function(formula, theta, 
-		nodeSamplingPercentage=0.2,
-		mcmcBurnIn=10000, mcmcInterval=100, mcmcSampleSize=100,
-		ignoreMnar=TRUE, ...){
+simulateStatistics <- function(formula,
+                               theta, 
+                               nodeSamplingPercentage=0.2,
+                               mcmcBurnIn=10000,
+                               mcmcInterval=100,
+                               mcmcSampleSize=100,
+                               ignoreMnar=TRUE,
+                               modelArgs=list(modelClass='Model'),
+                               ...){
 	s <- createCppSampler(formula,ignoreMnar=ignoreMnar,theta=theta,...)
 	s$generateSampleStatistics(mcmcBurnIn,mcmcInterval,mcmcSampleSize)
 }
@@ -214,14 +239,12 @@ calculateStatistics <- function(formula){
 
 #' fits an ERNM model
 #' @param formula model formula
-#' @param modelType the likelihood model type to use
-#' @param modelArgs additional arguments for ModelType
+#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @param likelihoodArgs additiional arguments for the ernmLikelihood
 #' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
 #' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
 #' @param nodeSamplingPercentage how often are nodal variates toggled
 #' @param modelType either FullErnmModel or MissingErnmModel if NULL will check for missingness
-#' @param modelClass the trailing name of the model class. For now, either Model or ReModel
-#' @param modelParams a list of model parameters passed to createCppModel
 #' @param ... additional parameters for ernmFit
 #' library(network)
 #' data(flo)
@@ -229,46 +252,65 @@ calculateStatistics <- function(formula){
 #' nw <- as.BinaryNet(nflo)
 #' set.seed(1)
 #' ernm(nw ~ edges() + triangles())
-ernm <- function(formula, modelArgs=list(), 
-		fullToggles=c("Compound_NodeTieDyad_Neighborhood","DefaultVertex"),
-		missingToggles=c("Compound_NodeTieDyadMissing_NeighborhoodMissing",
-				"VertexMissing"),
-		nodeSamplingPercentage=0.2,
-		..., modelType=NULL,modelClass="Model",modelParams = NULL){
+ernm <- function(formula,
+                 modelArgs=list(modelClass='Model'),
+                 likelihoodArgs = list(),
+                 fullToggles=c("Compound_NodeTieDyad_Neighborhood","DefaultVertex"),
+                 missingToggles=c("Compound_NodeTieDyadMissing_NeighborhoodMissing","VertexMissing"),
+                 nodeSamplingPercentage=0.2,
+                 modelType=NULL,
+                 ...){
 
 	fullCppSampler <- createCppSampler(formula,
 			dyadToggle=fullToggles[1],
 			vertexToggle=fullToggles[2],
 			nodeSamplingPercentage=nodeSamplingPercentage[1],
-			modelClass = modelClass,
-			modelParams = modelParams)	
+			modelArgs = modelArgs)	
 	net <- fullCppSampler$getModel()$getNetwork()
 	
 	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
 	vars <- fullCppSampler$getModel()$getRandomVariables( )
 	isMissVars <- any(sapply(vars,function(x)any(is.na(net[[x]]))))
 	if(is.null(modelType)){
-		if(!isMissVars && !isMissDyads)
+	    if(modelArgs$modelClass == "TaperedModel")
+	        modelType = TaperedModel
+	    else if(!isMissVars && !isMissDyads)
 			modelType <- FullErnmModel
-		else
+	    else
 			modelType <- MissingErnmModel
+	}else{
+	    if(!(modelType %in% c('FullErnmModel','MissingErnmModel','TaperedModel'))){
+	        stop("modelType must be either FullErnmModel or MissingErnmModel or TaperedModel")
+	    }
 	}
 	if(length(nodeSamplingPercentage)==1)
 		nodeSamplingPercentage <- c(nodeSamplingPercentage,nodeSamplingPercentage)
 	if(identical(modelType,FullErnmModel)){
-		model <- do.call(modelType,c(fullCppSampler,modelArgs))
+	    if(!is.null(modelArgs$tau) | !is.null(modelArgs$centers)){
+	        stop("tapering parameters are passed but the model is a regular ERNM")
+	    }
+		model <- do.call(modelType,c(fullCppSampler,likelihoodArgs))
+	}else if(identical(modelType,TaperedModel)){
+	    if(is.null(modelArgs$tau)){
+	       stop("tau must be specified in modelArgs for a tapered model")
+	    }
+        if(is.null(modelArgs$centers)){
+            stop("centers must be specified in modelArgs for a tapered model")
+        }
+	    model <- do.call(modelType,c(fullCppSampler,likelihoodArgs))
 	}else{
 		missCppSampler <- createCppSampler(formula,
 				dyadToggle=missingToggles[1],
 				vertexToggle=missingToggles[2],
-				nodeSamplingPercentage=nodeSamplingPercentage[2])
+				nodeSamplingPercentage=nodeSamplingPercentage[2],
+				modelArgs = modelArgs)
 		if(!isMissVars)
 			missCppSampler$setDyadProbability(1)
 		if(!isMissDyads)
 			missCppSampler$setDyadProbability(0)
 		if(!isMissDyads && !isMissVars)
 			stop("The model type is for missing data, but none present.")
-		model <- do.call(modelType,c(fullCppSampler,missCppSampler,modelArgs))
+		model <- do.call(modelType,c(fullCppSampler,missCppSampler,likelihoodArgs))
 	}
 	fit <- ernmFit(model,...)
 	fit$formula <- formula

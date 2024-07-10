@@ -1,7 +1,7 @@
 #include <tests.h>
 #include <Rcpp/iostream/Rstreambuf.h>
 #include <test_Toggle.h>
-#include <test_ReModel.h>
+#include <test_TaperedModel.h>
 #include <test_Stat.h>
 #include <test_Constraint.h>
 #include <test_BinaryNet.h>
@@ -21,7 +21,7 @@ void registerErnmTests(){
     addTestFunction("testStats", testStats);
     addTestFunction("testConstraints", testConstraints);
     addTestFunction("testToggles", testToggles);
-    addTestFunction("testReModel", testReModel);
+    addTestFunction("testTaperedModel", testTaperedModel);
 }
 
 void runErnmTests(){

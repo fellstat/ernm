@@ -3,7 +3,9 @@
 #' @param observedSampler a sampler
 #' @param unobservedSampler a sampler conditional upon the observed values
 #' @param ... additional parameters for the log likelihood
-MissingErnmModel <- function(observedSampler, unobservedSampler, ...){
+MissingErnmModel <- function(observedSampler,
+                             unobservedSampler,
+                             ...){
 	res <- list(obsSamp = observedSampler, missSamp = unobservedSampler)
 	
 	res$generateSampleStatistics <- function(burnin,interval,size){
@@ -149,7 +151,7 @@ FullErnmModel <- function(sampler, logLik, ...){
 #' creates an ERNM likelihood model
 #' @param sampler a sampler
 #' @param ... additional parameters for the log likelihood
-ReGibbsModel <- function(sampler, ...){
+TaperedModel <- function(sampler, ...){
 	
 	sampler <- sampler
 	
@@ -160,7 +162,7 @@ ReGibbsModel <- function(sampler, ...){
 	}
 	
 	res$name <- function(){
-		"Reduced Entropy Gibbs Model"
+		"Tapered Model"
 	}
 	
 	res$randomGraph <- function(){
@@ -197,16 +199,42 @@ ReGibbsModel <- function(sampler, ...){
 	}
 	
 	res$info <- function(sample){
-		cov(as.matrix(sample))
+	    theta_dep <- FALSE
+	    tau <- sampler$getModel()$tau()
+	    theta <- sampler$getModel()$thetas()
+	    mu_hat <- apply(sample,2,mean)
+	    np <- length(theta)
+	    
+	    # Adjusted estimated info based on tapering
+	    covar <- cov(as.matrix(sample),as.matrix(sample))
+	    covar_2 <- cov(as.matrix(sample),as.matrix(sample**2))
+
+	    # USe sweep as in the tapered.ERGM package    
+        left_mat = sweep(covar,2,2*tau,'*')
+        if(theta_dep){
+            right_mat = covar + (-2)*sweep(covar,2,mu_hat/(tau**2),FUN = "*") + sweep(covar_2,2,1/(tau**2),FUN = "*")
+        }else{
+            right_mat = covar
+        }
+        dmu = solve(left_mat + diag(1,nrow(left_mat))) %*% right_mat
+        
+        # note direct COPY from ergm.tapered code
+        #second derivative of log likelihoods
+        ddll <- diag(rep(0,np))
+        dimnames(ddll) <- list(colnames(covar), colnames(covar))
+        for(i in 1:np){
+            for(j in 1:np){
+                ddll[i,j] <- -dmu[i,j] - sum(2*tau*dmu[,i]*dmu[,j]) 
+            }
+        }
+        -ddll
 	}
 	
 	res$logLikelihood <- function(theta,sample,theta0,stats){
 		mod <- sampler$getModel()
 		centers <- mod$centers()
-		betas <- mod$betas()
-		isThetaDependent <- mod$isThetaDependent()
-		GmmObjective(theta=theta, centers=centers, betas=betas, isThetaDependent=isThetaDependent, 
-				sample=sample, theta0=theta0, stats=stats, ...)
+		tau <- mod$tau()
+		GmmObjective(theta=theta, centers=centers, tau=tau, sample=sample, theta0=theta0, stats=stats, ...)
 	}
 	
 	res$scaledGradient <- function(theta,sample,theta0,stats){
@@ -218,6 +246,6 @@ ReGibbsModel <- function(sampler, ...){
 		grad / scl
 	}
 	
-	class(res) <- c("ReGibbsModel")
+	class(res) <- c("TaperedModel")
 	res
 }

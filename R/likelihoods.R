@@ -8,8 +8,14 @@
 #' @param minEss minimum effective sample size
 #' @param damping a damping parameter
 #' @param method cumulant generating function approximation
-fullErnmLikelihood <- function(theta,sample,theta0,stats,
-		minEss=5,damping=.05, method=c("cumulant","sample"),order=3){
+fullErnmLikelihood <- function(theta,
+                               sample,
+                               theta0,
+                               stats,
+                               minEss=5,
+                               damping=.05,
+                               method=c("cumulant","sample"),
+                               order=3){
 	method <- match.arg(method)
 	
 	llik <- function(){
@@ -200,22 +206,17 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 
 
 
-#' (E(g(X)) - g(x_o)^2 for ReGibbs
+#' (E(g(X)) - g(x_o)^2 for TaperedModel
 #' @param theta parameters
 #' @param sample mcmc sample
 #' @param theta0 parameter values which generated sample
 #' @param stats observed statistics
 #' @param minEss minimum effective sample size
-GmmObjective <- function(theta, centers, betas, isThetaDependent, sample, theta0, stats,
+GmmObjective <- function(theta, centers, tau, sample, theta0, stats,
 		minEss=5, damping=.05){
 	
-	# beta(theta) and beta'(theta)
-	b <- function(t){
-		if(isThetaDependent) (t/betas)^2 else betas
-	}
-	db <- function(t){
-		if(isThetaDependent) 2 * t / betas^2 else rep(0,length(t))
-	}	
+	b <- function(t){tau}
+	db <- function(t){rep(0,length(t))}	
 	
 	
 	llik <- function(){

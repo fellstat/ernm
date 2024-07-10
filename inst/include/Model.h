@@ -602,13 +602,12 @@ public:
  * Reduced entropy
  */
 template<class Engine>
-class ReModel : public Model<Engine>{
+class TaperedModel : public Model<Engine>{
 protected:
 	typedef boost::shared_ptr< std::vector<double> > ParamPtr;
 	typedef boost::shared_ptr< bool > BoolPtr;
-	ParamPtr betas;		// coefficient for penalties
-	ParamPtr centers;	// The mean values to center the penalty on beta * (center - g(x))^2
-	BoolPtr isThetaDep;				// ( theta / beta)^2 if true, beta if false
+	ParamPtr tau;		// coefficient for penalties
+	ParamPtr centers;	// The mean values to center the penalty on tau * (center - g(x))^2
 
 	int nModelTerms(){
 		int n = 0;
@@ -618,20 +617,15 @@ protected:
 		return n;
 	}
 public:
-	ReModel() : Model<Engine>(){
-		//std::cout << "rm1";
-		betas = ParamPtr(new std::vector<double>());
+	TaperedModel() : Model<Engine>(){
+		tau = ParamPtr(new std::vector<double>());
 		centers = ParamPtr(new std::vector<double>());
-		isThetaDep = BoolPtr(new bool);
-		*isThetaDep = true;
 	}
 
-	ReModel(BinaryNet<Engine>& network) : Model<Engine>(network){
+	TaperedModel(BinaryNet<Engine>& network) : Model<Engine>(network){
 		//std::cout << "rm2";
-		betas = ParamPtr(new std::vector<double>());
+		tau = ParamPtr(new std::vector<double>());
 		centers = ParamPtr(new std::vector<double>());
-		isThetaDep = BoolPtr(new bool);
-		*isThetaDep = true;
 
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>(network));
 		/*this->net = n;
@@ -641,11 +635,9 @@ public:
 		*this->randomGraph = true;*/
 	}
 
-	ReModel(const ReModel<Engine>& mod) : Model<Engine>(mod){
-		//std::cout << "rm3";
-		betas = mod.betas;
+	TaperedModel(const TaperedModel<Engine>& mod) : Model<Engine>(mod){
+		tau = mod.tau;
 		centers = mod.centers;
-		isThetaDep = mod.isThetaDep;
 
 		/*this->stats = mod.stats;
 		this->offsets = mod.offsets;
@@ -653,8 +645,8 @@ public:
 		this->randomGraph = mod.randomGraph;
 		this->randomDiscreteVariables = mod.randomDiscreteVariables;
 		this->randomContinVariables = mod.randomContinVariables;*/
-		/*if(const ReModel* m = dynamic_cast<const ReModel*>(&mod)){
-			betas = m->betas;
+		/*if(const TaperedModel* m = dynamic_cast<const TaperedModel*>(&mod)){
+			tau = m->tau;
 			centers = m->centers;
 			isThetaDep = m->isThetaDep;
 		}*/
@@ -664,21 +656,17 @@ public:
 	/*!
 	 * if deep, then the model statistics are de-aliased
 	 */
-	ReModel(const ReModel<Engine>& mod, bool deep)  : Model<Engine>(mod, deep){
-		//std::cout << "rm4";
-		betas = mod.betas;
+	TaperedModel(const TaperedModel<Engine>& mod, bool deep)  : Model<Engine>(mod, deep){
+		tau = mod.tau;
 		centers = mod.centers;
-		isThetaDep = mod.isThetaDep;
 		if(deep){
-			betas = ParamPtr(new std::vector<double>());
+			tau = ParamPtr(new std::vector<double>());
 			centers = ParamPtr(new std::vector<double>());
-			isThetaDep = BoolPtr(new bool);
 
-			for(int i=0;i<mod.betas->size();i++)
-				betas->push_back(mod.betas->at(i));
+			for(int i=0;i<mod.tau->size();i++)
+				tau->push_back(mod.tau->at(i));
 			for(int i=0;i<mod.centers->size();i++)
 				centers->push_back(mod.centers->at(i));
-			*isThetaDep = *mod.isThetaDep;
 		}
 		/*this->stats = mod.stats;
 		this->offsets = mod.offsets;
@@ -700,18 +688,17 @@ public:
 		}*/
 	}
 
-	virtual ~ReModel(){}
+	virtual ~TaperedModel(){}
 
 	/*!
 	 * R constructor for RCPP
 	 *
 	 */
-	ReModel(SEXP sexp) : Model<Engine>(sexp){
+	TaperedModel(SEXP sexp) : Model<Engine>(sexp){
 		//std::cout << "rm5";
-		boost::shared_ptr<ReModel> xp = unwrapRobject< ReModel<Engine> >(sexp);
-		betas = xp->betas;
+		boost::shared_ptr<TaperedModel> xp = unwrapRobject< TaperedModel<Engine> >(sexp);
+		tau = xp->tau;
 		centers = xp->centers;
-		isThetaDep = xp->isThetaDep;
 
 		/*this->stats = xp->stats;
 		this->offsets = xp->offsets;
@@ -726,33 +713,25 @@ public:
 	 */
 	operator SEXP() const{
 		//std::cout << "rmWrap";
-		return wrapInReferenceClass(*this,Engine::engineName() + "ReModel");
+		return wrapInReferenceClass(*this,Engine::engineName() + "TaperedModel");
 	}
 
 	virtual ShallowCopyable* vShallowCopyUnsafe() const{
-		return new ReModel(*this);
+		return new TaperedModel(*this);
 	}
 
 	virtual boost::shared_ptr< Model<Engine> > vClone() const{
-		return boost::shared_ptr< Model<Engine> >(new ReModel<Engine>(*this, true));
+		return boost::shared_ptr< Model<Engine> >(new TaperedModel<Engine>(*this, true));
 	}
 
-	void  setBetas(std::vector<double> newBetas){
-		if(nModelTerms() != newBetas.size())
-			Rf_error("ReModel::setBetas : size mismatch");
-		betas = ParamPtr(new std::vector<double>(newBetas));
+	void  setTau(std::vector<double> newTau){
+		if(nModelTerms() != newTau.size())
+			Rf_error("TaperedModel::setTau : size mismatch");
+		tau = ParamPtr(new std::vector<double>(newTau));
 	}
 
-	void thetaDependent(bool td){
-		isThetaDep = BoolPtr(new bool(td));
-	}
-
-	bool isThetaDependent(){
-		return *isThetaDep;
-	}
-
-	std::vector<double> betaParams(){
-		return *betas;
+	std::vector<double> tauParams(){
+		return *tau;
 	}
 
 	std::vector<double> centerParams(){
@@ -761,7 +740,7 @@ public:
 
 	void  setCenters(std::vector<double> newCenters){
 		if(nModelTerms() != newCenters.size())
-			Rf_error("ReModel::setCenters : size mismatch");
+			Rf_error("TaperedModel::setCenters : size mismatch");
 		centers = ParamPtr(new std::vector<double>(newCenters));
 		//*centers = newCenters;
 	}
@@ -776,10 +755,7 @@ public:
 			for(int j = 0; j < nStats; j++){
 				s = this->stats[i]->vStatistics()[j];
 				t = this->stats[i]->vTheta()[j];
-				if(*isThetaDep)
-					par = (t / betas->at(index)) * (t / betas->at(index));
-				else
-					par = betas->at(index);
+				par = tau->at(index);
 				ll += s * t - par * (centers->at(index) - s) * (centers->at(index) - s);
 				index++;
 			}
