@@ -27,7 +27,7 @@ namespace tests{
 
 
 template<class Engine>
-void re(){
+void tapered(){
 	using namespace std;
 	using namespace ernm;
 	vector<int> vals(30,1);
@@ -161,8 +161,8 @@ void re(){
 void testTaperedModel(){
 	testContext = "TaperedModel";
 
-	RUN_TEST(re<Directed>());
-    RUN_TEST(re<Undirected>());
+	RUN_TEST(tapered<Directed>());
+    RUN_TEST(tapered<Undirected>());
 }
 
 
