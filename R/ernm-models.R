@@ -85,10 +85,11 @@ FullErnmModel <- function(sampler, logLik, ...){
 	
 	sampler <- sampler
 	model <- sampler$getModel()
-	if(class(model)[1] == 'Rcpp_UndirectedModel' | class(model)[1] == 'Rcpp_DirectedModel'){
-	    tapered <- FALSE
-	}else{
+	if(inherits(model,"Rcpp_UndirectedTaperedModel") | 
+	   inherits(model,"Rcpp_DirectedTaperedModel")){
 	    tapered <- TRUE
+	}else{
+	    tapered <- FALSE
 	}
 	
 	res <- list(sampler=sampler)

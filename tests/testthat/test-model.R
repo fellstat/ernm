@@ -34,7 +34,7 @@ test_that("models", {
     t_1 <- proc.time()[3]
     ERNM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal') | group,
                  tapered = FALSE,
-                 verbose = TRUE)
+                 verbose = FALSE)
     t_1 <- proc.time()[3] - t_1
     
     # Test tapered ERNM:
@@ -46,7 +46,7 @@ test_that("models", {
                            modelArgs = list(tau = 1 / (3^2 * (stats + 5)),
                                             centers = stats,
                                             modelClass = 'TaperedModel'),
-                           verbose = TRUE)
+                           verbose = FALSE)
     t_2 <- proc.time()[3] - t_2
     
     # Test tapered ERNM:

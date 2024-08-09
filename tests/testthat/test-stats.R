@@ -44,7 +44,13 @@ test_that("Stats", {
     r_stat_1 = sum((v1=="2"))
     cpp_stat_1 = as.numeric(ernm::calculateStatistics(net ~ nodeCount("var_2")))
     
-    model <- ernm(net ~ nodeCount("var_2","1")| var_2 ,maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ nodeCount("var_2","1")| var_2 ,
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
@@ -116,7 +122,13 @@ test_that("Stats", {
     x_pos = which(net %v% "var_3"== "2")
     x_neg = which(net %v% "var_3"== "1")
     
-    model <- ernm(net ~ logistic("var_2","var_3","1") | var_2 ,maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ logistic("var_2","var_3","1") | var_2 ,
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
@@ -200,6 +212,7 @@ test_that("Stats", {
     which(net %v% "var_2"== "2")
     net_2 <- net
     tmp_model <- ernm(net ~ logisticNeighbors("var_2","var_2","2") | var_2,
+                      tapered = FALSE,
                       maxIter = 2,
                       mcmcSampleSize = 1000,
                       mcmcBurnIn = 100,
@@ -312,7 +325,13 @@ test_that("Stats", {
     edges <- cbind(as.double(edges[,1]),as.double(edges[,2]))
     
     # update included edge that network has
-    model <- ernm(net ~ hamming(edges,100),maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ hamming(edges,100),
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
@@ -327,7 +346,13 @@ test_that("Stats", {
     cpp_stat_1 <- model$statistics()
     
     # update included edge that network has
-    model <- ernm(net ~ hamming(edges,100),maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ hamming(edges,100),
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
@@ -342,7 +367,13 @@ test_that("Stats", {
     
     # update included edge that network does not have
     edges <- matrix(c(1,2),nrow = 1)
-    model <- ernm(net ~ hamming(edges,100),maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ hamming(edges,100),
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
@@ -357,7 +388,13 @@ test_that("Stats", {
     
     # update not included edge that network has
     edges <- matrix(c(1,2),nrow = 1)
-    model <- ernm(net ~ hamming(edges,100),maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ hamming(edges,100),
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     
@@ -375,7 +412,13 @@ test_that("Stats", {
     edges <- cbind(as.double(edges[,1]),as.double(edges[,2]))
     head(edges)
     
-    model <- ernm(net ~ hamming(edges,100),maxIter = 2,mcmcBurnIn = 100,mcmcInterval = 10, mcmcSampleSize = 100,verbose = FALSE)
+    model <- ernm(net ~ hamming(edges,100),
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()

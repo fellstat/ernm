@@ -286,8 +286,11 @@ ernm <- function(formula,
 	if(is.null(modelType)){
 	    if(!isMissVars && !isMissDyads)
 			modelType <- FullErnmModel
-	    else
-			modelType <- MissingErnmModel
+	    else{
+	        if(tapered==TRUE){
+	            stop("tapering is not supported for missing data yet")}
+	        modelType <- MissingErnmModel
+	    }
 	}else{
 	    if(!(modelType %in% c('FullErnmModel','MissingErnmModel'))){
 	        stop("modelType must be either FullErnmModel or MissingErnmModel")
@@ -299,7 +302,7 @@ ernm <- function(formula,
 		model <- do.call(modelType,c(fullCppSampler,likelihoodArgs))
 	}else{
 	    if(modelClass == "TaperedModel"){
-	        stop("TaperedModel is not supported for missing data yet")
+	        stop("tapering is not supported for missing data yet")
 	    }
 		missCppSampler <- createCppSampler(formula,
 				dyadToggle=missingToggles[1],
