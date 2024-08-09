@@ -212,7 +212,7 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 #' @param theta0 parameter values which generated sample
 #' @param stats observed statistics
 #' @param minEss minimum effective sample size
-GmmObjective <- function(theta, centers, tau, sample, theta0, stats,
+taperedErnmLikelihood <- function(theta, centers, tau, sample, theta0, stats,
 		minEss=5, damping=.05){
 	
 	b <- function(t){tau}

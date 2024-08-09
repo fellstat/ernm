@@ -14,7 +14,7 @@
  */
 
 RCPP_MODULE(ernm){
-	using namespace Rcpp ;
+	using namespace Rcpp;
 	using namespace ernm;
 
 	class_<DirectedNet >("DirectedNet")
@@ -76,8 +76,6 @@ RCPP_MODULE(ernm){
 ;
 
 	class_<MetropolisHastings<Directed> >("DirectedMetropolisHastings")
-			//.constructor<TaperedModel<Directed> >()
-			//.constructor<TaperedModel<Directed>,double >()
 			.constructor()
 			.constructor<Model<Directed> >()
 			.constructor<Model<Directed>,double >()
@@ -90,8 +88,6 @@ RCPP_MODULE(ernm){
 			.method("generateSampleStatistics", &MetropolisHastings<Directed>::generateSampleStatistics)
 			;
 	class_<MetropolisHastings<Undirected> >("UndirectedMetropolisHastings")
-			//.constructor<TaperedModel<Undirected> >()
-			//.constructor<TaperedModel<Undirected>,double >()
 		    .constructor()
 			.constructor<Model<Undirected> >()
 			.constructor<Model<Undirected>,double >()
