@@ -84,7 +84,12 @@ MissingErnmModel <- function(observedSampler,
 FullErnmModel <- function(sampler, logLik, ...){
 	
 	sampler <- sampler
-	tapered <- all(sampler$getModel()$tau()!=0)
+	model <- sampler$getModel()
+	if(class(model)[1] == 'Rcpp_UndirectedModel' | class(model)[1] == 'Rcpp_DirectedModel'){
+	    tapered <- FALSE
+	}else{
+	    tapered <- TRUE
+	}
 	
 	res <- list(sampler=sampler)
 	

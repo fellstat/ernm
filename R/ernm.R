@@ -256,16 +256,9 @@ ernm <- function(formula,
                  missingToggles=c("Compound_NodeTieDyadMissing_NeighborhoodMissing","VertexMissing"),
                  ...){
 
-	fullCppSampler <- createCppSampler(formula,
-			dyadToggle=fullToggles[1],
-			vertexToggle=fullToggles[2],
-			nodeSamplingPercentage=nodeSamplingPercentage[1],
-			modelArgs = modelArgs)
-	net <- fullCppSampler$getModel()$getNetwork()
-	
 	# if we don't get given things in modelArgs set them to reasonable defaults
 	if(tapered){
-	    stats <- calculateStatistics(form)
+	    stats <- calculateStatistics(formula)
 	    if(is.null(modelArgs$tau)){
             tau <- 1 / (tapering_r^2 * (stats + 5))
             tau[stats<0] <- Inf
@@ -275,7 +268,18 @@ ernm <- function(formula,
 	        modelArgs$centers <- stats
 	    }
         modelArgs$modelClass <- "TaperedModel"
+	}else{
+	    modelArgs$modelClass <- "Model"
 	}
+    
+    # make the full sampler
+    fullCppSampler <- createCppSampler(formula,
+                                       dyadToggle=fullToggles[1],
+                                       vertexToggle=fullToggles[2],
+                                       nodeSamplingPercentage=nodeSamplingPercentage[1],
+                                       modelArgs = modelArgs)
+    net <- fullCppSampler$getModel()$getNetwork()
+    
 	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
 	vars <- fullCppSampler$getModel()$getRandomVariables( )
 	isMissVars <- any(sapply(vars,function(x)any(is.na(net[[x]]))))
