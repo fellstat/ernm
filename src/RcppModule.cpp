@@ -14,7 +14,7 @@
  */
 
 RCPP_MODULE(ernm){
-	using namespace Rcpp ;
+	using namespace Rcpp;
 	using namespace ernm;
 
 	class_<DirectedNet >("DirectedNet")
@@ -76,8 +76,6 @@ RCPP_MODULE(ernm){
 ;
 
 	class_<MetropolisHastings<Directed> >("DirectedMetropolisHastings")
-			//.constructor<ReModel<Directed> >()
-			//.constructor<ReModel<Directed>,double >()
 			.constructor()
 			.constructor<Model<Directed> >()
 			.constructor<Model<Directed>,double >()
@@ -90,8 +88,6 @@ RCPP_MODULE(ernm){
 			.method("generateSampleStatistics", &MetropolisHastings<Directed>::generateSampleStatistics)
 			;
 	class_<MetropolisHastings<Undirected> >("UndirectedMetropolisHastings")
-			//.constructor<ReModel<Undirected> >()
-			//.constructor<ReModel<Undirected>,double >()
 		    .constructor()
 			.constructor<Model<Undirected> >()
 			.constructor<Model<Undirected>,double >()
@@ -180,28 +176,24 @@ RCPP_MODULE(ernm){
         .method("continVertexUpdate",&Model<Directed>::continVertexUpdateR)
 		;
 
-	class_<ReModel<Undirected> >("UndirectedReModel")
+	class_<TaperedModel<Undirected> >("UndirectedTaperedModel")
 		.derives< Model<Undirected> >("UndirectedModel")
 		.constructor()
-		.constructor< ReModel<Undirected> >()
-		.method("setBetas",&ReModel<Undirected>::setBetas)
-		.method("betas",&ReModel<Undirected>::betaParams)
-		.method("setCenters",&ReModel<Undirected>::setCenters)
-		.method("centers",&ReModel<Undirected>::centerParams)
-		.method("isThetaDependent",&ReModel<Undirected>::isThetaDependent)
-		.method("thetaDependent",&ReModel<Undirected>::thetaDependent)
+		.constructor< TaperedModel<Undirected> >()
+		.method("setTau",&TaperedModel<Undirected>::setTau)
+		.method("tau",&TaperedModel<Undirected>::tauParams)
+		.method("setCenters",&TaperedModel<Undirected>::setCenters)
+		.method("centers",&TaperedModel<Undirected>::centerParams)
 		;
 
-	class_<ReModel<Directed> >("DirectedReModel")
+	class_<TaperedModel<Directed> >("DirectedTaperedModel")
 		.derives< Model<Directed> >("DirectedModel")
 		.constructor()
-		.constructor< ReModel<Directed> >()
-		.method("setBetas",&ReModel<Directed>::setBetas)
-		.method("betas",&ReModel<Directed>::betaParams)
-		.method("setCenters",&ReModel<Directed>::setCenters)
-		.method("centers",&ReModel<Directed>::centerParams)
-		.method("isThetaDependent",&ReModel<Directed>::isThetaDependent)
-		.method("thetaDependent",&ReModel<Directed>::thetaDependent)
+		.constructor< TaperedModel<Directed> >()
+		.method("setTau",&TaperedModel<Directed>::setTau)
+		.method("tau",&TaperedModel<Directed>::tauParams)
+		.method("setCenters",&TaperedModel<Directed>::setCenters)
+		.method("centers",&TaperedModel<Directed>::centerParams)
 		;
     
     // functions to register statistics with the controller

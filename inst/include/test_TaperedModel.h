@@ -1,12 +1,12 @@
 /*
- * ReModelTests.h
+ * TaperedModelTests.h
  *
  *  Created on: Jan 15, 2016
  *      Author: ianfellows
  */
 
-#ifndef REMODELTESTS_H_
-#define REMODELTESTS_H_
+#ifndef TAPEREDMODELTESTS_H_
+#define TAPEREDMODELTESTS_H_
 
 
 namespace ernm{
@@ -15,10 +15,10 @@ namespace tests{
 /*!
  * Tests model statistics.
  */
-void testReModel();
+void testTaperedModel();
 
 }
 }
 
 
-#endif /* REMODELTESTS_H_ */
+#endif /* TAPEREDMODELTESTS_H_ */

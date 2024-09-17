@@ -1,5 +1,5 @@
 /*
- * ReModelTests.cpp
+ * TaperedModelTests.cpp
  *
  *  Created on: Jan 15, 2016
  *      Author: ianfellows
@@ -27,7 +27,7 @@ namespace tests{
 
 
 template<class Engine>
-void re(){
+void tapered(){
 	using namespace std;
 	using namespace ernm;
 	vector<int> vals(30,1);
@@ -112,14 +112,13 @@ void re(){
 
     //create model
     std::vector<double> centers(2,0.0);
-    std::vector<double> betas(2,0.0);
-    betas.at(0) = .1;
-    ReModel<Engine> model(net);
+    std::vector<double> tau(2,0.0);
+    tau.at(0) = .1;
+    TaperedModel<Engine> model(net);
     model.addStatPtr(ed);
     model.addStatPtr(stat);
     model.setCenters(centers);
-    model.setBetas(betas);
-    model.thetaDependent(false);
+    model.setTau(tau);
     model.calculate();
     stat->vTheta().at(0) = 0.0;
 
@@ -138,7 +137,7 @@ void re(){
 	//	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
     mh.initialize();
 
-    Language call3("print",wrap(model.betaParams()));
+    Language call3("print",wrap(model.tauParams()));
     call3.eval();
    // for(int i=0;i<30;i++){
     mh.run(10);
@@ -159,11 +158,11 @@ void re(){
 }
 
 
-void testReModel(){
-	testContext = "ReModel";
+void testTaperedModel(){
+	testContext = "TaperedModel";
 
-	RUN_TEST(re<Directed>());
-    RUN_TEST(re<Undirected>());
+	RUN_TEST(tapered<Directed>());
+    RUN_TEST(tapered<Undirected>());
 }
 
 
