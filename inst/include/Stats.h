@@ -756,6 +756,133 @@ public:
 typedef Stat<Directed, NodeMatch<Directed> > DirectedNodeMatch;
 typedef Stat<Undirected, NodeMatch<Undirected> > UndirectedNodeMatch;
 
+/*!
+ * Adds a statistic the absolute value of the difference between the values
+ * of a continuous nodal covariate
+ */
+template<class Engine>
+class AbsDiff : public BaseStat< Engine > {
+protected:
+  typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+  std::string variableName; /*!< the name of the matching variable */
+int varIndex; /*!< the index of the variable in the network */
+public:
+  AbsDiff(){
+    variableName="";
+    varIndex = -1;
+  }
+  
+  AbsDiff(std::string name){
+    variableName=name;
+    varIndex = -1;
+  }
+  
+  AbsDiff(List params){
+    varIndex = -1;
+    try{
+      variableName = as< std::string >(params[0]);
+    }catch(...){
+      ::Rf_error("AbsDiff requires a nodal variable name");
+    }
+  }
+  
+  
+  std::string name(){
+    return "absDiff";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"absDiff."+variableName);
+    return statnames;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    int from,to;
+    double value1, value2;
+    std::vector<std::string> vars = net.continVarNames();
+    int variableIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+    }
+    if(variableIndex<0)
+      ::Rf_error("absDiff::calculate nodal attribute not found in network");
+    varIndex = variableIndex;
+    int nstats = 1;
+    this->stats = std::vector<double>(nstats,0.0);
+    if(this->thetas.size() != nstats)
+      this->thetas = std::vector<double>(nstats,0.0);
+    boost::shared_ptr< std::vector< std::pair<int,int> > > edges = net.edgelist();
+    for(int i=0;i<edges->size();i++){
+      from = (*edges)[i].first;
+      to = (*edges)[i].second;
+      value1 = net.continVariableValue(varIndex,from) - 1;
+      value2 = net.continVariableValue(varIndex,to) - 1;
+      // absolute value of the difference:
+      this->stats[0] += std::fabs(value1 - value2);
+      }
+    }
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    bool addingEdge = !net.hasEdge(from,to);
+    int value1 = net.continVariableValue(varIndex,from) - 1;
+    int value2 = net.continVariableValue(varIndex,to) - 1;
+    if(value1==value2){
+      if(addingEdge)
+        this->stats[0] += std::fabs(value1 - value2);
+      else
+        this->stats[0] -= std::fabs(value1 - value2);
+    }
+  }
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){}
+
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){
+    if(variable != varIndex)
+      return;
+    int val = net.continVariableValue(varIndex,vert);
+    if(net.isDirected()){
+      NeighborIterator it = net.outBegin(vert);
+      NeighborIterator end = net.outEnd(vert);
+      while(it!=end){
+        int val2 = net.continVariableValue(varIndex,*it);
+        // remove old value:
+        this->stats[0] -= std::fabs(val - val2);
+        // add new value 
+        this->stats[0] += std::fabs(newValue - val2);
+        it++;
+      }
+      it = net.inBegin(vert);
+      end = net.inEnd(vert);
+      while(it!=end){
+        int val2 = net.continVariableValue(varIndex,*it);
+        // remove old value:
+        this->stats[0] -= std::fabs(val - val2);
+        // add new value 
+        this->stats[0] += std::fabs(newValue - val2);
+        it++;
+      }
+    }else{
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      while(it!=end){
+        int val2 = net.continVariableValue(varIndex,*it);
+        // remove old value:
+        this->stats[0] -= std::fabs(val - val2);
+        // add new value 
+        this->stats[0] += std::fabs(newValue - val2);
+        it++;
+      }
+    }
+  }
+    
+};
+  
+typedef Stat<Directed, AbsDiff<Directed> > DirectedAbsDiff;
+typedef Stat<Undirected, AbsDiff<Undirected> > UndirectedAbsDiff;
 
 
 /*!
@@ -1007,11 +1134,6 @@ public:
 
 typedef Stat<Directed, NodeCount<Directed> > DirectedNodeCount;
 typedef Stat<Undirected, NodeCount<Undirected> > UndirectedNodeCount;
-
-
-
-
-
 
 
 //template<class Engine>
@@ -4136,10 +4258,286 @@ public:
 		}
 	}
 };
-
 typedef Stat<Directed, Gauss<Directed> > DirectedGauss;
 typedef Stat<Undirected, Gauss<Undirected> > UndirectedGauss;
 
+
+/*!
+ * Guassian Regression
+ */
+template<class Engine>
+class GaussRegression : public BaseStat< Engine > {
+protected:
+  std::vector< std::string > yNames;
+  std::vector< std::string > xNames;
+  std::vector<int> y_indices;
+  std::vector<int> x_indices;
+public:
+  
+  GaussRegression() {}
+  
+  virtual ~GaussRegression(){};
+  
+  GaussRegression(List params) {
+    try{
+      yNames = as< std::vector<std::string> >(params(0));
+      xNames = as< std::vector<std::string> >(params(1));
+    }catch(...){
+      ::Rf_error("The first parameter of GaussRegression should be a character vector of variable names");
+    }
+  }
+  
+  std::string name(){
+    return "GaussRegression";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"GaussRegression");
+    return statnames;
+  }
+  
+  virtual void vCalculate(const BinaryNet<Engine>& net){
+    std::vector<std::string> vars = net.continVarNames();
+    
+    y_indices = std::vector<int>(yNames.size(),-1);
+    x_indices = std::vector<int>(xNames.size(),-1);
+    // Get the y varnames :
+    for(int i=0;i<vars.size();i++){
+      for(int j=0;j<yNames.size();j++){
+        if(vars[i] == yNames[j]){
+          y_indices[j] = i;
+        }
+      }
+    }
+    // Get the x varnames :
+    for(int i=0;i<vars.size();i++){
+      for(int j=0;j<xNames.size();j++){
+        if(vars[i] == xNames[j]){
+          x_indices[j] = i;
+        }
+      }
+    }
+    
+    for(int i=0;i<yNames.size();i++)
+      if(y_indices[i] < 0)
+        ::Rf_error("gauss: variable not found in network");
+      int nstats = y_indices.size()*2;
+      this->stats = std::vector<double>(nstats,0.0);
+      if(this->thetas.size()!=nstats){
+        this->thetas = std::vector<double>(nstats,-.5);
+        for(int i=0;i<y_indices.size();i++)
+          this->thetas[i] = 0.0;
+      }
+      
+      for(int i=0;i<y_indices.size();i++){
+        double s=0.0;
+        double ssq=0.0;
+        for(int j=0;j<net.size();j++){
+          s += net.continVariableValue(y_indices[i], j) * net.continVariableValue(x_indices[i], j);
+          ssq += pow(net.continVariableValue(y_indices[i], j), 2.0);
+        }
+        this->stats[i] = s;// / (double) net.size();
+        this->stats[y_indices.size() + i] = ssq;// / (double) net.size();// - pow(this->stats[i], 2.0);
+      }
+  }
+  
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){}
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                            int variable, int newValue){}
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
+                          int variable, double newValue){
+    for(int i=0;i<y_indices.size();i++){
+      if(y_indices[i] == variable){
+        this->stats[i] += newValue * net.continVariableValue(x_indices[i], vert) -
+          net.continVariableValue(variable, vert) * net.continVariableValue(x_indices[i], vert);
+        this->stats[y_indices.size() + i] += pow(newValue, 2.0) -
+          pow(net.continVariableValue(variable, vert), 2.0);
+      }
+      
+      if(x_indices[i] == variable){
+        this->stats[i] += newValue * net.continVariableValue(y_indices[i], vert) -
+          net.continVariableValue(y_indices[i], vert) * net.continVariableValue(variable, vert);
+      }
+    }
+  }
+};
+
+typedef Stat<Directed, GaussRegression<Directed> > DirectedGaussRegression;
+typedef Stat<Undirected, GaussRegression<Undirected> > UndirectedGaussRegression;
+
+template<class Engine>
+class RegressNeighbors : public BaseStat< Engine > {
+protected:
+  int nstats; /*!< the number of stats generated */
+typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
+int variableIndex, regIndex;
+std::string variableName, regressorName;
+bool isDiscrete;
+public:
+  RegressNeighbors(){
+    nstats = 1;
+    variableIndex=regIndex = 0;
+  }
+  
+  RegressNeighbors(std::string out,std::string reg){
+    nstats = 1;
+    variableIndex=regIndex = 0;
+    variableName = out;
+    regressorName = reg;
+  }
+  
+  RegressNeighbors(std::string out,std::string reg,std::string base_val){
+    nstats = 1;
+    variableIndex=regIndex = 0;
+    variableName = out;
+    regressorName = reg;
+  }
+  
+  RegressNeighbors(List params){
+    nstats = 1;
+    variableIndex=regIndex = 0;
+    if(params.size() < 2){
+      ::Rf_error("RegressNeighbors requires at least two arguments passed");
+    }
+    try{
+      variableName = as<std::string>(params[0]);
+    }catch(...){
+      ::Rf_error("RegressNeighbors requires a formula");
+    }
+    try{
+      regressorName = as<std::string>(params[1]);
+    }catch(...){
+      ::Rf_error("RegressNeighbors requires a formula");
+    }
+  }
+  
+  std::string name(){
+    return "regressNeighbors";
+  }
+  
+  std::vector<std::string> statNames(){
+    std::vector<std::string> statnames(1,"regressNeighbors");
+    return statnames;
+  }
+  
+  void calculate(const BinaryNet<Engine>& net){
+    isDiscrete = false;
+    this->stats = std::vector<double>(1,0.0);
+    this->thetas = std::vector<double>(1,0.0);
+    std::vector<std::string> vars = net.continVarNames();
+    regIndex = -1;
+    for(int i=0;i<vars.size();i++){
+      if(vars[i] == regressorName){
+        regIndex = i;
+      }
+      if(vars[i] == variableName){
+        variableIndex = i;
+      }
+    }
+    if(regIndex == -1){
+      isDiscrete = true;
+      vars = net.discreteVarNames();
+      for(int i=0;i<vars.size();i++){
+        if(vars[i] == regressorName){
+          regIndex = i;
+        }
+      }
+    }
+    if(regIndex<0 || variableIndex<0)
+      Rf_error("invalid variables");
+    double val,val1;
+    for(int i=0;i<net.size();i++){
+      NeighborIterator it = net.begin(i);
+      NeighborIterator end = net.end(i);
+      val = net.continVariableValue(variableIndex,i);
+      while(it != end){
+        if(isDiscrete){
+            val1 = net.discreteVariableValue(regIndex,*it);
+        }else{
+            val1 = net.continVariableValue(regIndex,*it);}
+        this->stats[0] += val*val1;
+        it++;
+      }
+    }
+  }
+  
+  void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,int variable, int newValue){
+    
+    if(variable != regIndex | !isDiscrete)
+      return;
+    double regValue = net.discreteVariableValue(regIndex,vert);
+    // need to step trough all neighbours and recalculate the effect
+    NeighborIterator it = net.begin(vert);
+    NeighborIterator end = net.end(vert);
+    while(it != end){
+      double neighbor_varVal = net.continVariableValue(variableIndex,*it);
+      this->stats[0] -= neighbor_varVal*regValue;
+      this->stats[0] += neighbor_varVal*newValue;
+      it++;
+    }
+  }
+  
+  void continVertexUpdate(const BinaryNet<Engine>& net, int vert,int variable, double newValue){
+    if(variable == variableIndex){
+      // need to step through all neighbours and recalculate the effect
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      double old_val = net.continVariableValue(variableIndex,vert); 
+      
+      double neighbor_regVal;
+      while(it != end){
+        if(isDiscrete){
+          neighbor_regVal = net.discreteVariableValue(regIndex,*it);
+        }else{
+          neighbor_regVal = net.continVariableValue(regIndex,*it);
+        }
+        this->stats[0] -= old_val*neighbor_regVal;
+        this->stats[0] += newValue*neighbor_regVal;
+        it++;
+      }
+    }
+    if(variable == regIndex){
+      NeighborIterator it = net.begin(vert);
+      NeighborIterator end = net.end(vert);
+      double old_val = net.continVariableValue(regIndex,*it); 
+      while(it != end){
+        double neighbor_varVal = net.continVariableValue(variableIndex,*it);
+        this->stats[0] -= neighbor_varVal*old_val;
+        this->stats[0] += neighbor_varVal*newValue;
+        it++;
+      }
+    }
+  }
+  
+  void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+    bool addingEdge = !net.hasEdge(from,to);
+    //get the variables
+    double fromVarValue = net.continVariableValue(variableIndex,from);
+    double fromRegValue;
+    if(isDiscrete){
+      fromRegValue = net.discreteVariableValue(regIndex,from)-1;
+    }else{
+      fromRegValue = net.continVariableValue(regIndex,from);
+    }
+    double toVarValue = net.continVariableValue(variableIndex,to);
+    double toRegValue;
+    if(isDiscrete){
+        toRegValue = net.discreteVariableValue(regIndex,to)-1;
+    }else{
+        toRegValue = net.continVariableValue(regIndex,to);
+    }
+    
+    // If we are removing the edge may remove a value for both from  and to
+    double add = net.hasEdge(from,to)?-1:1;
+    this->stats[0] += add*fromVarValue*toRegValue;
+    this->stats[0] += add*toVarValue*fromRegValue;
+    }
+};
+typedef Stat<Directed, RegressNeighbors<Directed> > DirectedRegressNeighbors;
+typedef Stat<Undirected, RegressNeighbors<Undirected> > UndirectedRegressNeighbors;
 
 /*!
  * Gamma sufficient statistics

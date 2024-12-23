@@ -445,5 +445,10 @@ test_that("Stats", {
     testthat::expect_true(hamming_test_5)
     testthat::expect_true(hamming_test_6)
     testthat::expect_true(hamming_test_7)
+    
+    # ========================
+    # Gaussian Regression
+    # ========================
+    # Write test here
 }
 )
