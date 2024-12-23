@@ -60,6 +60,9 @@ void initStats(){
     registerStatistic( DirStatPtr( new DirectedGamma() ) );
     registerStatistic( DirStatPtr( new DirectedLogDegreeMoment() ) );
     registerStatistic( DirStatPtr( new DirectedHamming() ) );
+    registerStatistic( DirStatPtr( new DirectedGaussRegression() ) );
+    registerStatistic( DirStatPtr( new DirectedAbsDiff() ) );
+    registerStatistic( DirStatPtr( new DirectedRegressNeighbors() ) );
 	////////			Offsets				/////////
     //registerOffset( DirOffsetPtr( new DirectedREffectOffset() ) );
 	registerOffset( DirOffsetPtr( new DirectedBiasedSeedOffset() ) );
@@ -92,16 +95,19 @@ void initStats(){
 	registerStatistic( UndirStatPtr( new UndirectedNodeCov() ) );
 	registerStatistic( UndirStatPtr( new UndirectedGwesp() ) );
 	registerStatistic( UndirStatPtr( new UndirectedGeoDist() ) );
-    registerStatistic( UndirStatPtr( new UndirectedGwDegree() ) );
-    registerStatistic( UndirStatPtr( new UndirectedGwdsp() ) );
-    registerStatistic( UndirStatPtr( new UndirectedEsp() ) );
-    registerStatistic( UndirStatPtr( new UndirectedSumOfSquares() ) );
-    registerStatistic( UndirStatPtr( new UndirectedGauss() ) );
-    registerStatistic( UndirStatPtr( new UndirectedGamma() ) );
-    registerStatistic( UndirStatPtr( new UndirectedLogDegreeMoment() ) );
-    registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
-    registerStatistic( UndirStatPtr( new UndirectedPreferentialAttachment() ) );
-    registerStatistic( UndirStatPtr( new UndirectedHamming() ) );
+  registerStatistic( UndirStatPtr( new UndirectedGwDegree() ) );
+  registerStatistic( UndirStatPtr( new UndirectedGwdsp() ) );
+  registerStatistic( UndirStatPtr( new UndirectedEsp() ) );
+  registerStatistic( UndirStatPtr( new UndirectedSumOfSquares() ) );
+  registerStatistic( UndirStatPtr( new UndirectedGauss() ) );
+  registerStatistic( UndirStatPtr( new UndirectedGamma() ) );
+  registerStatistic( UndirStatPtr( new UndirectedLogDegreeMoment() ) );
+  registerStatistic( UndirStatPtr( new UndirectedDegreeCrossProd() ) );
+  registerStatistic( UndirStatPtr( new UndirectedPreferentialAttachment() ) );
+  registerStatistic( UndirStatPtr( new UndirectedHamming() ) );
+  registerStatistic( UndirStatPtr( new UndirectedGaussRegression() ) );
+  registerStatistic( UndirStatPtr( new UndirectedAbsDiff() ) );
+  registerStatistic( UndirStatPtr( new UndirectedRegressNeighbors() ) );
 
 	////////			Offsets				/////////
     registerOffset( UndirOffsetPtr( new UndirectedREffectOffset() ) );
