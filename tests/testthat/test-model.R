@@ -21,24 +21,24 @@ test_that("models", {
     samplike <- as.network(samplike_undir, directed = FALSE)
     
     # Test MRF version of ERNM
-    t_1 <- proc.time()
+    t_1 <- proc.time()[3]
     MRF <- ernm(samplike_undir ~ edges + homophily("group") + logisticNeighbors('group','group','Loyal') | group,
                 tapered = FALSE,
                 verbose = TRUE)
-    t_1 <- proc.time() - t_1
+    t_1 <- proc.time()[3] - t_1
     
     # Test ERGM verision of ERNM
-    t_2 <- proc.time()
+    t_2 <- proc.time()[3]
     ERGM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal'),
                  tapered = FALSE,
-                 verbose = FALSE)
-    t_2 <- proc.time() - t_2
+                 verbose = TRUE)
+    t_2 <- proc.time()[3] - t_2
     
     # Test ERNM
     t_3 <- proc.time()[3]
     ERNM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) + homophily("group") + logisticNeighbors('group','group','Loyal') | group,
                  tapered = FALSE,
-                verbose = FALSE)
+                verbose = TRUE)
     t_3 <- proc.time()[3] - t_3
     
     # Test tapered ERNM:
@@ -50,7 +50,7 @@ test_that("models", {
                            modelArgs = list(tau = 1 / (3^2 * (stats + 5)),
                                             centers = stats,
                                             modelClass = 'TaperedModel'),
-                           verbose = FALSE)
+                           verbose = TRUE)
     t_4 <- proc.time()[3] - t_4
     
     # Test tapered ERNM:
@@ -63,11 +63,17 @@ test_that("models", {
                            modelArgs = list(tau = 1 / (2 * (stats + 5)),
                                             centers = stats,
                                             modelClass = 'TaperedModel'),
-                           verbose = FALSE)
+                           verbose = TRUE)
     t_5 <- proc.time()[3] - t_5
+
     
     # Print the time it took to  fit the models vs expected time:
-    print(as.data.frame(cbind(c("MRF", "ERGM", "ERNM", "ERNM_tapered_1", "ERNM_tapered_2"), c(t_1, t_2, t_3, t_4, t_5))))
+    print(as.data.frame(cbind(c("MRF",
+                                "ERGM",
+                                "ERNM",
+                                "ERNM_tapered_1",
+                                "ERNM_tapered_2"),
+                              c(t_1, t_2, t_3, t_4, t_5))))
     
     
     # All models should converge
