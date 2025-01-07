@@ -533,6 +533,8 @@ public:
     void discreteVertexUpdateR(int vertex, std::string varName, int newValue){
         if(vertex > net->size())
             ::Rf_error("vertex index is bigger than the size of the network");
+        if(vertex < 0)
+            ::Rf_error("vertex index is negative in C++ end - did you enter 0 in R end?");
         std::vector<std::string> vars = net->discreteVarNames();
         int variable = -1;
         for(int i=0;i<vars.size();i++){
@@ -556,6 +558,8 @@ public:
     void continVertexUpdateR(int vertex, std::string varName, int newValue){
         if(vertex > net->size())
             ::Rf_error("vertex index is bigger than the size of the network");
+        if(vertex < 0)
+            ::Rf_error("vertex index is negative in C++ end - did you enter 0 in R end?");
         std::vector<std::string> vars = net->continVarNames();
         int variable = -1;
         for(int i=0;i<vars.size();i++){

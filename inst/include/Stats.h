@@ -826,9 +826,9 @@ public:
   
   void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
     bool addingEdge = !net.hasEdge(from,to);
-    int value1 = net.continVariableValue(varIndex,from) - 1;
-    int value2 = net.continVariableValue(varIndex,to) - 1;
-    if(value1==value2){
+    double value1 = net.continVariableValue(varIndex,from) - 1;
+    double value2 = net.continVariableValue(varIndex,to) - 1;
+    if(value1!=value2){
       if(addingEdge)
         this->stats[0] += std::fabs(value1 - value2);
       else
@@ -4288,7 +4288,7 @@ public:
   }
   
   std::string name(){
-    return "GaussRegression";
+    return "gaussRegression";
   }
   
   std::vector<std::string> statNames(){
@@ -4502,7 +4502,7 @@ public:
     if(variable == regIndex){
       NeighborIterator it = net.begin(vert);
       NeighborIterator end = net.end(vert);
-      double old_val = net.continVariableValue(regIndex,*it); 
+      double old_val = net.continVariableValue(regIndex,vert); 
       while(it != end){
         double neighbor_varVal = net.continVariableValue(variableIndex,*it);
         this->stats[0] -= neighbor_varVal*old_val;
