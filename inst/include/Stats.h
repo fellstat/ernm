@@ -4285,6 +4285,9 @@ public:
     }catch(...){
       ::Rf_error("The first parameter of GaussRegression should be a character vector of variable names");
     }
+    if(yNames.size() != 1){
+      ::Rf_error("GaussRegression requires exactly one dependent variable");
+    }
   }
   
   std::string name(){
@@ -4292,16 +4295,24 @@ public:
   }
   
   std::vector<std::string> statNames(){
-    std::vector<std::string> statnames(1,"GaussRegression");
+    int nstats =  1 + yNames.size() + xNames.size(); 
+    std::vector<std::string> statnames(nstats,"");
+    statnames[0] = "gaussRegress." + yNames[0] + "Y.Y";
+    for(int i=0;i<yNames.size();i++){
+        statnames[1+i] = "gaussRegress." + yNames[0] + ".intercept" + "Y.X";
+    }
+    for(int i=0;i<xNames.size();i++){
+      statnames[1 + yNames.size() + i] = "gaussRegress." + yNames[0] + "." + xNames[i] + "Y.X";
+    }
     return statnames;
   }
-  
+
   virtual void vCalculate(const BinaryNet<Engine>& net){
     std::vector<std::string> vars = net.continVarNames();
     
     y_indices = std::vector<int>(yNames.size(),-1);
     x_indices = std::vector<int>(xNames.size(),-1);
-    // Get the y varnames :
+    // Get the y varnames:
     for(int i=0;i<vars.size();i++){
       for(int j=0;j<yNames.size();j++){
         if(vars[i] == yNames[j]){
@@ -4317,28 +4328,41 @@ public:
         }
       }
     }
-    
-    for(int i=0;i<yNames.size();i++)
+
+    for(int i=0;i<yNames.size();i++){
       if(y_indices[i] < 0)
         ::Rf_error("gauss: variable not found in network");
-      int nstats = y_indices.size()*2;
+      int nstats =  1 + y_indices.size() + xNames.size(); 
       this->stats = std::vector<double>(nstats,0.0);
       if(this->thetas.size()!=nstats){
-        this->thetas = std::vector<double>(nstats,-.5);
+        // set to negative so as not to explode y**2
+        this->thetas = std::vector<double>(nstats,0.0);
         for(int i=0;i<y_indices.size();i++)
-          this->thetas[i] = 0.0;
+          this->thetas[i] = -.5;
       }
       
-      for(int i=0;i<y_indices.size();i++){
-        double s=0.0;
-        double ssq=0.0;
-        for(int j=0;j<net.size();j++){
-          s += net.continVariableValue(y_indices[i], j) * net.continVariableValue(x_indices[i], j);
-          ssq += pow(net.continVariableValue(y_indices[i], j), 2.0);
+      // Do the intercept:
+      this->stats[y_indices.size()] = 1.0;
+      this->thetas[y_indices.size()] = 0.0;
+      
+      for(int i=0;i<x_indices.size();i++){
+        double s = 0.0;
+        double ssq = 0.0;
+        if(i==0){
+            for(int j=0;j<net.size();j++){
+                s += net.continVariableValue(y_indices[0], j) * net.continVariableValue(x_indices[i], j);
+                ssq += pow(net.continVariableValue(y_indices[0], j), 2.0);
+            }
+            this->stats[1 + y_indices.size() + i] = s;
+            this->stats[y_indices.size()-1] = ssq;
+        }else{
+            for(int j=0;j<net.size();j++){
+                s += net.continVariableValue(y_indices[0], j) * net.continVariableValue(x_indices[i], j);
+            }
+            this->stats[1 + y_indices.size() + i] = s;
         }
-        this->stats[i] = s;// / (double) net.size();
-        this->stats[y_indices.size() + i] = ssq;// / (double) net.size();// - pow(this->stats[i], 2.0);
       }
+    }
   }
   
   
@@ -4349,17 +4373,17 @@ public:
   
   void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
                           int variable, double newValue){
-    for(int i=0;i<y_indices.size();i++){
-      if(y_indices[i] == variable){
-        this->stats[i] += newValue * net.continVariableValue(x_indices[i], vert) -
-          net.continVariableValue(variable, vert) * net.continVariableValue(x_indices[i], vert);
-        this->stats[y_indices.size() + i] += pow(newValue, 2.0) -
-          pow(net.continVariableValue(variable, vert), 2.0);
+      if(y_indices[0] == variable){
+        for(int j=0;j<x_indices.size();j++){
+            this->stats[1 + y_indices.size() + j] += newValue * net.continVariableValue(x_indices[j], vert) -
+                net.continVariableValue(variable, vert) * net.continVariableValue(x_indices[j], vert);
+        }
+        this->stats[y_indices.size()-1] += pow(newValue, 2.0) - pow(net.continVariableValue(variable, vert), 2.0);
       }
-      
+    for(int i=0;i<x_indices.size();i++){
       if(x_indices[i] == variable){
-        this->stats[i] += newValue * net.continVariableValue(y_indices[i], vert) -
-          net.continVariableValue(y_indices[i], vert) * net.continVariableValue(variable, vert);
+        this->stats[1 + y_indices.size() + i] += newValue * net.continVariableValue(y_indices[0], vert) -
+          net.continVariableValue(y_indices[0], vert) * net.continVariableValue(variable, vert);
       }
     }
   }

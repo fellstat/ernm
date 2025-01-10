@@ -28,6 +28,7 @@ test_that("Stats", {
         set.vertex.attribute(net,"var_3",as.character(apply(rmultinom(N,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
         set.vertex.attribute(net,"var_4",rnorm(N))
         set.vertex.attribute(net,"var_5",rnorm(N))
+        set.vertex.attribute(net,"var_6",rnorm(N))
         summary(as.factor(get.vertex.attribute(net,"var_1")))
         
         net <- add_treated_neighs(net,"var_1")
@@ -460,7 +461,7 @@ test_that("Stats", {
     r_stat_2 <- sum(y*X)
     
     cpp_stat_1 <- as.numeric(ernm::calculateStatistics(net ~ gaussRegression("var_4","var_5") | var_4))
-    cpp_stat_2 <- cpp_stat_1[1]
+    cpp_stat_2 <- cpp_stat_1[3]
     cpp_stat_1 <- cpp_stat_1[2]
     regression_test_1 <- abs(r_stat_1 - cpp_stat_1) <= 10**-10
     regression_test_2 <- abs(r_stat_2 - cpp_stat_2) <= 10**-10
@@ -481,14 +482,28 @@ test_that("Stats", {
     model <- model$m$sampler$getModel()
     model$setNetwork(ernm::as.BinaryNet(net))
     model$calculate()
+    model$statistics()
     model$continVertexUpdate(k, "var_4",1)
     
-    regression_test_3 <- (abs(r_stat_3 - model$statistics()[1]) <= 10**-10)
+    regression_test_3 <- (abs(r_stat_3 - model$statistics()[3]) <= 10**-10)
     regression_test_4 <- (abs(r_stat_4 - model$statistics()[2]) <= 10**-10)
     
     model$calculate()
     model$continVertexUpdate(k, "var_5",1)
-    regression_test_5 <- (abs(r_stat_5 - model$statistics()[1]) <= 10**-10)
+    regression_test_5 <- (abs(r_stat_5 - model$statistics()[3]) <= 10**-10)
+    
+    # Check multiregression works:
+    model <- ernm(net ~ gaussRegression("var_4",c("var_5","var_6")) | var_4,
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
     
     testthat::expect_true(regression_test_1)
     testthat::expect_true(regression_test_2)
