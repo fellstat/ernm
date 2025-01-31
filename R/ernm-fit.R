@@ -160,7 +160,24 @@ summary.ernm <- function(object,...){
 	p.value <- 2*pnorm(abs(z),lower.tail=FALSE)
 	d <- data.frame(theta,se,z,p.value)
 	rownames(d) <- make.unique(names(theta))
-	d
+	
+	# Compute AIC and BIC with latest sample - no bridge sampling for now
+	sample_calc <- apply(object$sample,1,function(x){sum(theta*x)})
+	max_term <- max(sample_calc)
+	const_approx <- log(mean(exp(sample_calc - max_term))) + max_term
+    logLik <- sum(theta*ernm::calculateStatistics(object$formula)) - const_approx
+    net <- eval(object$formula[[2]],envir=environment(object$formula))
+    n_verts <- net %n% 'n'
+    n_dyads <- n_verts*(n_verts-1)*(1 - 0.5*(!is.directed(net)))
+    BIC <- -2*logLik + length(theta)*log(n_verts*(length(object$m$randomVariables())!=0) + n_dyads*object$m$randomGraph())
+    AIC <- -2*logLik + 2*length(theta)
+    BIC <- round(BIC,2)
+    AIC <- round(AIC,2)
+    
+	print(round(d,4))
+	cat(paste("\nBIC:",BIC,"AIC:",AIC, "(lower is better)\n"))
+	# Return the data frame invisibly
+	invisible(d)
 }
 
 #' parameter covariance matrix
