@@ -1,9 +1,11 @@
 #' @useDynLib ernm, .registration = TRUE
+#' @exportPattern ^[^\.]
 #' @import methods
 #' @import Rcpp
 #' @import BH
 #' @import trust
 #' @import moments
+NULL
 loadModule("ernm",TRUE)
 .onLoad <- function(libname, pkgname){
     # Skip initialization when running devtools::document()

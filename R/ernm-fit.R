@@ -162,6 +162,9 @@ summary.ernm <- function(object,...){
 	rownames(d) <- make.unique(names(theta))
 	
 	# Compute AIC and BIC with latest sample - no bridge sampling for now
+	# generate new bigger sample
+	samples <- object$m$generateSampleStatistics(10000,1000,object$sample[1]*10)
+	
 	sample_calc <- apply(object$sample,1,function(x){sum(theta*x)})
 	max_term <- max(sample_calc)
 	const_approx <- log(mean(exp(sample_calc - max_term))) + max_term
@@ -200,3 +203,165 @@ plot.ernm <- function(x,...){
 			ylab="Change in log-likelihood",xlab="iteration")
 }
 
+#' print
+#' @param x x
+#' @param ... unused
+#' @import ggplot2
+#' @import tidyr
+#' @import dplyr
+#' @export
+#' @description Goodness of fit plot for ERNM models,
+ernm_gof <- function(models,
+                observed_network = NULL,
+                stats_formula,
+                style = "histogram",
+                scales = "fixed",
+                print = TRUE,
+                n_sim = 10000,
+                burnin = 10000,
+                interval = 100){
+        # Helper function to simulate networks and calculate statistics
+        calculate_gof_stats <- function(model, name) {
+            # Simulate networks
+            sims <- model$m$sampler$generateSample(n_sim, burnin, interval)
+            
+            # Convert simulations to network objects and calculate statistics
+            stats <- lapply(sims, function(sim) {
+                if(sim$isDirected()){
+                    sim <- ernm::as.network.Rcpp_DirectedNet(sim)
+                } else {
+                    sim <- ernm::as.network.Rcpp_UndirectedNet(sim)
+                }
+                new_formula <- update(stats_formula, sim ~ .)
+                environment(new_formula) <- environment()
+                ernm::calculateStatistics(new_formula)
+            })
+            
+            # Combine statistics into a data frame
+            stats_df <- as.data.frame(do.call(rbind, stats))
+            stats_df$model <- name
+            return(stats_df)
+        }
+        
+        # Ensure models is a named list
+        if (!is.list(models) || is.null(names(models))) {
+            stop("The `models` argument must be a named list of models.")
+        }
+        
+        # Calculate statistics for each model
+        all_sim_stats <- do.call(rbind,lapply(names(models), function(name) {
+            calculate_gof_stats(models[[name]], name)
+        }))
+        
+        # If observed network is provided, calculate observed statistics
+        if (!is.null(observed_network)) {
+            new_formula <- update(stats_formula, observed_network ~ .)
+            environment(new_formula) <- environment()
+            observed_stats <- ernm::calculateStatistics(new_formula)
+            observed_stats <- as.data.frame(t(observed_stats))
+            observed_stats$model <- "observed"
+        } else {
+            observed_stats <- NULL
+        }
+        
+        # Combine observed and simulated stats if observed is provided
+        combined_stats <- if (!is.null(observed_stats)) {
+            rbind(all_sim_stats, observed_stats)
+        } else {
+            all_sim_stats
+        }
+        
+        # Pivot to long format for plotting
+        long_stats <- combined_stats %>%
+            tidyr::pivot_longer(
+                cols = -model, 
+                names_to = "statistic", 
+                values_to = "value"
+            )
+        
+        # Calculate means of simulated statistics for plotting
+        means <- long_stats %>%
+            filter(model != "observed") %>%
+            group_by(model, statistic) %>%
+            summarize(value = mean(value), .groups = "drop")
+        
+        # Get unique statistics from the data
+        unique_stats <- unique(long_stats$statistic)
+        
+        # Loop over each statistic and create a plot
+        if(style == 'histogram'){
+            plots <- list()
+            for (stat_name in unique_stats) {
+                stat_plot <- ggplot(long_stats %>% filter(model != "observed", statistic == stat_name), aes(x = value, fill = model)) +
+                    geom_histogram(alpha = 0.6, position = 'identity') +
+                    geom_vline(
+                        data = means %>% filter(model != "observed",statistic == stat_name),
+                        aes(xintercept = value, linetype = "Mean"),
+                        color = "black", size = 0.8
+                    ) +
+                    geom_vline(data = long_stats %>% filter(model == "observed", statistic == stat_name) %>% select(value),
+                               aes(xintercept = value, linetype = "observed"),
+                               color = "red", linewidth = 0.8) +
+                    facet_wrap(~model,nrow =length(models), scales = scales) +
+                    labs(
+                        title = paste("Goodness-of-Fit: Histogram of", stat_name),
+                        x = "Value",
+                        y = "Frequency",
+                        fill = "Model"
+                    )
+    
+                # Save the plot to the list
+                plots[[stat_name]] <- stat_plot
+                
+                # Print the plot if desired
+                if(print){
+                    print(stat_plot)
+                }
+            }
+        }
+        
+        if(style == 'boxplot'){
+            observed_data <- long_stats %>%
+                filter(model == "observed") %>%
+                select(-model)
+            observed_data <- do.call(rbind,lapply(names(models),function(m){
+                observed_data$model <- m
+                observed_data
+            }))
+            
+            stat_plot <-  ggplot(long_stats %>% filter(model != "observed"), aes(x = statistic, y = value, fill = model)) +
+                geom_boxplot(alpha = 0.6, outlier.shape = NA, show.legend = TRUE) +
+                facet_wrap(~model, nrow = length(models), scales = scales) +
+                geom_point(
+                    data = observed_data,
+                    aes(x = statistic, y = value, color = "Observed"),
+                    size = 3,
+                    show.legend = TRUE
+                ) +
+                # Define the point color legend
+                scale_color_manual(
+                    name = "Observation",
+                    values = c("Observed" = "red")
+                ) +
+                # Separate the guides
+                guides(
+                    fill = guide_legend(order = 1),
+                    color = guide_legend(order = 2)
+                ) +
+                coord_cartesian(ylim = c(0, quantile(long_stats$value,0.98))) +
+                # Labels and theme
+                labs(
+                    title = "Goodness of fit boxplot",
+                    x = "Statistic",
+                    y = "Value"
+                )
+            
+            # Print the plot if desired
+            if(print){
+                print(stat_plot)
+            }
+        }
+
+        # Return the simulated statistics as a data frame
+        return(list(stat = combined_stats,plots = plots))
+    }
