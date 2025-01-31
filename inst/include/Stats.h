@@ -1270,15 +1270,18 @@ protected:
     int nstats; /*!< the number of stats generated */
     typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
     int nlevels;
+    std::vector<std::string> levels;
     int variableIndex, regIndex, baseIndex;
     std::string variableName, regressorName, baseValue;
 public:
     LogisticNeighbors(){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
     }
     
     LogisticNeighbors(std::string out,std::string reg){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         variableName = out;
         regressorName = reg;
         baseValue = "";
@@ -1286,6 +1289,7 @@ public:
     
     LogisticNeighbors(std::string out,std::string reg,std::string base_val){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         variableName = out;
         regressorName = reg;
         baseValue = base_val;
@@ -1293,6 +1297,7 @@ public:
     
     LogisticNeighbors(List params){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         if(params.size() < 2){
             ::Rf_error("LogisticNeighbors requires at least two arguments passed");
         }
@@ -1322,7 +1327,13 @@ public:
     }
     
     std::vector<std::string> statNames(){
-        std::vector<std::string> statnames(1,"logisticNeighbors");
+        std::vector<std::string> statnames;
+        for(int i=0;i<levels.size();i++){
+            if(i != baseIndex){
+                std::string nm = "logisticNeighbors.level."+levels.at(i);
+                statnames.push_back(nm);
+            }
+        }
         return statnames;
     }
     
@@ -1340,7 +1351,7 @@ public:
         if(regIndex<0 || variableIndex<0)
             Rf_error("invalid variables");
         // Find which level is the base level
-        std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels();
+        levels = net.discreteVariableAttributes(regIndex).labels();
         for(int i=0;i<levels.size();i++){
             if(levels[i] == baseValue){
                 baseIndex = i;
@@ -1352,7 +1363,7 @@ public:
         if(baseIndex<0)
             Rf_error("invalid baseIndex");
         // Get the neighbours values for each node
-        int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+        int nlevels = levels.size();
         nstats = nlevels - 1;
         this->stats = std::vector<double>(nstats,0.0);
         if(this->thetas.size() != nstats)
