@@ -12,7 +12,7 @@ MissingErnmModel <- function(observedSampler,
 		
 		obs <- observedSampler$generateSampleStatistics(burnin,interval,size)
 		miss <-unobservedSampler$generateSampleStatistics(burnin,interval,size)
-		list(uncondiational=obs,conditional=miss)
+		list(unconditional=obs,conditional=miss)
 	}
 	
 	res$name <- function(){

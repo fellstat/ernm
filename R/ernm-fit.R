@@ -163,9 +163,15 @@ summary.ernm <- function(object,...){
 	
 	# Compute AIC and BIC with latest sample - no bridge sampling for now
 	# generate new bigger sample
-	samples <- object$m$generateSampleStatistics(10000,1000,object$sample[1]*10)
+	if(!is.null(object$m$missSamp)){
+	    n_sim <- dim(object$sample$unconditional)[1]
+	    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)$unconditional
+	}else{
+	    n_sim <- dim(object$sample)[1]
+	    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)
+	}
 	
-	sample_calc <- apply(object$sample,1,function(x){sum(theta*x)})
+	sample_calc <- apply(samples,1,function(x){sum(theta*x)})
 	max_term <- max(sample_calc)
 	const_approx <- log(mean(exp(sample_calc - max_term))) + max_term
     logLik <- sum(theta*ernm::calculateStatistics(object$formula)) - const_approx
@@ -204,13 +210,20 @@ plot.ernm <- function(x,...){
 }
 
 #' print
-#' @param x x
-#' @param ... unused
+#' @param models named list of ernm models to be to be compared (can be length 1
+#' @param observed_network the observed network
+#' @param stats_formula the formula for the statistics
+#' @param style the style of the plot, either 'histogram' or 'boxplot'
+#' @param scales the scales of the plot, either 'fixed' or 'free'
+#' @param print whether to print the plot
+#' @param n_sim the number of simulations to run
+#' @param burnin the burnin for the MCMC simulation
+#' @param interval the samplling interval for MCMC simualtion
 #' @import ggplot2
 #' @import tidyr
 #' @import dplyr
 #' @export
-#' @description Goodness of fit plot for ERNM models,
+#' @description Goodness of fit plot for ERNM models, particularly suited for comparing models
 ernm_gof <- function(models,
                 observed_network = NULL,
                 stats_formula,
@@ -223,7 +236,7 @@ ernm_gof <- function(models,
         # Helper function to simulate networks and calculate statistics
         calculate_gof_stats <- function(model, name) {
             # Simulate networks
-            sims <- model$m$sampler$generateSample(n_sim, burnin, interval)
+            sims <- model$m$sampler$generateSample(burnin,interval,n_sim)
             
             # Convert simulations to network objects and calculate statistics
             stats <- lapply(sims, function(sim) {
@@ -293,7 +306,7 @@ ernm_gof <- function(models,
             plots <- list()
             for (stat_name in unique_stats) {
                 stat_plot <- ggplot(long_stats %>% filter(model != "observed", statistic == stat_name), aes(x = value, fill = model)) +
-                    geom_histogram(alpha = 0.6, position = 'identity') +
+                    geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity') +
                     geom_vline(
                         data = means %>% filter(model != "observed",statistic == stat_name),
                         aes(xintercept = value, linetype = "Mean"),
@@ -360,6 +373,7 @@ ernm_gof <- function(models,
             if(print){
                 print(stat_plot)
             }
+            plots <- list(stat_plot)
         }
 
         # Return the simulated statistics as a data frame
