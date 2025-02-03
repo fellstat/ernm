@@ -143,7 +143,6 @@ createCppModel <- function(formula,
 	if(length(offsets)>0)
 		for(i in 1:length(offsets))
 			model$addOffset(names(offsets)[i],offsets[[i]])
-	
 	model$setRandomVariables(randomVars)
 	model$setRandomGraph(!noDyad)
 	if(!is.null(theta))
@@ -301,7 +300,7 @@ ernm <- function(formula,
 	if(identical(modelType,FullErnmModel)){
 		model <- do.call(modelType,c(fullCppSampler,likelihoodArgs))
 	}else{
-	    if(modelClass == "TaperedModel"){
+	    if(modelArgs$modelClass == "TaperedModel"){
 	        stop("tapering is not supported for missing data yet")
 	    }
 		missCppSampler <- createCppSampler(formula,

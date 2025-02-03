@@ -17,10 +17,10 @@ Depends:
     BH
 Imports:
     trust,
-    moments
+    moments,
+    network
 Suggests:
     testthat,
-    network,
     inline
 RcppModules: ernm
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
