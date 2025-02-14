@@ -9,7 +9,6 @@
 #define UNDIRECTEDVERTEXH_
 #include "Rcpp.h"
 #include "Vertex.h"
-#include <iostream>
 #include <assert.h>
 namespace ernm {
 
@@ -41,13 +40,13 @@ protected:
 					it++;
 					continue;
 				}
-				//std::cout << i<<" ";
+				//Rcpp::Rcout << i<<" ";
 				lastInsertedLoc = obs.insert(lastInsertedLoc,i);
 			}
 			useMissingSet = false;
 			miss = Set();
 			//oobserved.insert(this->idNum);
-			//std::cout<<"to obs ";
+			//Rcpp::Rcout<<"to obs ";
 		}else if(!um && obs.size() > 0.6*nverts){
 			miss = Set();
 			Set::iterator it = obs.begin();
@@ -58,12 +57,12 @@ protected:
 					it++;
 					continue;
 				}
-				//std::cout << i<<" ";
+				//Rcpp::Rcout << i<<" ";
 				lastInsertedLoc = miss.insert(lastInsertedLoc,i);
 			}
 			useMissingSet = true;
 			obs = Set();
-			//std::cout<<"to miss ";
+			//Rcpp::Rcout<<"to miss ";
 			miss.erase(this->idNum);
 		}
 	}

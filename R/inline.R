@@ -16,6 +16,7 @@
 #' net <- emptyNetwork(10)
 #' net[1:10,1:10]
 #' }
+#' @noRd
 inlineErnmPlugin <- Rcpp:::Rcpp.plugin.maker(
 		include.before = "#include <ernm.h>", 
 		libs           = "", 

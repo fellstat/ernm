@@ -3,20 +3,20 @@
 \docType{methods}
 \name{[}
 \alias{[}
-\alias{[,Rcpp_DirectedNet-method}
-\alias{[,Rcpp_UndirectedNet-method}
+\alias{[,DirectedNet-method}
+\alias{[,UndirectedNet-method}
 \alias{[<-}
-\alias{[<-,Rcpp_DirectedNet-method}
-\alias{[<-,Rcpp_UndirectedNet-method}
+\alias{[<-,DirectedNet-method}
+\alias{[<-,UndirectedNet-method}
 \title{indexing}
 \usage{
-\S4method{[}{Rcpp_DirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{DirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
-\S4method{[}{Rcpp_UndirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{UndirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
-\S4method{[}{Rcpp_DirectedNet}(x, i, j, ...) <- value
+\S4method{[}{DirectedNet}(x, i, j, ...) <- value
 
-\S4method{[}{Rcpp_UndirectedNet}(x, i, j, ...) <- value
+\S4method{[}{UndirectedNet}(x, i, j, ...) <- value
 }
 \arguments{
 \item{x}{object}

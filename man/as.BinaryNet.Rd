@@ -11,6 +11,9 @@ as.BinaryNet(x, ...)
 
 \item{...}{unused}
 }
+\value{
+a BinaryNet object
+}
 \description{
 convert and network to either an UndirectedNet or DirectedNet object
 }

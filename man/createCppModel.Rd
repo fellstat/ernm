@@ -23,6 +23,9 @@ createCppModel(
 
 \item{modelArgs}{additiional arguments for the model, e.g. tapering parameters}
 }
+\value{
+a Model object
+}
 \description{
 creates a model
 }

@@ -24,13 +24,22 @@ createCppSampler(
 
 \item{dyadToggle}{the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.}
 
+\item{dyadArgs}{list of args for dyad}
+
 \item{vertexToggle}{the method of vertex attribuate sampling to use.}
+
+\item{vertexArgs}{list of args for vertex}
 
 \item{nodeSamplingPercentage}{how often the nodes should be toggled}
 
 \item{ignoreMnar}{ignore missing not at random offsets}
 
 \item{theta}{parameter values}
+
+\item{...}{additional parameters to be passed to createCppModel}
+}
+\value{
+a MetropolisHastings object
 }
 \description{
 create a sampler

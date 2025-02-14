@@ -13,6 +13,9 @@ MissingErnmModel(observedSampler, unobservedSampler, ...)
 
 \item{...}{additional parameters for the log likelihood}
 }
+\value{
+a MarModel object
+}
 \description{
 creates an ERNM likelihood model
 }

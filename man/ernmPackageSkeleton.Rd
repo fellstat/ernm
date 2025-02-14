@@ -2,13 +2,16 @@
 % Please edit documentation in R/util.R
 \name{ernmPackageSkeleton}
 \alias{ernmPackageSkeleton}
-\title{create a skeleton for a package extending ernm}
+\title{Create an ERNM Package Skeleton}
 \usage{
 ernmPackageSkeleton(path = ".")
 }
 \arguments{
-\item{path}{where to create the package}
+\item{path}{A character string specifying the directory where the package skeleton will be created.}
+}
+\value{
+A logical value indicating whether the copy was successful.
 }
 \description{
-create a skeleton for a package extending ernm
+Creates a skeleton for a package extending the ernm package by copying an example package.
 }

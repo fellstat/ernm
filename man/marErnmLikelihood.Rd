@@ -19,6 +19,9 @@ marErnmLikelihood(theta, sample, theta0, stats, minEss = 5, damping = 0.1)
 
 \item{damping}{a damping parameter}
 }
+\value{
+a list with value, gradient, and hessian
+}
 \description{
 likelihood for an ernm with missing data
 }

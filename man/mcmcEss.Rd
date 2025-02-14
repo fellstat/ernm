@@ -2,13 +2,16 @@
 % Please edit documentation in R/util.R
 \name{mcmcEss}
 \alias{mcmcEss}
-\title{MCMC effective sample size}
+\title{MCMC Effective Sample Size}
 \usage{
 mcmcEss(x)
 }
 \arguments{
-\item{x}{a statistic vector}
+\item{x}{A numeric vector.}
+}
+\value{
+A numeric value representing the effective sample size.
 }
 \description{
-MCMC effective sample size
+Computes the effective sample size from a statistic vector.
 }

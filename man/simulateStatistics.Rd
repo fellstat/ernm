@@ -35,6 +35,9 @@ simulateStatistics(
 
 \item{...}{additional arguments to createCppSampler}
 }
+\value{
+a list of statistics
+}
 \description{
 simulate statistics
 }

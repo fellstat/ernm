@@ -29,6 +29,11 @@ fullErnmLikelihood(
 \item{damping}{a damping parameter}
 
 \item{method}{cumulant generating function approximation}
+
+\item{order}{the ordering}
+}
+\value{
+a list with value, gradient, and hessian
 }
 \description{
 likelihood for a fully observed ernm

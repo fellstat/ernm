@@ -9,6 +9,9 @@ calculateStatistics(formula)
 \arguments{
 \item{formula}{An ernm formula}
 }
+\value{
+a list of statistics
+}
 \description{
 calculate model statistics from a formula
 }

@@ -11,7 +11,6 @@
 #include <vector>
 #include <set>
 #include "Vertex.h"
-#include <iostream>
 #include <assert.h>
 
   //note randomNonEdge requires std::set
@@ -51,13 +50,13 @@ protected:
 					it++;
 					continue;
 				}
-				//std::cout << i<<" ";
+				//Rcpp::Rcout << i<<" ";
 				lastInsertedLoc = oobserved.insert(lastInsertedLoc,i);
 			}
 			useMissingSet = false;
 			omissing = Set();
 			//oobserved.insert(this->idNum);
-			//std::cout<<"to obs ";
+			//Rcpp::Rcout<<"to obs ";
 		}else if(!um && oobserved.size() > 0.6*nverts){
 			omissing = Set();
 			Set::iterator it = oobserved.begin();
@@ -68,12 +67,12 @@ protected:
 					it++;
 					continue;
 				}
-				//std::cout << i<<" ";
+				//Rcpp::Rcout << i<<" ";
 				lastInsertedLoc = omissing.insert(lastInsertedLoc,i);
 			}
 			useMissingSet = true;
 			oobserved = Set();
-			//std::cout<<"to miss ";
+			//Rcpp::Rcout<<"to miss ";
 			omissing.erase(this->idNum);
 		}
 	}
@@ -177,12 +176,12 @@ public:
 			Set::const_iterator it = oobserved.begin();
 			for(int i=0;i<nverts;i++){
 				if(it!=oobserved.end() && i==*it){
-					//std::cout<<i<<" ";
+					//Rcpp::Rcout<<i<<" ";
 					it++;
 					continue;
 				}
 				tmp.insert(tmp.end(),i);
-				//std::cout<<nverts<<" here";
+				//Rcpp::Rcout<<nverts<<" here";
 				//return Set();
 			}
 			tmp.erase(this->idNum);

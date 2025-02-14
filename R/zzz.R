@@ -6,8 +6,13 @@
 #' @import trust
 #' @import moments
 NULL
-loadModule("ernm",TRUE)
+
+setOldClass("DirectedNet")
+setOldClass("UndirectedNet")
+
 .onLoad <- function(libname, pkgname){
+    # Load the Rcpp module "ernm"
+    Rcpp::loadModule("ernm", TRUE)
     # Skip initialization when running devtools::document()
     if (nzchar(Sys.getenv("ROXYGEN_PKG"))) {
         return()
@@ -15,4 +20,3 @@ loadModule("ernm",TRUE)
     .Call("_ernm_initStats")
     .Call("_ernm_initToggles")
 }
-.onUnload <- function(libpath) {}

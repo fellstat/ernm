@@ -38,6 +38,9 @@ ernm(
 
 \item{...}{additional parameters for ernmFit}
 }
+\value{
+a fitted model
+}
 \description{
 fits an ERNM model
 }

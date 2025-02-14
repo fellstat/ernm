@@ -44,7 +44,7 @@ protected:
 	boost::shared_ptr< std::vector<int> > randomContinVariables;
 public:
 	Model(){
-		//std::cout << "m1";
+		//Rcpp::Rcout << "m1";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>());
 		net=n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -54,7 +54,7 @@ public:
 	}
 
 	Model(BinaryNet<Engine>& network){
-		//std::cout << "m2";
+		//Rcpp::Rcout << "m2";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>(network));
 		net = n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -64,7 +64,7 @@ public:
 	}
 
 	Model(const Model& mod){
-		//std::cout << "m3";
+		//Rcpp::Rcout << "m3";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -77,7 +77,7 @@ public:
 	 * if deep, then the model statistics are de-aliased
 	 */
 	Model(const Model& mod, bool deep){
-		//std::cout << "m4";
+		//Rcpp::Rcout << "m4";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -105,7 +105,7 @@ public:
 	 *
 	 */
 	Model(SEXP sexp){
-		//std::cout << "m5";
+		//Rcpp::Rcout << "m5";
 		boost::shared_ptr<Model> xp = unwrapRobject< Model<Engine> >(sexp);
 		stats = xp->stats;
 		offsets = xp->offsets;
@@ -123,7 +123,7 @@ public:
 	 * coerce to R object. for RCPP
 	 */
 	operator SEXP() const{
-		//std::cout << "mWrap";
+		//Rcpp::Rcout << "mWrap";
 		return wrapInReferenceClass(*this,Engine::engineName() + "Model");
 	}
 
@@ -623,7 +623,7 @@ public:
 	}
 
 	TaperedModel(BinaryNet<Engine>& network) : Model<Engine>(network){
-		//std::cout << "rm2";
+		//Rcpp::Rcout << "rm2";
 		tau = ParamPtr(new std::vector<double>());
 		centers = ParamPtr(new std::vector<double>());
 
@@ -695,7 +695,7 @@ public:
 	 *
 	 */
 	TaperedModel(SEXP sexp) : Model<Engine>(sexp){
-		//std::cout << "rm5";
+		//Rcpp::Rcout << "rm5";
 		boost::shared_ptr<TaperedModel> xp = unwrapRobject< TaperedModel<Engine> >(sexp);
 		tau = xp->tau;
 		centers = xp->centers;
@@ -712,7 +712,7 @@ public:
 	 * coerce to R object. for RCPP
 	 */
 	operator SEXP() const{
-		//std::cout << "rmWrap";
+		//Rcpp::Rcout << "rmWrap";
 		return wrapInReferenceClass(*this,Engine::engineName() + "TaperedModel");
 	}
 
