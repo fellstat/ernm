@@ -3914,7 +3914,6 @@ public:
                 this->stats[j] += espi==esps[j];
             }
         }
-        
     }
     
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
@@ -3991,6 +3990,8 @@ public:
                 ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
             }
             varIndex = variableIndex;
+        }else{
+            return;
         }
         
         int oldValue = net.discreteVariableValue(varIndex,vert)-1;

@@ -38,6 +38,9 @@ createCppSampler(
 
 \item{...}{additional parameters to be passed to createCppModel}
 }
+\value{
+a MetropolisHastings object
+}
 \description{
 create a sampler
 }

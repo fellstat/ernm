@@ -32,6 +32,9 @@ taperedErnmLikelihood(
 
 \item{damping}{a damping parameter}
 }
+\value{
+a list with value, gradient, and hessian
+}
 \description{
 (E(g(X)) - g(x_o)^2 for TaperedModel
 }

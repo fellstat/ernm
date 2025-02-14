@@ -44,6 +44,9 @@ ernmFit(
 
 \item{method}{the optimization method to use}
 }
+\value{
+ernm object
+}
 \description{
 fit an ernm model
 }

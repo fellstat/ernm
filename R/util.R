@@ -2,6 +2,7 @@
 #' MCMC standard error by batch
 #' @param x a statistic vector
 #' @param expon batch size control
+#' @noRd
 mcmcse <- function(x, expon=.5){
 	
 	n <- length(x)
@@ -18,6 +19,7 @@ mcmcse <- function(x, expon=.5){
 
 #' MCMC effective sample size
 #' @param x a statistic vector
+#' @noRd
 mcmcEss <- function(x){
 	rho <- acf(x,plot=FALSE)$acf[2]
 	length(x) * (1-rho) / (1+rho)
@@ -27,6 +29,7 @@ mcmcEss <- function(x){
 
 #' create a skeleton for a package extending ernm
 #' @param path where to create the package
+#' @noRd
 ernmPackageSkeleton <- function( path = "."){
 	pkgPath <- find.package("ernm")
 	p <- file.path(pkgPath,"examplePackage","ErnmExtension")
@@ -34,6 +37,7 @@ ernmPackageSkeleton <- function( path = "."){
 }
 
 #' Used to indicate a required parameter
+#' @noRd
 .required <- function(){
 	r <- NA
 	class(r) <- ".requiredParam"
@@ -45,6 +49,7 @@ ernmPackageSkeleton <- function( path = "."){
 #' @param lis a list of parameter values
 #' @param params a named list of default parameters
 #' @importFrom stats na.omit
+#' @noRd
 .matchParams <- function(lis,params){
   n <- length(lis)
   nm <- names(lis)

@@ -17,6 +17,8 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @export
+#' @return a Model object
 createCppModel <- function(formula,
                            ignoreMnar=TRUE,
                            cloneNet=TRUE,
@@ -175,6 +177,8 @@ createCppModel <- function(formula,
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param theta parameter values
 #' @param ... additional parameters to be passed to createCppModel
+#' @export
+#' @return a MetropolisHastings object
 createCppSampler <- function(formula,
                              modelArgs = list(modelClass='Model'),
                              dyadToggle = NULL,
@@ -216,6 +220,8 @@ createCppSampler <- function(formula,
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
 #' @param ... additional arguments to createCppSampler
+#' @export
+#' @return a list of statistics
 simulateStatistics <- function(formula,
                                theta, 
                                nodeSamplingPercentage=0.2,
@@ -231,6 +237,8 @@ simulateStatistics <- function(formula,
 
 #'calculate model statistics from a formula
 #' @param formula An ernm formula
+#' @export
+#' @return a list of statistics
 calculateStatistics <- function(formula){
 	createCppModel(formula,cloneNet=FALSE,ignoreMnar=FALSE)$statistics()
 }
@@ -247,6 +255,8 @@ calculateStatistics <- function(formula){
 #' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
 #' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
 #' @param ... additional parameters for ernmFit
+#' @export
+#' @return a fitted model
 ernm <- function(formula,
                  tapered = TRUE,
                  tapering_r = 3,

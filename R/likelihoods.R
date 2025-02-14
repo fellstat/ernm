@@ -9,6 +9,8 @@
 #' @param damping a damping parameter
 #' @param method cumulant generating function approximation
 #' @param order the ordering
+#' @export
+#' @return a list with value, gradient, and hessian
 fullErnmLikelihood <- function(theta,
                                sample,
                                theta0,
@@ -94,6 +96,8 @@ fullErnmLikelihood <- function(theta,
 #' @param stats observed statistics
 #' @param minEss minimum effective sample size
 #' @param damping a damping parameter
+#' @export
+#' @return a list with value, gradient, and hessian
 marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 	
 	llik <- function(){
@@ -216,6 +220,8 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 #' @param stats observed statistics
 #' @param minEss minimum effective sample size
 #' @param damping a damping parameter
+#' @export
+#' @return a list with value, gradient, and hessian
 taperedErnmLikelihood <- function(theta,
                                   centers,
                                   tau,

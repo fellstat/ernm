@@ -3,6 +3,7 @@
 #' convert and UndirectedNet to a network object
 #' @param x the object
 #' @param ... unused
+#' @export
 as.network.UndirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
@@ -32,6 +33,7 @@ as.network.UndirectedNet <- function(x,...){
 #' convert and DirectedNet to a network object
 #' @param x the object
 #' @param ... unused
+#' @export
 as.network.DirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
@@ -61,7 +63,8 @@ as.network.DirectedNet <- function(x,...){
 #' plot an DirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_DirectedNet
+#' @method plot DirectedNet
+#' @export
 plot.DirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
@@ -70,7 +73,8 @@ plot.DirectedNet <- function(x,...){
 #' plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_UndirectedNet
+#' @method plot UndirectedNet
+#' @export
 plot.UndirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
@@ -79,6 +83,8 @@ plot.UndirectedNet <- function(x,...){
 #' convert and network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
+#' @export
+#' @return a BinaryNet object
 as.BinaryNet <- function(x,...){
 	if(inherits(x,"UndirectedNet"))
 		return(x)

@@ -12,6 +12,8 @@
 #' @param meanStats if non-missing, these are the target statistics
 #' @param verbose level of verbosity 0, 1, or 2
 #' @param method the optimization method to use
+#' @export
+#' @return ernm object
 ernmFit <- function(sampler,
                     theta0,
                     mcmcBurnIn=10000,
@@ -222,6 +224,7 @@ plot.ernm <- function(x,...){
 #' @import ggplot2
 #' @import tidyr
 #' @import dplyr
+#' @return A list containing goodness-of-fit plots and simulated statistics
 #' @export
 #' @description Goodness of fit plot for ERNM models, particularly suited for comparing models
 ernm_gof <- function(models,
@@ -241,9 +244,9 @@ ernm_gof <- function(models,
             # Convert simulations to network objects and calculate statistics
             stats <- lapply(sims, function(sim) {
                 if(sim$isDirected()){
-                    sim <- ernm::as.network.Rcpp_DirectedNet(sim)
+                    sim <- ernm::as.network.DirectedNet(sim)
                 } else {
-                    sim <- ernm::as.network.Rcpp_UndirectedNet(sim)
+                    sim <- ernm::as.network.UndirectedNet(sim)
                 }
                 new_formula <- update(stats_formula, sim ~ .)
                 environment(new_formula) <- environment()

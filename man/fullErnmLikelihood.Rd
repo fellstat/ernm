@@ -32,6 +32,9 @@ fullErnmLikelihood(
 
 \item{order}{the ordering}
 }
+\value{
+a list with value, gradient, and hessian
+}
 \description{
 likelihood for a fully observed ernm
 }

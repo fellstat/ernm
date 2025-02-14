@@ -13,6 +13,9 @@ FullErnmModel(sampler, logLik, ...)
 
 \item{...}{additional parameters for the log likelihood}
 }
+\value{
+a FullyObservedModel object
+}
 \description{
 creates an ERNM likelihood model
 }
