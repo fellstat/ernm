@@ -1,16 +1,18 @@
 Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
-Version: 1.0.2
+Version: 1.0.0
 Date: 2025-03-01
 Author: Ian Fellows
 Maintainer: Duncan Clark <dac@williams.edu>
-Description: Estimation of fully and partially
-    observed Exponential-Family Random Network Models (ERNM). ERNMs are a
-    generalization of ERGM (see the ergm package) and Gibbs Fields,
-    encompassing both as special cases.
+Description: Estimation of fully and partially observed Exponential-Family
+    Random Network Models (ERNM). ERGM and Gibbs Fields are special cases
+    of ERNMs and can also be estimated with the package. Please cite
+    Fellows and Handcock (2012), "Exponential-family Random Network
+    Models" available at <arXiv:1208.0121>.
 License: LGPL-2.1
 Depends:
+    BH,
     methods,
     Rcpp
 Imports:
@@ -22,8 +24,7 @@ Imports:
     rlang,
     stats,
     tidyr,
-    trust,
-    BH
+    trust
 Suggests:
     inline,
     spelling,
@@ -31,6 +32,7 @@ Suggests:
 LinkingTo: 
     BH,
     Rcpp
+Copyright: @ 2014-2025 Ian Fellows
 Encoding: UTF-8
 Language: en-US
 LazyLoad: yes
