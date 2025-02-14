@@ -4,3 +4,5 @@
 ^dev$
 mkdist
 .github
+^revdep$
+^cran-comments\.md$
