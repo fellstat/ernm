@@ -4,7 +4,9 @@ dir.r: R
 dir.v: vignettes
 dir.t: tests
 extra.suggests: ~
-pkg_ignore: ~
+pkg_ignore:
+  - tRcpp
+  - ternm
 document: yes
 normalize: yes
 inside_rmd: no

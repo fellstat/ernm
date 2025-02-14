@@ -44,8 +44,7 @@ RCPP_MODULE(ernm){
 			.method("inNeighbors",&DirectedNet::inneighborsR)
 			.method("setAllDyadsMissing",&DirectedNet::setAllDyadsMissingR1)
 			.method("setAllDyadsMissing",&DirectedNet::setAllDyadsMissingR2)
-			.method("setAllDyadsMissing",&DirectedNet::setAllDyadsMissingR3)
-;
+			.method("setAllDyadsMissing",&DirectedNet::setAllDyadsMissingR3);
 
 	class_<UndirectedNet >("UndirectedNet")
 			.constructor<Rcpp::IntegerMatrix,int>()
@@ -72,9 +71,8 @@ RCPP_MODULE(ernm){
 			.method("neighbors",&UndirectedNet::neighborsR)
 			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR1)
 			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR2)
-			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR3)
-;
-
+			.method("setAllDyadsMissing",&UndirectedNet::setAllDyadsMissingR3);
+	
 	class_<MetropolisHastings<Directed> >("DirectedMetropolisHastings")
 			.constructor()
 			.constructor<Model<Directed> >()
@@ -85,8 +83,8 @@ RCPP_MODULE(ernm){
 			.method("setVertexToggleType",&MetropolisHastings<Directed>::setVertexToggleType)
 			.method("setDyadProbability",&MetropolisHastings<Directed>::setDyadProbability)
 			.method("generateSample", &MetropolisHastings<Directed>::generateSample)
-			.method("generateSampleStatistics", &MetropolisHastings<Directed>::generateSampleStatistics)
-			;
+			.method("generateSampleStatistics", &MetropolisHastings<Directed>::generateSampleStatistics);
+	
 	class_<MetropolisHastings<Undirected> >("UndirectedMetropolisHastings")
 		    .constructor()
 			.constructor<Model<Undirected> >()
@@ -97,8 +95,7 @@ RCPP_MODULE(ernm){
 			.method("setVertexToggleType",&MetropolisHastings<Undirected>::setVertexToggleType)
 			.method("setDyadProbability",&MetropolisHastings<Undirected>::setDyadProbability)
 			.method("generateSample", &MetropolisHastings<Undirected>::generateSample)
-			.method("generateSampleStatistics", &MetropolisHastings<Undirected>::generateSampleStatistics)
-			;
+			.method("generateSampleStatistics", &MetropolisHastings<Undirected>::generateSampleStatistics);
 
 	class_<CdSampler<Undirected> >("UndirectedCdSampler")
 			.constructor<Model<Undirected> >()

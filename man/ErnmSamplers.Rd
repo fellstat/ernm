@@ -11,6 +11,14 @@
 \alias{Rcpp_DirectedGibbsCdSampler-class}
 \alias{Rcpp_UndirectedGibbsCdSampler2-class}
 \alias{Rcpp_DirectedGibbsCdSampler2-class}
+\alias{DirectedMetropolisHastings}
+\alias{UndirectedMetropolisHastings}
+\alias{UndirectedCdSampler}
+\alias{DirectedCdSampler}
+\alias{UndirectedGibbsCdSampler}
+\alias{DirectedGibbsCdSampler}
+\alias{UndirectedGibbsCdSampler2}
+\alias{DirectedGibbsCdSampler2}
 \title{Metropolis Samplers}
 \description{
 Metropolis Samplers

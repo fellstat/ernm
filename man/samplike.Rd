@@ -3,11 +3,7 @@
 \docType{data}
 \name{samplike}
 \alias{samplike}
-\alias{sampson}
 \title{Sampson's Monks Data}
-\format{
-An object of class \code{network} of length 5.
-}
 \usage{
 data(samplike)
 }
@@ -29,4 +25,3 @@ positions.} American Journal of Sociology, 81(4), 730-780.
 \seealso{
 florentine, network, plot.network, ergm
 }
-\keyword{datasets}

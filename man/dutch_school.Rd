@@ -4,9 +4,6 @@
 \name{dutch_school}
 \alias{dutch_school}
 \title{Dutch School Data}
-\format{
-An object of class \code{list} of length 4.
-}
 \usage{
 data(dutch_school)
 }
@@ -23,4 +20,3 @@ Snijders, T.A.B., Steglich, C.E.G., and van de Bunt, G.G. (2010),
 Introduction to actor-based models for network dynamics, Social Networks 32, 44-60,
 http://dx.doi.org/10.1016/j.socnet.2009.02.004.
 }
-\keyword{datasets}

@@ -258,7 +258,9 @@ void changeStatTest(std::string statName){
     vector<double> realStats = model.statistics();
 
     for(int i=0;i<realStats.size();i++){
-    	//cout << i << " " << mcmcStats.at(i) << " " << realStats.at(i) << " ";
+        cout << statName;
+        cout <<"\n";
+    	cout << i << " " << mcmcStats.at(i) << " " << realStats.at(i) << " ";
     	EXPECT_NEAR((mcmcStats.at(i) + .0001)/(realStats.at(i) + .0001),1.0);
     }
     //Language call4("print",wrap(mh.generateSampleStatistics(100,100,100)));

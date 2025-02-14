@@ -287,16 +287,16 @@ ernm_gof <- function(models,
         # Pivot to long format for plotting
         long_stats <- combined_stats %>%
             tidyr::pivot_longer(
-                cols = -model, 
+                cols = -.data$model, 
                 names_to = "statistic", 
                 values_to = "value"
             )
         
         # Calculate means of simulated statistics for plotting
         means <- long_stats %>%
-            filter(model != "observed") %>%
-            group_by(model, statistic) %>%
-            summarize(value = mean(value), .groups = "drop")
+            filter(.data$model != "observed") %>%
+            group_by(.data$model, .data$statistic) %>%
+            summarize(value = mean(.data$value), .groups = "drop")
         
         # Get unique statistics from the data
         unique_stats <- unique(long_stats$statistic)
@@ -305,17 +305,17 @@ ernm_gof <- function(models,
         if(style == 'histogram'){
             plots <- list()
             for (stat_name in unique_stats) {
-                stat_plot <- ggplot(long_stats %>% filter(model != "observed", statistic == stat_name), aes(x = value, fill = model)) +
+                stat_plot <- ggplot(long_stats %>% filter(.data$model != "observed", .data$statistic == stat_name), aes(x = .data$value, fill = .data$model)) +
                     geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity') +
                     geom_vline(
-                        data = means %>% filter(model != "observed",statistic == stat_name),
-                        aes(xintercept = value, linetype = "Mean"),
+                        data = means %>% filter(.data$model != "observed",.data$statistic == stat_name),
+                        aes(xintercept = .data$value, linetype = "Mean"),
                         color = "black", size = 0.8
                     ) +
-                    geom_vline(data = long_stats %>% filter(model == "observed", statistic == stat_name) %>% select(value),
-                               aes(xintercept = value, linetype = "observed"),
+                    geom_vline(data = long_stats %>% filter(.data$model == "observed", .data$statistic == stat_name) %>% select(.data$value),
+                               aes(xintercept = .data$value, linetype = "observed"),
                                color = "red", linewidth = 0.8) +
-                    facet_wrap(~model,nrow =length(models), scales = scales) +
+                    facet_wrap(~.data$model,nrow =length(models), scales = scales) +
                     labs(
                         title = paste("Goodness-of-Fit: Histogram of", stat_name),
                         x = "Value",
@@ -335,19 +335,19 @@ ernm_gof <- function(models,
         
         if(style == 'boxplot'){
             observed_data <- long_stats %>%
-                filter(model == "observed") %>%
-                select(-model)
+                filter(.data$model == "observed") %>%
+                select(-.data$model)
             observed_data <- do.call(rbind,lapply(names(models),function(m){
                 observed_data$model <- m
                 observed_data
             }))
             
-            stat_plot <-  ggplot(long_stats %>% filter(model != "observed"), aes(x = statistic, y = value, fill = model)) +
+            stat_plot <-  ggplot(long_stats %>% filter(.data$model != "observed"), aes(x = .data$statistic, y = .data$value, fill = .data$model)) +
                 geom_boxplot(alpha = 0.6, outlier.shape = NA, show.legend = TRUE) +
-                facet_wrap(~model, nrow = length(models), scales = scales) +
+                facet_wrap(~.data$model, nrow = length(models), scales = scales) +
                 geom_point(
                     data = observed_data,
-                    aes(x = statistic, y = value, color = "Observed"),
+                    aes(x = .data$statistic, y = .data$value, color = "Observed"),
                     size = 3,
                     show.legend = TRUE
                 ) +

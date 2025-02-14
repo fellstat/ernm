@@ -44,6 +44,7 @@ ernmPackageSkeleton <- function( path = "."){
 #' using names and positional matching
 #' @param lis a list of parameter values
 #' @param params a named list of default parameters
+#' @importFrom stats na.omit
 .matchParams <- function(lis,params){
   n <- length(lis)
   nm <- names(lis)

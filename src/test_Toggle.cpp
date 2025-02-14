@@ -60,7 +60,7 @@ void toggleTest(){
     mh.initialize();
     mh.run(500);
     for(int i=0;i<30;i++){
-    	//std::cout << net.continVariableValue(0,i) << " " << vals2[i] << "\n";
+    	//Rcpp::Rcout << net.continVariableValue(0,i) << " " << vals2[i] << "\n";
     	EXPECT_TRUE(net.continVariableValue(0,i) <= 90.0);
     	EXPECT_TRUE(net.continVariableValue(0,i) >= -90.0);
     }
@@ -85,10 +85,10 @@ void toggleTest(){
 	model1.setRandomVariables(togVars,false);
 	model1.calculate();
 	model1.setThetas(th);
-	//std::cout << net1.size();
+	//Rcpp::Rcout << net1.size();
 	//for(int i=0;i<model1.statistics().size();i++)
-	//	std::cout << " " << model1.statistics()[i];
-	//std::cout << "\n";
+	//	Rcpp::Rcout << " " << model1.statistics()[i];
+	//Rcpp::Rcout << "\n";
 
     DyadToggle<Engine,TieDyad<Engine> > tog1(net1);
     VertexToggle<Engine, DefaultVertex<Engine> > vtog1(net1);//,vector<int>(),togVars);
@@ -103,7 +103,7 @@ void toggleTest(){
     	s += net1.continVariableValue(0,i);
     	ssq += pow(net1.continVariableValue(0,i),2.0);
     }
-    //std::cout << "mean: " << s/(double)n <<" var: " << ssq/(double)n - pow(s/(double)n,2.0) << "\n";
+    //Rcpp::Rcout << "mean: " << s/(double)n <<" var: " << ssq/(double)n - pow(s/(double)n,2.0) << "\n";
     EXPECT_TRUE(s/(double)n > -.1 && s/(double)n<.1);
     EXPECT_TRUE(ssq/(double)n - pow(s/(double)n,2.0) >.9 && ssq/(double)n - pow(s/(double)n,2.0)  < 1.1);
     //EXPECT_TRUE(model1.statistics()[1] != init)

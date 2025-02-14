@@ -81,7 +81,10 @@ MissingErnmModel <- function(observedSampler,
 #' @param sampler a sampler
 #' @param logLik a log likelihood function (optional)
 #' @param ... additional parameters for the log likelihood
-FullErnmModel <- function(sampler, logLik, ...){
+#' @importFrom stats cov var
+FullErnmModel <- function(sampler,
+                          logLik,
+                          ...){
 	
 	sampler <- sampler
 	model <- sampler$getModel()
