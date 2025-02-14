@@ -1,7 +1,7 @@
 Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
-Version: 1.0.1
+Version: 1.0.2
 Date: 2025-03-01
 Author: Ian Fellows
 Maintainer: Duncan Clark <dac@williams.edu>
