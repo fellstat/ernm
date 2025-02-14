@@ -18,6 +18,10 @@ taperedErnmLikelihood(
 \arguments{
 \item{theta}{parameters}
 
+\item{centers}{center of statistics}
+
+\item{tau}{tapering parameter}
+
 \item{sample}{mcmc sample}
 
 \item{theta0}{parameter values which generated sample}
@@ -25,6 +29,8 @@ taperedErnmLikelihood(
 \item{stats}{observed statistics}
 
 \item{minEss}{minimum effective sample size}
+
+\item{damping}{a damping parameter}
 }
 \description{
 (E(g(X)) - g(x_o)^2 for TaperedModel

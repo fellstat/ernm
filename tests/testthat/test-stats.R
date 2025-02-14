@@ -1,7 +1,6 @@
 context("stat tests")
 
 library(testthat)
-library(ergm)
 library(network)
 library(ernm)
 

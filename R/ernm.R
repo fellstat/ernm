@@ -167,11 +167,14 @@ createCppModel <- function(formula,
 #' create a sampler
 #' @param formula the model formula
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @param dyadArgs list of args for dyad
 #' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
 #' @param vertexToggle the method of vertex attribuate sampling to use.
+#' @param vertexArgs list of args for vertex
 #' @param nodeSamplingPercentage how often the nodes should be toggled
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param theta parameter values
+#' @param ... additional parameters to be passed to createCppModel
 createCppSampler <- function(formula,
                              modelArgs = list(modelClass='Model'),
                              dyadToggle = NULL,

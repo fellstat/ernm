@@ -8,6 +8,7 @@
 #' @param minEss minimum effective sample size
 #' @param damping a damping parameter
 #' @param method cumulant generating function approximation
+#' @param order the ordering
 fullErnmLikelihood <- function(theta,
                                sample,
                                theta0,
@@ -208,12 +209,21 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 
 #' (E(g(X)) - g(x_o)^2 for TaperedModel
 #' @param theta parameters
+#' @param centers center of statistics
+#' @param tau tapering parameter
 #' @param sample mcmc sample
 #' @param theta0 parameter values which generated sample
 #' @param stats observed statistics
 #' @param minEss minimum effective sample size
-taperedErnmLikelihood <- function(theta, centers, tau, sample, theta0, stats,
-		minEss=5, damping=.05){
+#' @param damping a damping parameter
+taperedErnmLikelihood <- function(theta,
+                                  centers,
+                                  tau,
+                                  sample,
+                                  theta0,
+                                  stats,
+                                  minEss=5,
+                                  damping=.05){
 	
 	b <- function(t){tau}
 	db <- function(t){rep(0,length(t))}	
