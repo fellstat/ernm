@@ -291,7 +291,9 @@ ernm <- function(formula,
                                        nodeSamplingPercentage=nodeSamplingPercentage[1],
                                        modelArgs = modelArgs)
     net <- fullCppSampler$getModel()$getNetwork()
-    
+    if(net$size() <4){
+        stop("ERNM does not currently support networks with fewer than 4 nodes")
+    }
 	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
 	vars <- fullCppSampler$getModel()$getRandomVariables( )
 	isMissVars <- any(sapply(vars,function(x)any(is.na(net[[x]]))))

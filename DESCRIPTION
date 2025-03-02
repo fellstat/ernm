@@ -14,13 +14,13 @@ License: LGPL-2.1
 Depends:
     BH,
     methods,
-    Rcpp
+    Rcpp,
+    network
 Imports:
     dplyr,
     ggplot2,
     graphics,
     moments,
-    network,
     rlang,
     stats,
     tidyr,
