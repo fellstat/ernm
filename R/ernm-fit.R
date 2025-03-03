@@ -107,7 +107,7 @@ ernmFit <- function(sampler,
 		}
 		iter<-iter+1
 	}
-	if(verbose>=0)
+	if(verbose>0)
 		cat("\n")
 	if(verbose>0)
 		cat("\n")
