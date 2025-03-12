@@ -15,3 +15,9 @@ A numeric value representing the effective sample size.
 \description{
 Computes the effective sample size from a statistic vector.
 }
+\references{
+Kass, R. E., Carlin, B. P., Gelman, A., & Neal, R. M. (1998). 
+"Markov Chain Monte Carlo in Practice: A Roundtable Discussion."
+*The American Statistician*, 52(2), 93-100. 
+DOI: \doi{10.2307/2685466}
+}
