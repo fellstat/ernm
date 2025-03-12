@@ -44,7 +44,6 @@ protected:
 	boost::shared_ptr< std::vector<int> > randomContinVariables;
 public:
 	Model(){
-		//Rcpp::Rcout << "m1";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>());
 		net=n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -54,7 +53,6 @@ public:
 	}
 
 	Model(BinaryNet<Engine>& network){
-		//Rcpp::Rcout << "m2";
 		boost::shared_ptr< BinaryNet<Engine> > n(new BinaryNet<Engine>(network));
 		net = n;
 		randomGraph = boost::shared_ptr< bool >(new bool);
@@ -64,7 +62,6 @@ public:
 	}
 
 	Model(const Model& mod){
-		//Rcpp::Rcout << "m3";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -77,7 +74,6 @@ public:
 	 * if deep, then the model statistics are de-aliased
 	 */
 	Model(const Model& mod, bool deep){
-		//Rcpp::Rcout << "m4";
 		stats = mod.stats;
 		offsets = mod.offsets;
 		net = mod.net;
@@ -105,7 +101,6 @@ public:
 	 *
 	 */
 	Model(SEXP sexp){
-		//Rcpp::Rcout << "m5";
 		boost::shared_ptr<Model> xp = unwrapRobject< Model<Engine> >(sexp);
 		stats = xp->stats;
 		offsets = xp->offsets;
@@ -123,7 +118,6 @@ public:
 	 * coerce to R object. for RCPP
 	 */
 	operator SEXP() const{
-		//Rcpp::Rcout << "mWrap";
 		return wrapInReferenceClass(*this,Engine::engineName() + "Model");
 	}
 
@@ -280,7 +274,6 @@ public:
 			std::vector<double> vals = stats.at(i)->vTheta();
 			for(int j=0;j<vals.size();j++){
 				v[c] = vals[j];
-				//cout << stats.at(i)->theta()[j];
 				c++;
 			}
 		}
@@ -296,7 +289,6 @@ public:
 			n += stats.at(i)->vTheta().size();
 		}
 		if(newThetas.size()!= n){
-			//Rcpp::Rcout << n  << " " << newThetas.size() << " ";
 			::Rf_error("Model.setThetas: size mismatch:");
 		}
 		int c=0;
@@ -304,7 +296,6 @@ public:
 			std::vector<double>* vals = &stats.at(i)->vTheta();
 			for(int j=0;j<vals->size();j++){
 				(*vals)[j] = newThetas[c];
-				//cout << stats.at(i)->theta()[j];
 				c++;
 			}
 		}
@@ -623,7 +614,6 @@ public:
 	}
 
 	TaperedModel(BinaryNet<Engine>& network) : Model<Engine>(network){
-		//Rcpp::Rcout << "rm2";
 		tau = ParamPtr(new std::vector<double>());
 		centers = ParamPtr(new std::vector<double>());
 
@@ -695,7 +685,6 @@ public:
 	 *
 	 */
 	TaperedModel(SEXP sexp) : Model<Engine>(sexp){
-		//Rcpp::Rcout << "rm5";
 		boost::shared_ptr<TaperedModel> xp = unwrapRobject< TaperedModel<Engine> >(sexp);
 		tau = xp->tau;
 		centers = xp->centers;
@@ -712,7 +701,6 @@ public:
 	 * coerce to R object. for RCPP
 	 */
 	operator SEXP() const{
-		//Rcpp::Rcout << "rmWrap";
 		return wrapInReferenceClass(*this,Engine::engineName() + "TaperedModel");
 	}
 
