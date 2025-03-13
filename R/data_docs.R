@@ -9,7 +9,7 @@
 #' DOI: \doi{10.17026/dans-z9b-h2bp}.
 #' Available at: \url{https://doi.org/10.17026/dans-z9b-h2bp}
 #'
-#' @usage data(dutch_school)
+#' @usage data("dutch_school")
 #' @keywords datasets
 #'
 "dutch_school"
@@ -28,7 +28,7 @@
 #' @source
 #' Sampson, S. F. (1969). *Crisis in a cloister*. Unpublished Ph.D. dissertation, Cornell University.
 #'
-#' @usage data(samplike)
+#' @usage data("samplike")
 #' @keywords datasets
 #'
 "samplike"
