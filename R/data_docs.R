@@ -7,7 +7,6 @@
 #' @source Knecht, A. (2004). *Network and actor attributes in early adolescence*. 
 #' DANS Data Station Social Sciences and Humanities. 
 #' DOI: \doi{10.17026/dans-z9b-h2bp}.
-#' Available at: \url{https://doi.org/10.17026/dans-z9b-h2bp}
 #'
 #' @usage data("dutch_school")
 #' @keywords datasets
