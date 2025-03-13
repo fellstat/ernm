@@ -16,7 +16,7 @@ Available at: \url{https://doi.org/10.17026/dans-z9b-h2bp}
 \usage{
 data(dutch_school)
 
-data(your_dataset_name)
+data(dutch_school)
 }
 \description{
 This dataset contains network and actor attributes collected in early adolescence.

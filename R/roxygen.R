@@ -5,13 +5,6 @@
 #' @importFrom rlang .data
 NULL
 
-
-#' The inline plug-in for ernm
-#' @name inlineErnmPlugin
-#' @aliases inlineErnmPlugin
-#' @usage inlineErnmPlugin
-NULL
-
 #' Register Statistics
 #' @name registerDirectedStatistic
 #' @aliases registerDirectedStatistic registerUndirectedStatistic  
