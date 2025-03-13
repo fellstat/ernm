@@ -9,7 +9,7 @@
 #' DOI: \doi{10.17026/dans-z9b-h2bp}.
 #' Available at: \url{https://doi.org/10.17026/dans-z9b-h2bp}
 #'
-#' @usage data(your_dataset_name)
+#' @usage data(dutch_school)
 #' @keywords datasets
 #'
 "dutch_school"
