@@ -7,6 +7,10 @@
 \alias{UndirectedModel}
 \alias{Rcpp_DirectedModel-class}
 \alias{Rcpp_UndirectedModel-class}
+\alias{Rcpp_DirectedTaperedModel-class}
+\alias{Rcpp_UndirectedTaperedModel-class}
+\alias{DirectedTaperedModel}
+\alias{UndirectedTaperedModel}
 \title{Models}
 \description{
 Models

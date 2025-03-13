@@ -3,7 +3,8 @@
 #' convert and UndirectedNet to a network object
 #' @param x the object
 #' @param ... unused
-as.network.Rcpp_UndirectedNet <- function(x,...){
+#' @export
+as.network.UndirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
 	nw <- network(el,directed=FALSE)
@@ -32,7 +33,8 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 #' convert and DirectedNet to a network object
 #' @param x the object
 #' @param ... unused
-as.network.Rcpp_DirectedNet <- function(x,...){
+#' @export
+as.network.DirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
 	nw <- network(el,directed=TRUE)
@@ -61,8 +63,9 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 #' plot an DirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_DirectedNet
-plot.Rcpp_DirectedNet <- function(x,...){
+#' @method plot DirectedNet
+#' @export
+plot.DirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
 }
@@ -70,8 +73,9 @@ plot.Rcpp_DirectedNet <- function(x,...){
 #' plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_UndirectedNet
-plot.Rcpp_UndirectedNet <- function(x,...){
+#' @method plot UndirectedNet
+#' @export
+plot.UndirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
 }
@@ -79,10 +83,12 @@ plot.Rcpp_UndirectedNet <- function(x,...){
 #' convert and network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
+#' @export
+#' @return a BinaryNet object
 as.BinaryNet <- function(x,...){
-	if(inherits(x,"Rcpp_UndirectedNet"))
+	if(inherits(x,"UndirectedNet"))
 		return(x)
-	if(inherits(x,"Rcpp_DirectedNet"))
+	if(inherits(x,"DirectedNet"))
 		return(x)	
 	if(!inherits(x,"network"))
 		stop("x must be a BinaryNet or network object")
@@ -102,7 +108,7 @@ as.BinaryNet <- function(x,...){
 
 #' indexing
 #' @name [
-#' @aliases [,Rcpp_DirectedNet-method
+#' @aliases [,DirectedNet-method
 #' @param x object
 #' @param i indices
 #' @param j indices
@@ -111,7 +117,7 @@ as.BinaryNet <- function(x,...){
 #' @param drop unused
 #' @docType methods
 #' @rdname extract-methods
-setMethod("[", c("Rcpp_DirectedNet"),
+setMethod("[", c("DirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
 		{
 			x$`[`(i,j,maskMissing)
@@ -119,7 +125,7 @@ setMethod("[", c("Rcpp_DirectedNet"),
 
 #' indexing
 #' @name [
-#' @aliases [,Rcpp_UndirectedNet-method
+#' @aliases [,UndirectedNet-method
 #' @param x object
 #' @param i indices
 #' @param j indices
@@ -128,7 +134,7 @@ setMethod("[", c("Rcpp_DirectedNet"),
 #' @param drop unused
 #' @docType methods
 #' @rdname extract-methods
-setMethod("[", c("Rcpp_UndirectedNet"),
+setMethod("[", c("UndirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
 		{
 			x$`[`(i,j,maskMissing)
@@ -136,7 +142,7 @@ setMethod("[", c("Rcpp_UndirectedNet"),
 
 #' indexing
 #' @name [<-
-#' @aliases [<-,Rcpp_DirectedNet-method
+#' @aliases [<-,DirectedNet-method
 #' @param x object
 #' @param i indices
 #' @param j indices
@@ -145,7 +151,7 @@ setMethod("[", c("Rcpp_UndirectedNet"),
 #' @param value values to assign
 #' @docType methods
 #' @rdname extract-methods
-setMethod("[<-", c("Rcpp_DirectedNet"),
+setMethod("[<-", c("DirectedNet"),
 		function(x, i, j, ..., value)
 		{
 			if(is.vector(value)){
@@ -162,7 +168,7 @@ setMethod("[<-", c("Rcpp_DirectedNet"),
 
 #' indexing
 #' @name [<-
-#' @aliases [<-,Rcpp_UndirectedNet-method
+#' @aliases [<-,UndirectedNet-method
 #' @param x object
 #' @param i indices
 #' @param j indices
@@ -171,7 +177,7 @@ setMethod("[<-", c("Rcpp_DirectedNet"),
 #' @param value values to assign
 #' @docType methods
 #' @rdname extract-methods
-setMethod("[<-", c("Rcpp_UndirectedNet"),
+setMethod("[<-", c("UndirectedNet"),
 		function(x, i, j, ..., value)
 		{
 			if(is.vector(value)){

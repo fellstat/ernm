@@ -3914,7 +3914,6 @@ public:
                 this->stats[j] += espi==esps[j];
             }
         }
-        
     }
     
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
@@ -3991,6 +3990,8 @@ public:
                 ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
             }
             varIndex = variableIndex;
+        }else{
+            return;
         }
         
         int oldValue = net.discreteVariableValue(varIndex,vert)-1;
@@ -4018,7 +4019,7 @@ public:
                 
                 if(value_to == value_from && value_to == oldValue){
                     //removing old
-                    //std::cout<<"\n removing a ESP that vert was in homogenous shared neighbor";
+                    //Rcpp::Rcout<<"\n removing a ESP that vert was in homogenous shared neighbor";
                     int old_sn = sharedNbrs(net, from, to,varIndex,oldValue);
                     for(int j=0;j<nstats;j++){
                         this->stats[j] -= old_sn==esps[j];
@@ -4026,7 +4027,7 @@ public:
                 }
                 if(value_to == value_from && value_to == newValue){
                     //adding new
-                    //std::cout<<"\n adding a ESP that vert was in homogenous shared neighbor";
+                    //Rcpp::Rcout<<"\n adding a ESP that vert was in homogenous shared neighbor";
                     int new_sn = sharedNbrs(net, from, to,varIndex,newValue);
                     for(int j=0;j<nstats;j++){
                         this->stats[j] += new_sn==esps[j];

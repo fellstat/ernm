@@ -17,6 +17,8 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @export
+#' @return a Model object
 createCppModel <- function(formula,
                            ignoreMnar=TRUE,
                            cloneNet=TRUE,
@@ -167,11 +169,16 @@ createCppModel <- function(formula,
 #' create a sampler
 #' @param formula the model formula
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @param dyadArgs list of args for dyad
 #' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
 #' @param vertexToggle the method of vertex attribuate sampling to use.
+#' @param vertexArgs list of args for vertex
 #' @param nodeSamplingPercentage how often the nodes should be toggled
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param theta parameter values
+#' @param ... additional parameters to be passed to createCppModel
+#' @export
+#' @return a MetropolisHastings object
 createCppSampler <- function(formula,
                              modelArgs = list(modelClass='Model'),
                              dyadToggle = NULL,
@@ -213,6 +220,8 @@ createCppSampler <- function(formula,
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
 #' @param ... additional arguments to createCppSampler
+#' @export
+#' @return a list of statistics
 simulateStatistics <- function(formula,
                                theta, 
                                nodeSamplingPercentage=0.2,
@@ -228,8 +237,10 @@ simulateStatistics <- function(formula,
 
 #'calculate model statistics from a formula
 #' @param formula An ernm formula
+#' @export
+#' @return a list of statistics
 calculateStatistics <- function(formula){
-	createCppModel(formula,clone=FALSE,ignoreMnar=FALSE)$statistics()
+	createCppModel(formula,cloneNet=FALSE,ignoreMnar=FALSE)$statistics()
 }
 
 
@@ -244,6 +255,8 @@ calculateStatistics <- function(formula){
 #' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
 #' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
 #' @param ... additional parameters for ernmFit
+#' @export
+#' @return a fitted model
 ernm <- function(formula,
                  tapered = TRUE,
                  tapering_r = 3,
@@ -278,7 +291,9 @@ ernm <- function(formula,
                                        nodeSamplingPercentage=nodeSamplingPercentage[1],
                                        modelArgs = modelArgs)
     net <- fullCppSampler$getModel()$getNetwork()
-    
+    if(net$size() <4){
+        stop("ERNM does not currently support networks with fewer than 4 nodes")
+    }
 	isMissDyads <- sum(net$nMissing(1:net$size()))!=0
 	vars <- fullCppSampler$getModel()$getRandomVariables( )
 	isMissVars <- any(sapply(vars,function(x)any(is.na(net[[x]]))))
