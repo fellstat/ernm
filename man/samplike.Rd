@@ -13,7 +13,7 @@ Sampson, S. F. (1969). *Crisis in a cloister*. Unpublished Ph.D. dissertation, C
 \usage{
 data(samplike)
 
-data(samplike)
+data("samplike")
 }
 \description{
 This dataset represents the social network of relationships among monks in a monastery,

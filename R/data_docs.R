@@ -7,9 +7,8 @@
 #' @source Knecht, A. (2004). *Network and actor attributes in early adolescence*. 
 #' DANS Data Station Social Sciences and Humanities. 
 #' DOI: \doi{10.17026/dans-z9b-h2bp}.
-#' Available at: \url{https://doi.org/10.17026/dans-z9b-h2bp}
 #'
-#' @usage data(your_dataset_name)
+#' @usage data("dutch_school")
 #' @keywords datasets
 #'
 "dutch_school"
@@ -28,7 +27,7 @@
 #' @source
 #' Sampson, S. F. (1969). *Crisis in a cloister*. Unpublished Ph.D. dissertation, Cornell University.
 #'
-#' @usage data(samplike)
+#' @usage data("samplike")
 #' @keywords datasets
 #'
 "samplike"
