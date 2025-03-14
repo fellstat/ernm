@@ -14,8 +14,7 @@ Maintainer: Duncan Clark <dac6@williams.edu>
 Description: Estimation of fully and partially observed Exponential-Family
     Random Network Models (ERNM). ERGM and Gibbs Fields are special cases
     of ERNMs and can also be estimated with the package. Please cite
-    Fellows and Handcock (2012), "Exponential-family Random Network
-    Models" available at <arXiv:1208.0121>.
+    Fellows and Handcock (2012), "Exponential-family Random Network Models" available at <doi:10.48550/arXiv.1208.0121>
 License: LGPL-2.1
 Depends:
     R (>= 3.5.0),
