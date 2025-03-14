@@ -3,7 +3,13 @@ Package: ernm
 Title: Exponential-Family Random Network Models
 Version: 1.0.0
 Date: 2025-03-01
-Author: Ian Fellows [aut,cre], Duncan Clark [aut]
+Authors@R: c(person(given = "Ian",
+                    family = "Fellows",
+                    role = c("aut")),
+             person(given = "Duncan",
+                    family = "Clark",
+                    role = c("aut", "cre"),
+                    email = "dac6@williams.edu"))
 Maintainer: Duncan Clark <dac6@williams.edu>
 Description: Estimation of fully and partially observed Exponential-Family
     Random Network Models (ERNM). ERGM and Gibbs Fields are special cases
