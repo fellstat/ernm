@@ -8,3 +8,4 @@ src/*.dll
 *desktop.ini
 revdep/
 inst/WORDLIST
+*.Rproj
