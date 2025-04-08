@@ -28,6 +28,7 @@
 #' Sampson, S. F. (1969). *Crisis in a cloister*. Unpublished Ph.D. dissertation, Cornell University.
 #'
 #' @usage data("samplike")
+#' @aliases sampson
 #' @keywords datasets
 #'
 "samplike"

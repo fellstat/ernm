@@ -26,7 +26,9 @@ createCppModel <- function(formula,
                            modelArgs = list(modelClass='Model')){
 	form <- formula
 	env <- environment(form)
-	net <- as.BinaryNet(eval(form[[2]],envir=env))
+	#delete the "na" vertex attribute used for node activity - since can be nuisance in CPP
+	net_raw <- network::delete.vertex.attribute(eval(form[[2]], envir = env), "na")
+	net <- as.BinaryNet(net_raw)
 	if(cloneNet)
 		net <- net$clone()
 	noDyad <- FALSE

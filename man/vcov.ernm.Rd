@@ -11,6 +11,9 @@
 
 \item{...}{unused}
 }
+\value{
+covariance matrix
+}
 \description{
 parameter covariance matrix
 }

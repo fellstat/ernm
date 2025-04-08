@@ -37,7 +37,9 @@ urlchecker::url_update()
 rhub::rhub_setup() # Commit, push, merge
 rhub::rhub_doctor()
 rhub::rhub_platforms()
-for(plat in rhub::rhub_platforms()[[1]]){
+plats <- rhub::rhub_platforms()
+no_run <- grepl('unstable',plats$r_version)
+for(plat in plats[[1]][!no_run]){
   rhub::rhub_check(platform = plat)
 }
 
