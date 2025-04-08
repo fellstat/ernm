@@ -3,6 +3,7 @@
 \docType{data}
 \name{samplike}
 \alias{samplike}
+\alias{sampson}
 \title{Sampson's Monks Data}
 \format{
 An object of class \code{network} of length 5.

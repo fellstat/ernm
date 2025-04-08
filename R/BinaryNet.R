@@ -3,6 +3,7 @@
 #' convert and UndirectedNet to a network object
 #' @param x the object
 #' @param ... unused
+#' @return a undirected network object
 #' @export
 as.network.UndirectedNet <- function(x,...){
 	el <- x$edges()
@@ -33,6 +34,7 @@ as.network.UndirectedNet <- function(x,...){
 #' convert and DirectedNet to a network object
 #' @param x the object
 #' @param ... unused
+#' @return a directed network object
 #' @export
 as.network.DirectedNet <- function(x,...){
 	el <- x$edges()
@@ -63,6 +65,7 @@ as.network.DirectedNet <- function(x,...){
 #' plot an DirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
+#' @return NULL
 #' @method plot DirectedNet
 #' @export
 plot.DirectedNet <- function(x,...){
@@ -73,6 +76,7 @@ plot.DirectedNet <- function(x,...){
 #' plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
+#' @return NULL
 #' @method plot UndirectedNet
 #' @export
 plot.UndirectedNet <- function(x,...){
@@ -83,6 +87,7 @@ plot.UndirectedNet <- function(x,...){
 #' convert and network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
+#' @return NULL
 #' @export
 #' @return a BinaryNet object
 as.BinaryNet <- function(x,...){
@@ -113,6 +118,7 @@ as.BinaryNet <- function(x,...){
 #' @param i indices
 #' @param j indices
 #' @param ... unused
+#' @return NULL
 #' @param maskMissing should missing values be masked by NA
 #' @param drop unused
 #' @docType methods
@@ -130,6 +136,7 @@ setMethod("[", c("DirectedNet"),
 #' @param i indices
 #' @param j indices
 #' @param ... unused
+#' @return NULL
 #' @param maskMissing should missing values be masked by NA
 #' @param drop unused
 #' @docType methods
@@ -147,6 +154,7 @@ setMethod("[", c("UndirectedNet"),
 #' @param i indices
 #' @param j indices
 #' @param ... unused
+#' @return NULL
 #' @param maskMissing should missing values be masked by NA
 #' @param value values to assign
 #' @docType methods
@@ -173,6 +181,7 @@ setMethod("[<-", c("DirectedNet"),
 #' @param i indices
 #' @param j indices
 #' @param ... unused
+#' @return NULL
 #' @param maskMissing should missing values be masked by NA
 #' @param value values to assign
 #' @docType methods

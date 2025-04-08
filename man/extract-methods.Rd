@@ -10,9 +10,9 @@
 \alias{[<-,UndirectedNet-method}
 \title{indexing}
 \usage{
-\S4method{[}{DirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{DirectedNet,ANY,ANY,ANY}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
-\S4method{[}{UndirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{UndirectedNet,ANY,ANY,ANY}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
 \S4method{[}{DirectedNet}(x, i, j, ...) <- value
 

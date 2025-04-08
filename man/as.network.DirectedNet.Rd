@@ -11,6 +11,9 @@
 
 \item{...}{unused}
 }
+\value{
+a directed network object
+}
 \description{
 convert and DirectedNet to a network object
 }

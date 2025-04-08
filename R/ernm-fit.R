@@ -65,6 +65,9 @@ ernmFit <- function(sampler,
 		if(verbose>1){
 			nr <- mcmcSampleSize
 			nc <- ncol(sampler$statistics(sample)[[1]])
+			# make sure to fix pr on exit
+			oldpar <- par(no.readonly = TRUE)
+			on.exit(par(oldpar))
 			par(mfrow=c(ceiling(nc/3),3))
 			for(i in 1:nc)
 				try(scatter.smooth(1:nr,sampler$statistics(sample)[[1]][,i],col="red"))
@@ -194,6 +197,7 @@ summary.ernm <- function(object,...){
 #' parameter covariance matrix
 #' @param object object
 #' @param ... unused
+#' @return covariance matrix
 #' @export
 #' @method vcov ernm
 vcov.ernm <- function(object,...){
@@ -204,6 +208,7 @@ vcov.ernm <- function(object,...){
 #' plot an ernm object
 #' @param  x the object
 #' @param ... unused
+#' @return NULL
 #' @export
 #' @method plot ernm
 plot.ernm <- function(x,...){

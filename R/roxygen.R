@@ -62,9 +62,7 @@ NULL
 #' @description Runs the internal C++ tests for the ernm package.
 #' @return A logical value indicating whether all tests passed.
 #' @examples
-#' \dontrun{
-#'   runErnmCppTests()
-#' }
+#' runErnmCppTests()
 #'
 NULL
 
