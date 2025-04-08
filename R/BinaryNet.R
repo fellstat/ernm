@@ -111,17 +111,25 @@ as.BinaryNet <- function(x,...){
 	net
 }
 
-#' indexing
-#' @name [
-#' @aliases [,DirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @return NULL
-#' @param maskMissing should missing values be masked by NA
-#' @param drop unused
+#' Subsetting and assignment for Net objects
+#'
+#' These methods allow standard subsetting (`[`) and assignment (`[<-`) for `DirectedNet` and `UndirectedNet` objects.
+#'
+#' @param x A `DirectedNet` or `UndirectedNet` object.
+#' @param i,j Index vectors.
+#' @param ... Currently unused.
+#' @param maskMissing Logical. Should missing values be masked by NA?
+#' @param drop Ignored (present for compatibility).
+#' @param value Values to assign (for `[<-` only).
+#'
+#' @return A modified object or extracted submatrix depending on the method.
+#' @name extract-methods
+#' @rdname extract-methods
 #' @docType methods
+#' @aliases [,DirectedNet-method [,UndirectedNet-method [<-,DirectedNet-method [<-,UndirectedNet-method
+NULL
+
+#' indexing
 #' @rdname extract-methods
 setMethod("[", c("DirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
@@ -130,16 +138,6 @@ setMethod("[", c("DirectedNet"),
 		})
 
 #' indexing
-#' @name [
-#' @aliases [,UndirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @return NULL
-#' @param maskMissing should missing values be masked by NA
-#' @param drop unused
-#' @docType methods
 #' @rdname extract-methods
 setMethod("[", c("UndirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
@@ -148,16 +146,6 @@ setMethod("[", c("UndirectedNet"),
 		})
 
 #' indexing
-#' @name [<-
-#' @aliases [<-,DirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @return NULL
-#' @param maskMissing should missing values be masked by NA
-#' @param value values to assign
-#' @docType methods
 #' @rdname extract-methods
 setMethod("[<-", c("DirectedNet"),
 		function(x, i, j, ..., value)
@@ -175,16 +163,6 @@ setMethod("[<-", c("DirectedNet"),
 		})
 
 #' indexing
-#' @name [<-
-#' @aliases [<-,UndirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @return NULL
-#' @param maskMissing should missing values be masked by NA
-#' @param value values to assign
-#' @docType methods
 #' @rdname extract-methods
 setMethod("[<-", c("UndirectedNet"),
 		function(x, i, j, ..., value)

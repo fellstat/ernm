@@ -5,7 +5,6 @@
 
 
 library(testthat)
-library(ergm)
 library(ernm)
 library(network)
 
