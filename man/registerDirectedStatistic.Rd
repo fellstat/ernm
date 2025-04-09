@@ -9,6 +9,9 @@
 \usage{
 registerDirectedStatistic
 }
+\value{
+no return value
+}
 \description{
 Register Statistics
 }

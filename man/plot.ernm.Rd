@@ -11,6 +11,9 @@
 
 \item{...}{unused}
 }
+\value{
+No return value, plots the likelihood history
+}
 \description{
 plot an ernm object
 }

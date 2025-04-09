@@ -7,6 +7,7 @@ NULL
 
 #' Register Statistics
 #' @name registerDirectedStatistic
+#' @return no return value
 #' @aliases registerDirectedStatistic registerUndirectedStatistic  
 #' registerDirectedOffset 
 #' registerUndirectedOffset
