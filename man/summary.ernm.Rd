@@ -11,6 +11,9 @@
 
 \item{...}{unused}
 }
+\value{
+a data frame summary of the model
+}
 \description{
 summary
 }

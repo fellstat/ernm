@@ -65,7 +65,7 @@ as.network.DirectedNet <- function(x,...){
 #' plot an DirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @return NULL
+#' @return No return value, invisibly NULL
 #' @method plot DirectedNet
 #' @export
 plot.DirectedNet <- function(x,...){
@@ -76,7 +76,7 @@ plot.DirectedNet <- function(x,...){
 #' plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @return NULL
+#' @return No return value, invisibly NULL
 #' @method plot UndirectedNet
 #' @export
 plot.UndirectedNet <- function(x,...){
@@ -87,7 +87,6 @@ plot.UndirectedNet <- function(x,...){
 #' convert and network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
-#' @return NULL
 #' @export
 #' @return a BinaryNet object
 as.BinaryNet <- function(x,...){

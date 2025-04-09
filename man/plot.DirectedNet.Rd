@@ -11,6 +11,9 @@
 
 \item{...}{additional parameters for plot.network}
 }
+\value{
+No return value, invisibly NULL
+}
 \description{
 plot an DirectedNet object
 }

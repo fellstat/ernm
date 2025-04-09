@@ -11,6 +11,9 @@
 
 \item{...}{unused}
 }
+\value{
+No return value, prints summary
+}
 \description{
 print
 }

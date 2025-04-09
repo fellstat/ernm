@@ -124,6 +124,7 @@ ernmFit <- function(sampler,
 #' print
 #' @param x x
 #' @param ... unused
+#' @return No return value, prints summary
 #' @export
 #' @method print ernm
 print.ernm <- function(x,...){
@@ -154,6 +155,7 @@ print.ernm <- function(x,...){
 #' summary
 #' @param object object
 #' @param ... unused
+#' @return a data frame summary of the model
 #' @export
 #' @method summary ernm
 summary.ernm <- function(object,...){
@@ -208,7 +210,7 @@ vcov.ernm <- function(object,...){
 #' plot an ernm object
 #' @param  x the object
 #' @param ... unused
-#' @return NULL
+#' @return No return value, plots the likelihood history
 #' @export
 #' @method plot ernm
 plot.ernm <- function(x,...){

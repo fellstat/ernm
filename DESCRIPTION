@@ -1,6 +1,6 @@
 Type: Package
 Package: ernm
-Title: Exponential-family Random Network Models
+Title: Exponential-Family Random Network Models
 Version: 1.0.0
 Date: 2025-04-08
 Authors@R: c(person(given = "Ian",
@@ -10,7 +10,7 @@ Authors@R: c(person(given = "Ian",
                     family = "Clark",
                     role = c("aut", "cre"),
                     email = "dac6@williams.edu"))
-Description: Estimation of fully and partially observed Exponential-family Random Network Models (ERNM). Exponential-family Random Graph Models (ERGM) and Gibbs Fields are special cases of ERNMs and can also be estimated with the package. Please cite Fellows and Handcock (2012), "Exponential-family Random Network Models" available at <doi:10.48550/arXiv.1208.0121>.
+Description: Estimation of fully and partially observed Exponential-Family Random Network Models (ERNM). Exponential-family Random Graph Models (ERGM) and Gibbs Fields are special cases of ERNMs and can also be estimated with the package. Please cite Fellows and Handcock (2012), "Exponential-family Random Network Models" available at <doi:10.48550/arXiv.1208.0121>.
 License: LGPL-2.1
 Depends:
     R (>= 3.5.0),
