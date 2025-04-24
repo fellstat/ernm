@@ -7,17 +7,19 @@
 \alias{[,UndirectedNet-method}
 \alias{[<-,DirectedNet-method}
 \alias{[<-,UndirectedNet-method}
-\alias{[,DirectedNet,ANY,ANY,ANY-method}
-\alias{[,UndirectedNet,ANY,ANY,ANY-method}
+\alias{[,Rcpp_DirectedNet-method}
+\alias{[,Rcpp_UndirectedNet-method}
+\alias{[<-,Rcpp_DirectedNet-method}
+\alias{[<-,Rcpp_UndirectedNet-method}
 \title{Subsetting and assignment for Net objects}
 \usage{
-\S4method{[}{DirectedNet,ANY,ANY,ANY}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{Rcpp_DirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
-\S4method{[}{UndirectedNet,ANY,ANY,ANY}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
+\S4method{[}{Rcpp_UndirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
-\S4method{[}{DirectedNet}(x, i, j, ...) <- value
+\S4method{[}{Rcpp_DirectedNet}(x, i, j, ...) <- value
 
-\S4method{[}{UndirectedNet}(x, i, j, ...) <- value
+\S4method{[}{Rcpp_UndirectedNet}(x, i, j, ...) <- value
 }
 \arguments{
 \item{x}{A `DirectedNet` or `UndirectedNet` object.}
