@@ -1,26 +1,42 @@
-Package: ernm
-Maintainer: Ian Fellows <ian@fellstat.com>
-License: LGPL-2.1
-Title: Exponential-Family Random Network Models
-LinkingTo: Rcpp, BH
 Type: Package
-LazyLoad: yes
-Author: Ian Fellows
-Description: Estimation of fully/partially observed Exponential-Family Random
-    Network Models (ERNM). ERNMs are a generalization of ERGM (see the ergm
-    package) and Gibbs Fields, encompassing both as special cases
-Version: 1.0
-Date: 2014-04-30
+Package: ernm
+Title: Exponential-Family Random Network Models
+Version: 1.0.0
+Date: 2025-04-08
+Authors@R: c(person(given = "Ian",
+                    family = "Fellows",
+                    role = c("aut")),
+             person(given = "Duncan",
+                    family = "Clark",
+                    role = c("aut", "cre"),
+                    email = "dac6@williams.edu"))
+Description: Estimation of fully and partially observed Exponential-Family Random Network Models (ERNM). Exponential-family Random Graph Models (ERGM) and Gibbs Fields are special cases of ERNMs and can also be estimated with the package. Please cite Fellows and Handcock (2012), "Exponential-family Random Network Models" available at <doi:10.48550/arXiv.1208.0121>.
+License: LGPL-2.1
 Depends:
+    R (>= 3.5.0),
+    BH,
     methods,
-    Rcpp (>= 0.9.4),
-    BH
-Imports:
-    trust,
-    moments
-Suggests:
-    testthat,
     network,
-    inline
+    Rcpp
+Imports:
+    dplyr,
+    ggplot2,
+    graphics,
+    moments,
+    rlang,
+    stats,
+    tidyr,
+    trust
+Suggests:
+    spelling,
+    testthat
+LinkingTo: 
+    BH,
+    Rcpp
+Copyright: @ 2014-2025 Ian Fellows
+Encoding: UTF-8
+Language: en-US
+LazyData: true
+LazyLoad: yes
 RcppModules: ernm
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

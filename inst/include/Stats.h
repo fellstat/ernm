@@ -1270,15 +1270,18 @@ protected:
     int nstats; /*!< the number of stats generated */
     typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
     int nlevels;
+    std::vector<std::string> levels;
     int variableIndex, regIndex, baseIndex;
     std::string variableName, regressorName, baseValue;
 public:
     LogisticNeighbors(){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
     }
     
     LogisticNeighbors(std::string out,std::string reg){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         variableName = out;
         regressorName = reg;
         baseValue = "";
@@ -1286,6 +1289,7 @@ public:
     
     LogisticNeighbors(std::string out,std::string reg,std::string base_val){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         variableName = out;
         regressorName = reg;
         baseValue = base_val;
@@ -1293,6 +1297,7 @@ public:
     
     LogisticNeighbors(List params){
         nstats=nlevels=variableIndex=regIndex = 0;
+        levels = std::vector<std::string>(0);
         if(params.size() < 2){
             ::Rf_error("LogisticNeighbors requires at least two arguments passed");
         }
@@ -1322,7 +1327,13 @@ public:
     }
     
     std::vector<std::string> statNames(){
-        std::vector<std::string> statnames(1,"logisticNeighbors");
+        std::vector<std::string> statnames;
+        for(int i=0;i<levels.size();i++){
+            if(i != baseIndex){
+                std::string nm = "logisticNeighbors.level."+levels.at(i);
+                statnames.push_back(nm);
+            }
+        }
         return statnames;
     }
     
@@ -1340,7 +1351,7 @@ public:
         if(regIndex<0 || variableIndex<0)
             Rf_error("invalid variables");
         // Find which level is the base level
-        std::vector<std::string> levels = net.discreteVariableAttributes(regIndex).labels();
+        levels = net.discreteVariableAttributes(regIndex).labels();
         for(int i=0;i<levels.size();i++){
             if(levels[i] == baseValue){
                 baseIndex = i;
@@ -1352,7 +1363,7 @@ public:
         if(baseIndex<0)
             Rf_error("invalid baseIndex");
         // Get the neighbours values for each node
-        int nlevels = net.discreteVariableAttributes(regIndex).labels().size();
+        int nlevels = levels.size();
         nstats = nlevels - 1;
         this->stats = std::vector<double>(nstats,0.0);
         if(this->thetas.size() != nstats)
@@ -3756,7 +3767,8 @@ protected:
     typedef typename BinaryNet<Engine>::NeighborIterator NeighborIterator;
     EdgeDirection direction;
     std::vector<int> esps;
-    
+    std::string variableName = "";
+    bool homogeneous = false;
 public:
     
     Esp(){
@@ -3769,7 +3781,6 @@ public:
         direction = UNDIRECTED;
         esps = esps1;
     }
-    
     
     /*!
      * \param params 	a list of length 1, the first element of which is an integer vector of edgewise shared partners
@@ -3794,6 +3805,16 @@ public:
         }catch(...){
             direction = UNDIRECTED;
         }
+        try{
+            homogeneous = as< bool >(params(2));
+        }catch(...){
+            homogeneous = false;
+        }
+        try{
+            variableName = as< std::string >(params(3));
+        }catch(...){
+            variableName = "";
+        }
     }
     
     std::string name(){
@@ -3815,7 +3836,17 @@ public:
     
     //counts the number of shared neighbors between f and t.
     //in directed networks this only counts | t --> f --> neighbor --> t | cycles.
-    int sharedNbrs(const BinaryNet<Engine>& net, int f, int t){
+    int sharedNbrs(const BinaryNet<Engine>& net, int f, int t, int varIndex =-1,int varValue = -1){
+        if(varIndex >= 0){
+            int value1 = net.discreteVariableValue(varIndex,f) - 1;
+            int value2 = net.discreteVariableValue(varIndex,t) - 1;
+            if(varValue <0){
+                varValue = value1;
+            }
+
+            if(value2!=varValue){
+                return 0;}
+        }
         NeighborIterator fit, fend, tit, tend;
         if(!net.isDirected()){
             fit = net.begin(f);
@@ -3832,7 +3863,15 @@ public:
         int sn = 0;
         while(fit != fend && tit != tend){
             if(*tit == *fit){
-                sn++;
+                if(varIndex <0){
+                    sn++;
+                }else{
+                    int value1 = net.discreteVariableValue(varIndex,f) - 1;
+                    int value3 = net.discreteVariableValue(varIndex,*tit) - 1;
+                    if(value3 == value1){
+                        sn++;
+                    }
+                }
                 tit++;
                 fit++;
             }else if(*tit < *fit)
@@ -3844,6 +3883,22 @@ public:
     }
     
     virtual void vCalculate(const BinaryNet<Engine>& net){
+        int varIndex = -1;
+        if(homogeneous == true){
+            std::vector<std::string> vars = net.discreteVarNames();
+            int variableIndex = -1;
+            for(int i=0;i<vars.size();i++){
+                if(vars[i] == variableName){
+                    variableIndex = i;
+                }
+            }
+            if(variableIndex<0){
+                Rcpp::Rcout<<variableName;
+                ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+            }
+            varIndex = variableIndex;
+        }
+        
         int nstats = esps.size();
         this->stats = std::vector<double>(nstats,0.0);
         if(this->thetas.size()!=nstats)
@@ -3854,15 +3909,30 @@ public:
         for(int i=0;i<el->size();i++){
             int from = el->at(i).first;
             int to = el->at(i).second;
-            int espi = sharedNbrs(net, from, to);
+            int espi = sharedNbrs(net, from, to,varIndex);
             for(int j=0;j<nstats;j++){
                 this->stats[j] += espi==esps[j];
             }
         }
-        
     }
     
     void dyadUpdate(const BinaryNet<Engine>& net, int from, int to){
+        int varIndex = -1;
+        if(homogeneous == true){
+            std::vector<std::string> vars = net.discreteVarNames();
+            int variableIndex = -1;
+            for(int i=0;i<vars.size();i++){
+                if(vars[i] == variableName){
+                    variableIndex = i;
+                }
+            }
+            if(variableIndex<0){
+                Rcpp::Rcout<<variableName;
+                ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+            }
+            varIndex = variableIndex;
+        }
+        
         int nstats = esps.size();
         int espi = sharedNbrs(net, from, to);
         double change = 2.0 * (!net.hasEdge(from,to) - 0.5);
@@ -3883,12 +3953,12 @@ public:
         }
         while(fit != fend && tit != tend){
             if(*tit == *fit){ //it's a shared neighbor
-                int fnsn = sharedNbrs(net,from,*fit);
+                int fnsn = sharedNbrs(net,from,*fit,varIndex);
                 for(int j=0;j<nstats;j++){ // side edge change +/-1
                     this->stats[j] += (fnsn+change)==esps[j];
                     this->stats[j] -= fnsn==esps[j];
                 }
-                int tnsn = sharedNbrs(net,*fit,to);
+                int tnsn = sharedNbrs(net,*fit,to,varIndex);
                 for(int j=0;j<nstats;j++){ // side edge change +/-1
                     this->stats[j] += (tnsn+change)==esps[j];
                     this->stats[j] -= tnsn==esps[j];
@@ -3904,7 +3974,73 @@ public:
     }
     
     void discreteVertexUpdate(const BinaryNet<Engine>& net, int vert,
-                              int variable, int newValue){}
+                              int variable, int newValue){
+        int nstats = esps.size();
+        int varIndex = -1;
+        if(homogeneous == true){
+            std::vector<std::string> vars = net.discreteVarNames();
+            int variableIndex = -1;
+            for(int i=0;i<vars.size();i++){
+                if(vars[i] == variableName){
+                    variableIndex = i;
+                }
+            }
+            if(variableIndex<0){
+                Rcpp::Rcout<<variableName;
+                ::Rf_error("NodeMatch::calculate nodal attribute not found in network");
+            }
+            varIndex = variableIndex;
+        }else{
+            return;
+        }
+        
+        int oldValue = net.discreteVariableValue(varIndex,vert)-1;
+        newValue = newValue - 1; // to use in shared neighbor function
+        boost::shared_ptr<std::vector< std::pair<int,int> > > el = net.edgelist();
+        
+        // Find the homogenous esp terms that it turns off:
+        for(int i=0;i<el->size();i++){
+            int from = el->at(i).first;
+            int to = el->at(i).second;
+            if(to==vert || from==vert){
+                int old_sn = sharedNbrs(net,from,to,varIndex);
+                for(int j=0;j<nstats;j++){
+                    this->stats[j] -= old_sn==esps[j];
+                }
+                int new_sn = sharedNbrs(net,from,to,varIndex,newValue);
+                for(int j=0;j<nstats;j++){
+                    this->stats[j] += new_sn==esps[j];
+                }
+            }
+            //check if vert is a shared neighbor of both from and to:
+            if(net.hasEdge(from,vert) && net.hasEdge(to,vert)){
+                int value_to = net.discreteVariableValue(varIndex,to)-1;
+                int value_from = net.discreteVariableValue(varIndex,from)-1;
+                
+                if(value_to == value_from && value_to == oldValue){
+                    //removing old
+                    //Rcpp::Rcout<<"\n removing a ESP that vert was in homogenous shared neighbor";
+                    int old_sn = sharedNbrs(net, from, to,varIndex,oldValue);
+                    for(int j=0;j<nstats;j++){
+                        this->stats[j] -= old_sn==esps[j];
+                    }
+                }
+                if(value_to == value_from && value_to == newValue){
+                    //adding new
+                    //Rcpp::Rcout<<"\n adding a ESP that vert was in homogenous shared neighbor";
+                    int new_sn = sharedNbrs(net, from, to,varIndex,newValue);
+                    for(int j=0;j<nstats;j++){
+                        this->stats[j] += new_sn==esps[j];
+                    }
+                }
+            }
+        }
+        
+        
+        
+        
+        
+    }
 	void continVertexUpdate(const BinaryNet<Engine>& net, int vert,
 				int variable, double newValue){}
 };

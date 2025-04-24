@@ -3,7 +3,9 @@
 #' convert and UndirectedNet to a network object
 #' @param x the object
 #' @param ... unused
-as.network.Rcpp_UndirectedNet <- function(x,...){
+#' @return a undirected network object
+#' @export
+as.network.UndirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
 	nw <- network(el,directed=FALSE)
@@ -32,7 +34,9 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 #' convert and DirectedNet to a network object
 #' @param x the object
 #' @param ... unused
-as.network.Rcpp_DirectedNet <- function(x,...){
+#' @return a directed network object
+#' @export
+as.network.DirectedNet <- function(x,...){
 	el <- x$edges()
 	attr(el,"n") <- n <- x$size()
 	nw <- network(el,directed=TRUE)
@@ -61,8 +65,10 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 #' plot an DirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_DirectedNet
-plot.Rcpp_DirectedNet <- function(x,...){
+#' @return No return value, invisibly NULL
+#' @method plot DirectedNet
+#' @export
+plot.DirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
 }
@@ -70,8 +76,10 @@ plot.Rcpp_DirectedNet <- function(x,...){
 #' plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
-#' @method plot Rcpp_UndirectedNet
-plot.Rcpp_UndirectedNet <- function(x,...){
+#' @return No return value, invisibly NULL
+#' @method plot UndirectedNet
+#' @export
+plot.UndirectedNet <- function(x,...){
 	x <- as.network(x)
 	plot(x,...)
 }
@@ -79,10 +87,12 @@ plot.Rcpp_UndirectedNet <- function(x,...){
 #' convert and network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
+#' @export
+#' @return a BinaryNet object
 as.BinaryNet <- function(x,...){
-	if(inherits(x,"Rcpp_UndirectedNet"))
+	if(inherits(x,"UndirectedNet"))
 		return(x)
-	if(inherits(x,"Rcpp_DirectedNet"))
+	if(inherits(x,"DirectedNet"))
 		return(x)	
 	if(!inherits(x,"network"))
 		stop("x must be a BinaryNet or network object")
@@ -100,52 +110,43 @@ as.BinaryNet <- function(x,...){
 	net
 }
 
-#' indexing
-#' @name [
-#' @aliases [,Rcpp_DirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @param maskMissing should missing values be masked by NA
-#' @param drop unused
-#' @docType methods
+#' Subsetting and assignment for Net objects
+#'
+#' These methods allow standard subsetting (`[`) and assignment (`[<-`) for `DirectedNet` and `UndirectedNet` objects.
+#'
+#' @param x A `DirectedNet` or `UndirectedNet` object.
+#' @param i,j Index vectors.
+#' @param ... Currently unused.
+#' @param maskMissing Logical. Should missing values be masked by NA?
+#' @param drop Ignored (present for compatibility).
+#' @param value Values to assign (for `[<-` only).
+#'
+#' @return A modified object or extracted submatrix depending on the method.
+#' @name extract-methods
 #' @rdname extract-methods
-setMethod("[", c("Rcpp_DirectedNet"),
+#' @docType methods
+#' @aliases [,DirectedNet-method [,UndirectedNet-method [<-,DirectedNet-method [<-,UndirectedNet-method
+NULL
+
+#' indexing
+#' @rdname extract-methods
+setMethod("[", c("DirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
 		{
 			x$`[`(i,j,maskMissing)
 		})
 
 #' indexing
-#' @name [
-#' @aliases [,Rcpp_UndirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @param maskMissing should missing values be masked by NA
-#' @param drop unused
-#' @docType methods
 #' @rdname extract-methods
-setMethod("[", c("Rcpp_UndirectedNet"),
+setMethod("[", c("UndirectedNet"),
 		function(x, i, j, ..., maskMissing=TRUE, drop=TRUE)
 		{
 			x$`[`(i,j,maskMissing)
 		})
 
 #' indexing
-#' @name [<-
-#' @aliases [<-,Rcpp_DirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @param maskMissing should missing values be masked by NA
-#' @param value values to assign
-#' @docType methods
 #' @rdname extract-methods
-setMethod("[<-", c("Rcpp_DirectedNet"),
+setMethod("[<-", c("DirectedNet"),
 		function(x, i, j, ..., value)
 		{
 			if(is.vector(value)){
@@ -161,17 +162,8 @@ setMethod("[<-", c("Rcpp_DirectedNet"),
 		})
 
 #' indexing
-#' @name [<-
-#' @aliases [<-,Rcpp_UndirectedNet-method
-#' @param x object
-#' @param i indices
-#' @param j indices
-#' @param ... unused
-#' @param maskMissing should missing values be masked by NA
-#' @param value values to assign
-#' @docType methods
 #' @rdname extract-methods
-setMethod("[<-", c("Rcpp_UndirectedNet"),
+setMethod("[<-", c("UndirectedNet"),
 		function(x, i, j, ..., value)
 		{
 			if(is.vector(value)){

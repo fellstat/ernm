@@ -3,6 +3,8 @@
 #' @param observedSampler a sampler
 #' @param unobservedSampler a sampler conditional upon the observed values
 #' @param ... additional parameters for the log likelihood
+#' @export
+#' @return a MarModel object
 MissingErnmModel <- function(observedSampler,
                              unobservedSampler,
                              ...){
@@ -12,7 +14,7 @@ MissingErnmModel <- function(observedSampler,
 		
 		obs <- observedSampler$generateSampleStatistics(burnin,interval,size)
 		miss <-unobservedSampler$generateSampleStatistics(burnin,interval,size)
-		list(uncondiational=obs,conditional=miss)
+		list(unconditional=obs,conditional=miss)
 	}
 	
 	res$name <- function(){
@@ -81,7 +83,12 @@ MissingErnmModel <- function(observedSampler,
 #' @param sampler a sampler
 #' @param logLik a log likelihood function (optional)
 #' @param ... additional parameters for the log likelihood
-FullErnmModel <- function(sampler, logLik, ...){
+#' @importFrom stats cov var
+#' @export
+#' @return a FullyObservedModel object
+FullErnmModel <- function(sampler,
+                          logLik,
+                          ...){
 	
 	sampler <- sampler
 	model <- sampler$getModel()

@@ -77,11 +77,11 @@ public:
 			std::vector<std::string> dt = getAvailableDyadToggles();
 			for(int i=0;i< dt.size();i++)
 				warning += std::string(i==0 ? "" : ", ") + dt[i];
-			Rf_error(warning.c_str());
+			Rf_error("%s", warning.c_str());
 			return NULL;
 		}
 		if(pS==NULL){
-			Rf_error((std::string("Could not find dyad toggler: ") + name).c_str());
+			Rf_error("%s",(std::string("Could not find dyad toggler: ") + name).c_str());
 			return NULL;
 		}
 		return pS->vCreateUnsafe(params);
@@ -92,11 +92,11 @@ public:
 		try{
 			pS = vertexMapPtr->at(name);
 		}catch(...){
-			Rf_error((std::string("Could not find vertex toggler: ") + name).c_str());
+			Rf_error("%s",(std::string("Could not find vertex toggler: ") + name).c_str());
 			return NULL;
 		}
 		if(pS==NULL){
-			Rf_error((std::string("Could not find vertex toggler: ") + name).c_str());
+			Rf_error("%s",(std::string("Could not find vertex toggler: ") + name).c_str());
 			return NULL;
 		}
 		return pS->vCreateUnsafe(params);

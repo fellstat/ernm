@@ -90,7 +90,7 @@ public:
 			ContinAttrib attr = net->continVariableAttributes(contVars.at(i));
 			double l = attr.hasLowerBound() ? attr.lowerBound() : -std::numeric_limits<double>::infinity();
 			double u = attr.hasUpperBound() ? attr.upperBound() : std::numeric_limits<double>::infinity();
-			//std::cout << "lower:" << l << " upper: " << u << "\n";
+			//Rcpp::Rcout << "lower:" << l << " upper: " << u << "\n";
 			lowerLim.push_back(l);
 			upperLim.push_back(u);
 			if(initAdaptive && attr.hasLowerBound() && attr.hasUpperBound())
@@ -109,7 +109,7 @@ public:
 			}
 			if(delta[i]<.00001)
 				delta[i] = 1.0;
-			//std::cout << "delta = " << delta[i]<< "\n";
+			//Rcpp::Rcout << "delta = " << delta[i]<< "\n";
 		}
 		disToggle = std::vector<std::pair<int,std::pair<int,int> > >(1,
 				std::make_pair(-1,std::make_pair(-1,-1)));
@@ -131,7 +131,7 @@ public:
 				double trate = .234;
 				//if(contVars.size()==1)
 				//	trate = .44;
-				//std::cout <<"acc. rate: " << arate << " delta: " << delta[lastContIndex] <<"\n";
+				//Rcpp::Rcout <<"acc. rate: " << arate << " delta: " << delta[lastContIndex] <<"\n";
 				if(arate > trate)
 					delta[lastContIndex] *= 1.2;
 				else
@@ -178,7 +178,7 @@ public:
 				newVal = newVal - (upperLim[index] - lowerLim[index]);
 			while(newVal < lowerLim[index])
 				newVal = newVal + (upperLim[index] - lowerLim[index]);
-			//std::cout<< "ul: " << upperLim[index] << " old value:" << curVal << " propose: " << newVal << "\n";
+			//Rcpp::Rcout<< "ul: " << upperLim[index] << " old value:" << curVal << " propose: " << newVal << "\n";
 			disToggle.clear();
 			contToggle.clear();
 			contToggle.push_back( std::make_pair(vertex,std::make_pair(varInd,newVal)) );
@@ -306,7 +306,7 @@ public:
 			ContinAttrib attr = net->continVariableAttributes(contVars.at(i));
 			double l = attr.hasLowerBound() ? attr.lowerBound() : -std::numeric_limits<double>::infinity();
 			double u = attr.hasUpperBound() ? attr.upperBound() : std::numeric_limits<double>::infinity();
-			//std::cout << "lower:" << l << " upper: " << u << "\n";
+			//Rcpp::Rcout << "lower:" << l << " upper: " << u << "\n";
 			lowerLim.push_back(l);
 			upperLim.push_back(u);
 			if(initAdaptive && attr.hasLowerBound() && attr.hasUpperBound())
@@ -347,7 +347,7 @@ public:
 				double trate = .234;
 				if(contVars.size()==1)
 					trate = .44;
-				//std::cout <<"acc. rate: " << arate << " delta: " << delta[lastContIndex] <<"\n";
+				//Rcpp::Rcout <<"acc. rate: " << arate << " delta: " << delta[lastContIndex] <<"\n";
 				if(arate > trate)
 					delta[lastContIndex] *= 1.2;
 				else
@@ -407,7 +407,7 @@ public:
 				newVal = newVal - (upperLim[index] - lowerLim[index]);
 			while(newVal < lowerLim[index])
 				newVal = newVal + (upperLim[index] - lowerLim[index]);
-			//std::cout<< "index: " << upperLim[index] << " old value:" << curVal << " propose: " << newVal << "\n";
+			//Rcpp::Rcout<< "index: " << upperLim[index] << " old value:" << curVal << " propose: " << newVal << "\n";
 			disToggle.clear();
 			contToggle.clear();
 			contToggle.push_back( std::make_pair(vertex,std::make_pair(varInd,newVal)) );

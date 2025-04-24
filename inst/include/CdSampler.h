@@ -96,7 +96,7 @@ public:
 		}catch(...){
 			ss = 20;
 		}
-		std::cout << ss;
+		Rcpp::Rcout << ss;
 	}
 
 	DefaultCd( BinaryNet<Engine> & network){
