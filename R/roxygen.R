@@ -83,8 +83,8 @@ NULL
 #'
 #' @name UndirectedNet-class
 #' @docType class
-#' @exportClass UndirectedNet
-#' @aliases Rcpp_UndirectedNet
+#' @exportClass Rcpp_UndirectedNet
+#' @aliases UndirectedNet
 NULL
 
 
