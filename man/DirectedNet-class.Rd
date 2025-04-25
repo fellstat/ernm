@@ -3,6 +3,7 @@
 \docType{class}
 \name{DirectedNet-class}
 \alias{DirectedNet-class}
+\alias{DirectedNet}
 \title{DirectedNet Class}
 \description{
 An S4 (old-style) class representing a directed network.
