@@ -10,6 +10,7 @@ test_that("Stats", {
     # Setup
     # ================
     set.seed(1)
+    N = 100
     # make 1 100 node network with some variables:
     add_treated_neighs <- function(net,treatment_var){
         tmp <- as.numeric(get.vertex.attribute(net,treatment_var))
@@ -19,11 +20,14 @@ test_that("Stats", {
     }
     
     make_net <- function(...){
-        tmp <- matrix(rnorm(10000)>2,nrow = 100)
+        tmp <- matrix(rnorm(10000)>2,nrow = N)
         net <- as.network(tmp,directed =F)
-        set.vertex.attribute(net,"var_1",as.character(apply(rmultinom(100,1,rep(1/3,3)),2,FUN = function(x){which(x==1)})))
-        set.vertex.attribute(net,"var_2",as.character(apply(rmultinom(100,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
-        set.vertex.attribute(net,"var_3",as.character(apply(rmultinom(100,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
+        set.vertex.attribute(net,"var_1",as.character(apply(rmultinom(N,1,rep(1/3,3)),2,FUN = function(x){which(x==1)})))
+        set.vertex.attribute(net,"var_2",as.character(apply(rmultinom(N,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
+        set.vertex.attribute(net,"var_3",as.character(apply(rmultinom(N,1,rep(1/2,2)),2,FUN = function(x){which(x==1)})))
+        set.vertex.attribute(net,"var_4",rnorm(N))
+        set.vertex.attribute(net,"var_5",rnorm(N))
+        set.vertex.attribute(net,"var_6",rnorm(N))
         summary(as.factor(get.vertex.attribute(net,"var_1")))
         
         net <- add_treated_neighs(net,"var_1")
@@ -444,5 +448,205 @@ test_that("Stats", {
     testthat::expect_true(hamming_test_5)
     testthat::expect_true(hamming_test_6)
     testthat::expect_true(hamming_test_7)
+    
+    # ========================
+    # gaussRegression
+    # ========================
+    # Show 1) Linear regression Y ~ X gives the same results as ernm(net ~ GaussRegression(Y,X) | Y)
+    y = (net %v% "var_4")
+    X = (net %v% "var_5")
+    
+    r_stat_1 <- sum(y**2)
+    r_stat_2 <- sum(y*X)
+    
+    cpp_stat_1 <- as.numeric(ernm::calculateStatistics(net ~ gaussRegression("var_4","var_5") | var_4))
+    cpp_stat_2 <- cpp_stat_1[3]
+    cpp_stat_1 <- cpp_stat_1[2]
+    regression_test_1 <- abs(r_stat_1 - cpp_stat_1) <= 10**-10
+    regression_test_2 <- abs(r_stat_2 - cpp_stat_2) <= 10**-10
+
+    # Check the continVarUpdate function works change first y = 10
+    k = 10
+    r_stat_3 <- sum(y*X) - y[k]*X[k] + 1*X[k]
+    r_stat_4 <- sum(y**2) - y[k]**2 + 1**2
+    r_stat_5 <- sum(y*X) - y[k]*X[k] + y[k]*1
+    
+    model <- ernm(net ~ gaussRegression("var_4","var_5") | var_4,
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
+    model$continVertexUpdate(k, "var_4",1)
+    
+    regression_test_3 <- (abs(r_stat_3 - model$statistics()[3]) <= 10**-10)
+    regression_test_4 <- (abs(r_stat_4 - model$statistics()[2]) <= 10**-10)
+    
+    model$calculate()
+    model$continVertexUpdate(k, "var_5",1)
+    regression_test_5 <- (abs(r_stat_5 - model$statistics()[3]) <= 10**-10)
+    
+    # Check multiregression works:
+    model <- ernm(net ~ gaussRegression("var_4",c("var_5","var_6")) | var_4,
+                  tapered = FALSE,
+                  maxIter = 2,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  verbose = FALSE)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
+    
+    testthat::expect_true(regression_test_1)
+    testthat::expect_true(regression_test_2)
+    testthat::expect_true(regression_test_3)
+    testthat::expect_true(regression_test_4)
+    testthat::expect_true(regression_test_5)
+    
+    # ========================
+    # regressNeighbors
+    # ========================
+    # Test : 
+    # - Change in Y var
+    # - Change in X var
+    # - dyad update off
+    # - dyad update on
+    k <- 10
+    neighs <- get.neighborhood(net,k)
+    Y <- (net %v% "var_4")
+    X <- (net %v% "var_5")
+    r_stat_1 <- sum(sapply(1:(net %n% 'n'), function(i){
+        neighs <- get.neighborhood(net,i)
+        sum(Y[i]*X[neighs])
+        }
+    ))
+    
+    model <- ernm(net ~ regressNeighbors("var_4","var_5") | var_4,
+                  tapered = FALSE,
+                  maxIter = 10,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  nodeSamplingPercentage = 1,
+                  verbose = FALSE)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
+    regress_neigh_test_1 <- (abs(r_stat_1 -  model$statistics()) <= 10**-10)
+    
+    k = 10
+    r_stat_2 <- sum(sapply(1:(net %n% 'n'), function(i){
+        neighs <- get.neighborhood(net,i)
+        if(i==k){
+            sum(10*X[neighs])
+        }else{
+            sum(Y[i]*X[neighs])
+        }
+    }))
+    
+    X_tmp <- X
+    X_tmp[k] <- 10
+    r_stat_3 <- sum(sapply(1:(net %n% 'n'), function(i){
+        neighs <- get.neighborhood(net,i)
+        sum(Y[i]*X_tmp[neighs])
+    }))
+    
+    neighs <- get.neighborhood(net,k)
+    delete.edges(net,get.edgeIDs(net,k,neighs[1]))
+    old_neighs <- neighs
+    neighs <- get.neighborhood(net,k)
+    r_stat_4 <- sum(sapply(1:(net %n% 'n'), function(i){
+        neighs <- get.neighborhood(net,i)
+        sum(Y[i]*X[neighs])
+    }))
+    add.edges(net,k,old_neighs[1])
+    neighs_4 <- old_neighs
+    
+    neighs <- get.neighborhood(net,k)
+    add.edges(net,k,(1:N)[-c(neighs,k)][1])
+    old_neighs <- neighs
+    neighs <- get.neighborhood(net,k)
+    r_stat_5 <- sum(sapply(1:(net %n% 'n'), function(i){
+        neighs <- get.neighborhood(net,i)
+        sum(Y[i]*X[neighs])
+    }))
+    delete.edges(net,get.edgeIDs(net,k,(1:N)[-c(old_neighs,k)][1]))
+    neighs_5 <- old_neighs
+    
+    
+    model$continVertexUpdate(k, "var_4",10)
+    regress_neigh_test_2 <- (abs(r_stat_2 -  model$statistics()) <= 10**-10)
+    model$calculate()
+    model$continVertexUpdate(k, "var_5",10)
+    regress_neigh_test_3 <- (abs(r_stat_3 -  model$statistics()) <= 10**-10)
+    model$calculate()
+    model$dyadUpdate(k,neighs_4[1])
+    regress_neigh_test_4 <- (abs(r_stat_4 -  model$statistics()) <= 10**-10)
+    model$calculate()
+    model$dyadUpdate(k,(1:N)[-c(neighs_5,k)][1])
+    regress_neigh_test_5 <- (abs(r_stat_5 -  model$statistics()) <= 10**-10)
+    
+    
+    testthat::expect_true(regress_neigh_test_1)
+    testthat::expect_true(regress_neigh_test_2)
+    testthat::expect_true(regress_neigh_test_3)
+    testthat::expect_true(regress_neigh_test_4)
+    testthat::expect_true(regress_neigh_test_5)
+    
+    # ========================
+    # absDiff
+    # ========================
+    # Test : 
+    # - Change in Y var
+    # - dyad update off
+    # - dyad update on
+    k <- 10
+    Y <- (net %v% "var_4")
+    tmp <- as.edgelist(net)
+    r_stat_1 <- sum(abs(Y[tmp[,1]] - Y[tmp[,2]]))
+    
+    model <- ernm(net ~ absDiff("var_4") | var_4,
+                  tapered = FALSE,
+                  maxIter = 10,
+                  mcmcBurnIn = 100,
+                  mcmcInterval = 10,
+                  mcmcSampleSize = 100,
+                  nodeSamplingPercentage = 1,
+                  verbose = FALSE)
+    model <- model$m$sampler$getModel()
+    model$setNetwork(ernm::as.BinaryNet(net))
+    model$calculate()
+    model$statistics()
+    absDiff_test_1 <- (abs(r_stat_1 -  model$statistics()) <= 10**-10)
+    
+    neighs <- get.neighborhood(net,k)
+    r_stat_2 <- r_stat_1 - abs(Y[k] - Y[neighs[1]])
+    neighs_2 <- neighs
+    
+    neighs <- get.neighborhood(net,k)
+    r_stat_3 <- r_stat_1 + abs(Y[k] - Y[(1:N)[-c(neighs,k)][1]])
+    neighs_3 <- neighs
+    
+    model$calculate()
+    model$statistics()
+    model$dyadUpdate(k,neighs_2[1])
+    model$statistics()
+    absDiff_test_2 <- (abs(r_stat_2 -  model$statistics()) <= 10**-10)
+    model$calculate()
+    model$dyadUpdate(k,(1:N)[-c(neighs_3,k)][1])
+    absDiff_test_3 <- (abs(r_stat_3 -  model$statistics()) <= 10**-10)
+    
+    
+    testthat::expect_true(absDiff_test_1)
+    testthat::expect_true(absDiff_test_2)
+    testthat::expect_true(absDiff_test_3)
 }
 )
