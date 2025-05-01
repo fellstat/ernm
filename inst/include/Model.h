@@ -506,13 +506,13 @@ public:
 		}
 	}
     
-    void dyadUpdateR(int from, int to){
-        if(from > net->size() || to > net->size())
-            ::Rf_error("one of the vertex indices in the dyad update is bigger than the size of the network");
-        if(from <1 || to <1)
-            ::Rf_error("one of the vertex indices in the dyad update is less than or equal to 0");
-        this->dyadUpdate((from-1),(to-1));
-    }
+  void dyadUpdateR(int from, int to){
+      if(from > net->size() || to > net->size())
+          ::Rf_error("one of the vertex indices in the dyad update is bigger than the size of the network");
+      if(from <1 || to <1)
+          ::Rf_error("one of the vertex indices in the dyad update is less than or equal to 0");
+      this->dyadUpdate((from-1),(to-1));
+  }
 
 	void discreteVertexUpdate(int vertex, int variable, int newValue){
 		for(int k=0;k<stats.size();k++)
@@ -585,6 +585,52 @@ public:
 	void setNetwork(const boost::shared_ptr< BinaryNet<Engine> > network){
 		net = network;
 	}
+  
+  // Return changeStats to R level
+  Rcpp::NumericMatrix computeChangeStatsR(const Rcpp::IntegerVector& heads,
+                                          const Rcpp::IntegerVector& tails) {
+    // 1) check lengths
+    size_t n = heads.size();
+    if (n != tails.size()) {
+      Rcpp::stop("Heads and tails vectors must have the same length.");
+    }
+    
+    // 2) get the “baseline” stats once
+    std::vector<double> oldStats = this->statistics();
+    size_t numStats = oldStats.size();
+    
+    // 3) prepare output matrix: rows = dyads, cols = stats
+    Rcpp::NumericMatrix changeStats(n, numStats);
+    
+    
+    // 4) loop over each dyad
+    for (size_t i = 0; i < n; ++i) {
+      if(tails[i] ==  heads[i]){
+        Rcpp::Rcout<<"Self loop at index " << i << ": tails[" << i 
+                   << "] = " << tails[i] 
+                   << ", heads[" << i << "] = " << heads[i] << "\n";
+        Rcpp::stop("Self loops are not allowed. Tails and heads must be different.");
+      }
+      
+      // perform the update
+      this->dyadUpdate(tails[i] - 1, heads[i] - 1);
+      this->network()->toggle(tails[i] - 1, heads[i] - 1);
+      
+
+      // collect new stats
+      std::vector<double> newStats = this->statistics();
+      for (size_t j = 0; j < numStats; ++j) {
+        changeStats(i, j) = newStats[j] - oldStats[j];
+      }
+      
+      
+      // revert the update
+      this->dyadUpdate(tails[i] - 1, heads[i] - 1);
+      this->network()->toggle(tails[i] - 1, heads[i] - 1);
+    }
+    
+    return changeStats;
+  }
 
 };
 

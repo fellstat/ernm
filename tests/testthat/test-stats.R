@@ -436,7 +436,7 @@ test_that("Stats", {
     hamming_test_6 <- (r_stat_3 == cpp_stat_3)
     hamming_test_7 <- (r_stat_4 == cpp_stat_4)
     hamming_test_7 <- (r_stat_5 == cpp_stat_5)
-
+    
     testthat::expect_true(hamming_test_1)
     testthat::expect_true(hamming_test_2)
     testthat::expect_true(hamming_test_3)
@@ -444,5 +444,71 @@ test_that("Stats", {
     testthat::expect_true(hamming_test_5)
     testthat::expect_true(hamming_test_6)
     testthat::expect_true(hamming_test_7)
-}
-)
+    
+    # ================
+    # Geometrically‐Weighted ESP
+    # ================
+    decay <- 0.5
+    fixed <- TRUE
+    
+    # 1) raw R statistic
+    r_stat_gwesp <- as.numeric(
+      ernm::calculateStatistics(net ~ gwesp(decay, fixed = fixed))
+    )
+    
+    # 2) C++‐computed base statistic
+    model_gwesp <- ernm(
+      net ~ gwesp(decay, fixed = fixed),
+      tapered    = FALSE,
+      maxIter    = 2,
+      mcmcBurnIn = 100,
+      mcmcInterval   = 10,
+      mcmcSampleSize = 100,
+      verbose    = FALSE
+    )
+    cpp_model <- model_gwesp$m$sampler$getModel()
+    cpp_model$setNetwork(ernm::as.BinaryNet(net))
+    cpp_model$calculate()
+    cpp_stat_gwesp <- cpp_model$statistics()
+    
+
+    
+    # 3) now test individual dyad‐toggles
+    # pick a handful of dyads (both present and missing)
+    dyads <- rbind(
+      c(1,  2),  # likely missing
+      c(2,  3),  # maybe present
+      c(10, 20), # etc.
+      c(5,  6),
+      c(50, 51)
+    )
+    deltas <- c()
+    for (k in seq_len(nrow(dyads))) {
+      i <- dyads[k,1]
+      j <- dyads[k,2]
+      
+      # manual R change
+      net2 <- net
+      if (net2[i,j] == 1) {
+        delete.edges(net2, get.edgeIDs(net2, i, j))
+      } else {
+        add.edges(net2, i, j)
+      }
+      r_stat2 <- as.numeric(
+        ernm::calculateStatistics(net2 ~ gwesp(decay, fixed = fixed))
+      )
+      delta_r <- r_stat2 - r_stat_gwesp
+      
+      # C++ change
+      cpp_model$calculate()           # reset to base
+      base_cpp <- cpp_model$statistics()
+      cpp_model$dyadUpdate(i, j)
+      after_cpp <- cpp_model$statistics()
+      cpp_model$dyadUpdate(i, j)      # revert
+      delta_cpp <- after_cpp - base_cpp
+      deltas <- c(deltas,delta_r - delta_cpp)
+    }
+    
+    testthat::expect_equal(r_stat_gwesp, r_stat_gwesp)
+    testthat::expect_equal(sum(deltas)<10**(-6), TRUE)
+    
