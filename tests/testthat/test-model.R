@@ -59,6 +59,72 @@ test_that("models", {
                                             modelClass = 'TaperedModel'),
                            verbose = FALSE)
     
+    # Test bulk dyad updates vs single dyad updates
+    tails <- sample(1:network.size(samplike_undir), 100, replace = TRUE)
+    heads <- sample(1:network.size(samplike_undir), 100, replace = TRUE)
+    # make tails less than heads:
+    old_tails <- tails
+    tails <- pmin(tails, heads)
+    heads <- pmax(old_tails, heads)
+    drop <- which(tails == heads)
+    if(length(drop) > 0){
+      tails <- tails[-drop]
+      heads <- heads[-drop]
+    }
+    ERNM <- ernm(samplike_undir ~ edges + gwesp(0.5) + gwdegree(0.5) | group,
+                 tapered = FALSE,
+                 verbose = FALSE)
+    model <- ERNM$m$sampler$getModel()
+    t_3 <- proc.time()[3]
+    change_stats_1 <- mapply(tails,heads,FUN = function(tail, head) {
+      old <- model$statistics()
+      model$dyadUpdate(tail,head)
+      new <- model$statistics()
+      model$dyadUpdate(tail,head)
+      return(new-old)
+    },SIMPLIFY = F)
+    t_3 <- proc.time()[3] - t_3
+    
+    
+    t_4 <- proc.time()[3]
+    change_stats_2 <- model$computeChangeStats(tails, heads)
+    t_4 <- proc.time()[3] - t_4
+    
+    r_t <- microbenchmark::microbenchmark( 
+      change_stats_1 <- mapply(tails,heads,FUN = function(tail, head) {
+        old <- model$statistics()
+        model$dyadUpdate(tail,head)
+        new <- model$statistics()
+        model$dyadUpdate(tail,head)
+        return(new-old)
+    },SIMPLIFY = F),times = 100)
+    r_t
+    
+    cpp_t <- microbenchmark::microbenchmark(change_stats_2 <- model$computeChangeStats(tails, heads),
+                                   times = 100)
+    cpp_t
+    
+    
+    # do it repeadtly:
+    tmp <- model$computeChangeStats(rep(tails,each = 5), rep(heads,each =5))
+    change_stats_rep <- mapply(rep(tails,each=5),rep(heads,each=5),FUN = function(tail, head) {
+      old <- model$statistics()
+      model$dyadUpdate(tail,head)
+      new <- model$statistics()
+      model$dyadUpdate(tail,head)
+      return(new-old)
+    },SIMPLIFY = F)
+    change_stats_rep <- do.call(rbind,change_stats_rep)
+    cbind(tmp,change_stats_rep)
+    # GWESP SEEMS UNSTABLE but maybe not wrong?
+      
+    # test that all rows are the same:
+    bulk_change_stat_test <- sapply(1:length(tails),function(i){
+      all(change_stats_1[[i]] == change_stats_2[i,])
+    })
+    bulk_change_stat_test_1 <- all(bulk_change_stat_test)
+    bulk_change_stat_test_2 <- t_4<t_3
+    
     
     # All models should converge
     testthat::expect_true(ERGM$converged)
@@ -66,6 +132,7 @@ test_that("models", {
     testthat::expect_true(ERNM$converged)
     testthat::expect_true(ERNM_tapered_1$converged)
     testthat::expect_true(ERNM_tapered_2$converged)
+    testthat::expect_true(bulk_change_stat_test)
 }
 )
     

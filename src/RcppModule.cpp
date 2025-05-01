@@ -149,6 +149,7 @@ RCPP_MODULE(ernm){
 		.method("setRandomVariables",&Model<Undirected>::setRandomVariablesR)
 		.method("getRandomVariables",&Model<Undirected>::getRandomVariablesR)
         .method("dyadUpdate",&Model<Undirected>::dyadUpdateR)
+        .method("computeChangeStats",&Model<Undirected>::computeChangeStatsR)
         .method("discreteVertexUpdate",&Model<Undirected>::discreteVertexUpdateR)
         .method("continVertexUpdate",&Model<Undirected>::continVertexUpdateR)
 		;
@@ -169,6 +170,7 @@ RCPP_MODULE(ernm){
 		.method("setRandomVariables",&Model<Directed>::setRandomVariablesR)
 		.method("getRandomVariables",&Model<Directed>::getRandomVariablesR)
         .method("dyadUpdate",&Model<Directed>::dyadUpdateR)
+	      .method("computeChangeStats",&Model<Directed>::computeChangeStatsR)
         .method("discreteVertexUpdate",&Model<Directed>::discreteVertexUpdateR)
         .method("continVertexUpdate",&Model<Directed>::continVertexUpdateR)
 		;
