@@ -101,9 +101,8 @@ test_that("models", {
     r_t
     
     cpp_t <- microbenchmark::microbenchmark(change_stats_2 <- model$computeChangeStats(tails, heads),
-                                   times = 100)
+                                            times = 100)
     cpp_t
-    
     
     # do it repeadtly:
     tmp <- model$computeChangeStats(rep(tails,each = 5), rep(heads,each =5))
@@ -126,6 +125,7 @@ test_that("models", {
     bulk_change_stat_test_2 <- t_4<t_3
     
     
+    
     # All models should converge
     testthat::expect_true(ERGM$converged)
     testthat::expect_true(MRF$converged)
@@ -133,6 +133,8 @@ test_that("models", {
     testthat::expect_true(ERNM_tapered_1$converged)
     testthat::expect_true(ERNM_tapered_2$converged)
     testthat::expect_true(bulk_change_stat_test)
+    testthat::expect_true(bulk_change_stat_test_1)
+    testthat::expect_true(bulk_change_stat_test_2)
 }
 )
     
