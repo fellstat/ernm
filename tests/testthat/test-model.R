@@ -2,10 +2,9 @@
 context("model tests")
 
 library(testthat)
-library(ergm)
 library(network)
 library(ernm)
-data(sampson)
+data("samplike")
 
 test_that("models", {
     

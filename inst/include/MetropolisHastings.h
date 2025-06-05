@@ -149,7 +149,7 @@ public:
 	 */
 	SEXP getModelR(){
 		if(boost::shared_ptr< TaperedModel<Engine> > m = boost::dynamic_pointer_cast< TaperedModel<Engine> >(model)){
-			//std::cout << "here";
+			//Rcpp::Rcout << "here";
 			return wrap(*m);
 		}
 		return wrap(*model);
@@ -213,7 +213,7 @@ public:
 				}
 
 				double lr = model->vLogLik() - lastLik;
-				//std::cout << "lr:"<<lr<<"\n";
+				//Rcpp::Rcout << "lr:"<<lr<<"\n";
 				lr += dyadToggle->vLogRatio();
 				//cout << "v toggle lr:"<<dyadToggle.logRatio()<<"\n";
 				if(lr>log(Rf_runif(0.0,1.0))){
@@ -252,11 +252,11 @@ public:
 
 				std::vector<double> oldContValues = std::vector<double>(contToggles.size(),-1);
 				for(int j=0;j<contToggles.size();j++){
-					//std::cout << contToggles[j].second.first << " " << contToggles[j].first << "\n";
+					//Rcpp::Rcout << contToggles[j].second.first << " " << contToggles[j].first << "\n";
 					oldContValues[j] =model->network()->continVariableValue(
 											contToggles[j].second.first,
 											contToggles[j].first);
-					//std::cout << oldContValues[j] << " " << contToggles[j].second.second << "\n";
+					//Rcpp::Rcout << oldContValues[j] << " " << contToggles[j].second.second << "\n";
 					model->continVertexUpdate(
 							contToggles[j].first,
 							contToggles[j].second.first ,

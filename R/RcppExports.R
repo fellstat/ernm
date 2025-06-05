@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 .initStats <- function() {
-    invisible(.Call('_ernm_initStats', PACKAGE = 'ernm'))
+    invisible(.Call(`_ernm_initStats`))
 }
 
 .initToggles <- function() {
-    invisible(.Call('_ernm_initToggles', PACKAGE = 'ernm'))
+    invisible(.Call(`_ernm_initToggles`))
 }
 

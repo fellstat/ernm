@@ -819,7 +819,7 @@ public:
         // Check if edge is in the compareNet
         int is_in_net = net.hasEdge(from,to)?1:0;
         int is_in_compare_net = this->compareNet->hasEdge(from,to)?1:0;
-        this->stats[0] += (taper_param)*(is_in_compare_net == is_in_net)?1:(-1);
+        this->stats[0] += (taper_param)*((is_in_compare_net == is_in_net)?1:(-1));
         return;
     }
     
