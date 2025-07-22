@@ -63,6 +63,8 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 }
 
 # incase binary net from cpp gets passed
+#' @title Conversion to network object
+#' @name as.network.UndirectedNet
 #' @param x the object
 #' @param ... unused
 #' @return a undirected network object
@@ -72,6 +74,8 @@ as.network.UndirectedNet <- function(x, ...) {
 }
 
 # incase binary net from cpp gets passed
+#' @title Conversion to network object
+#' @name as.network.DirectedNet
 #' @param x the object
 #' @param ... unused
 #' @return a directed network object
