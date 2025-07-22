@@ -67,24 +67,3 @@ NULL
 #'
 NULL
 
-#' DirectedNet Class
-#'
-#' An S4 (old-style) class representing a directed network.
-#'
-#' @name DirectedNet-class
-#' @docType class
-#' @exportClass Rcpp_DirectedNet
-#' @aliases DirectedNet
-NULL
-
-#' UndirectedNet Class
-#'
-#' An S4 (old-style) class representing an undirected network.
-#'
-#' @name UndirectedNet-class
-#' @docType class
-#' @exportClass Rcpp_UndirectedNet
-#' @aliases UndirectedNet
-NULL
-
-

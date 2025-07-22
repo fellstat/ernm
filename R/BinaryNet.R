@@ -62,6 +62,24 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 	nw
 }
 
+# incase binary net from cpp gets passed
+#' @param x the object
+#' @param ... unused
+#' @return a undirected network object
+#' @export
+as.network.UndirectedNet <- function(x, ...) {
+  as.network.Rcpp_UndirectedNet(x, ...)
+}
+
+# incase binary net from cpp gets passed
+#' @param x the object
+#' @param ... unused
+#' @return a directed network object
+#' @export
+as.network.DirectedNet <- function(x, ...) {
+  as.network.Rcpp_DirectedNet(x, ...)
+}
+
 #' plot an Rcpp_UnirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
