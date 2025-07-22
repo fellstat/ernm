@@ -2,7 +2,7 @@
 % Please edit documentation in R/method_registration.R
 \name{register_rcpp_net_methods}
 \alias{register_rcpp_net_methods}
-\title{Register setter methods for Rcpp net objeccts}
+\title{Register setter methods for Rcpp net objects}
 \usage{
 register_rcpp_net_methods()
 }
