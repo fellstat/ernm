@@ -7,9 +7,6 @@
 #' @import moments
 NULL
 
-setOldClass("DirectedNet")
-setOldClass("UndirectedNet")
-
 .onLoad <- function(libname, pkgname){
     # Load the Rcpp module "ernm"
     Rcpp::loadModule("ernm", TRUE)
@@ -19,4 +16,5 @@ setOldClass("UndirectedNet")
     }
     .Call("_ernm_initStats")
     .Call("_ernm_initToggles")
+    register_rcpp_net_methods()
 }

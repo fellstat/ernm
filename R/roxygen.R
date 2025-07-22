@@ -74,7 +74,6 @@ NULL
 #' @name DirectedNet-class
 #' @docType class
 #' @exportClass Rcpp_DirectedNet
-#' @aliases DirectedNet
 NULL
 
 #' UndirectedNet Class
@@ -84,7 +83,5 @@ NULL
 #' @name UndirectedNet-class
 #' @docType class
 #' @exportClass Rcpp_UndirectedNet
-#' @aliases UndirectedNet
 NULL
-
 

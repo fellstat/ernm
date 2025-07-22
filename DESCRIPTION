@@ -1,8 +1,8 @@
 Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
-Version: 1.0.0
-Date: 2025-04-08
+Version: 1.0.1
+Date: 2025-07-22
 Authors@R: c(person(given = "Ian",
                     family = "Fellows",
                     role = c("aut")),
@@ -33,7 +33,7 @@ Suggests:
 LinkingTo: 
     BH,
     Rcpp
-Copyright: @ 2014-2025 Ian Fellows
+Copyright: 2014-2025 Ian Fellows
 Encoding: UTF-8
 Language: en-US
 LazyData: true
