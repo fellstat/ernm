@@ -2,7 +2,7 @@ Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
 Version: 1.0.1
-Date: 2025-7-22
+Date: 2025-07-22
 Authors@R: c(person(given = "Ian",
                     family = "Fellows",
                     role = c("aut")),
