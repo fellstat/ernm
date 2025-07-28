@@ -1,6 +1,6 @@
 
 
-#' convert and UndirectedNet to a network object
+#' Convert an Rcpp_UndirectedNet to a network object
 #' @param x the object
 #' @param ... unused
 #' @return a undirected network object
@@ -31,7 +31,7 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 	nw
 }
 
-#' convert and Rcpp_DirectedNet to a network object
+#' Convert and Rcpp_DirectedNet to a network object
 #' @param x the object
 #' @param ... unused
 #' @return a directed network object
@@ -62,7 +62,7 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 	nw
 }
 
-# incase binary net from cpp gets passed
+# Convert a UndirectedNet object to a network object
 #' @title Conversion to network object
 #' @name as.network.UndirectedNet
 #' @param x the object
@@ -73,7 +73,7 @@ as.network.UndirectedNet <- function(x, ...) {
   as.network.Rcpp_UndirectedNet(x, ...)
 }
 
-# incase binary net from cpp gets passed
+# Convert a DirectedNet object to a network object
 #' @title Conversion to network object
 #' @name as.network.DirectedNet
 #' @param x the object
@@ -84,7 +84,7 @@ as.network.DirectedNet <- function(x, ...) {
   as.network.Rcpp_DirectedNet(x, ...)
 }
 
-#' plot an Rcpp_UnirectedNet object
+#' Plot an Rcpp_UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
 #' @return No return value, invisibly NULL
@@ -95,7 +95,7 @@ plot.Rcpp_DirectedNet <- function(x,...){
 	plot(x,...)
 }
 
-#' plot an UndirectedNet object
+#' Plot an UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
 #' @return No return value, invisibly NULL
@@ -106,7 +106,7 @@ plot.Rcpp_UndirectedNet <- function(x,...){
 	plot(x,...)
 }
 
-#' convert and network to either an UndirectedNet or DirectedNet object
+#' Convert a network to either an UndirectedNet or DirectedNet object
 #' @param x the object
 #' @param ... unused
 #' @export

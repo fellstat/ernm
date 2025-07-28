@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{simulateStatistics}
 \alias{simulateStatistics}
-\title{simulate statistics}
+\title{Simulate statistics}
 \usage{
 simulateStatistics(
   formula,
@@ -39,5 +39,5 @@ simulateStatistics(
 a list of statistics
 }
 \description{
-simulate statistics
+Simulate statistics
 }

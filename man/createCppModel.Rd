@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{createCppModel}
 \alias{createCppModel}
-\title{creates a model}
+\title{Creates a model}
 \usage{
 createCppModel(
   formula,
@@ -27,5 +27,5 @@ createCppModel(
 a Model object
 }
 \description{
-creates a model
+Creates a model
 }

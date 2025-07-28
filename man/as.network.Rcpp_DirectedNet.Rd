@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryNet.R
 \name{as.network.Rcpp_DirectedNet}
 \alias{as.network.Rcpp_DirectedNet}
-\title{convert and Rcpp_DirectedNet to a network object}
+\title{Convert and Rcpp_DirectedNet to a network object}
 \usage{
 \method{as.network}{Rcpp_DirectedNet}(x, ...)
 }
@@ -15,5 +15,5 @@
 a directed network object
 }
 \description{
-convert and Rcpp_DirectedNet to a network object
+Convert and Rcpp_DirectedNet to a network object
 }
