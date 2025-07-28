@@ -54,6 +54,4 @@ A list containing goodness-of-fit plots and simulated statistics
 }
 \description{
 Goodness of fit plot for ERNM models, particularly suited for comparing models
-
-Goodness of fit plot for ERNM models, particularly suited for comparing models
 }
