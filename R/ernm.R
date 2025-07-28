@@ -11,7 +11,7 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 		return(list(name=name,type='discrete',levels=levels))
 }
 
-#' creates a model
+#' Creates a model
 #' @param formula the model formula
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param cloneNet should the network be cloned
@@ -168,7 +168,7 @@ createCppModel <- function(formula,
 	model
 }
 
-#' create a sampler
+#' Create a sampler
 #' @param formula the model formula
 #' @param modelArgs additiional arguments for the model, e.g. tapering parameters
 #' @param dyadArgs list of args for dyad
@@ -212,7 +212,7 @@ createCppSampler <- function(formula,
 
 
 
-#' simulate statistics
+#' Simulate statistics
 #' @param formula the model formula
 #' @param theta model parameters
 #' @param nodeSamplingPercentage how often the nodes should be toggled
@@ -246,7 +246,7 @@ calculateStatistics <- function(formula){
 }
 
 
-#' fits an ERNM model
+#' Fits an ERNM model
 #' @param formula model formula
 #' @param tapered should the model be tapered
 #' @param tapering_r the tapering parameter (tau = 1/(tapering_r^2 +5))
