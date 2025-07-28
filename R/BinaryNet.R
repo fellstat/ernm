@@ -84,7 +84,7 @@ as.network.DirectedNet <- function(x, ...) {
   as.network.Rcpp_DirectedNet(x, ...)
 }
 
-#' Plot an Rcpp_UnirectedNet object
+#' Plot an Rcpp_UndirectedNet object
 #' @param x the object
 #' @param ... additional parameters for plot.network
 #' @return No return value, invisibly NULL
