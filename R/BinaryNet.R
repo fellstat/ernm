@@ -63,6 +63,7 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 }
 
 # Convert a UndirectedNet object to a network object
+#' @title Conversion to network object
 #' @name as.network.UndirectedNet
 #' @param x the object
 #' @param ... unused
@@ -72,7 +73,7 @@ as.network.UndirectedNet <- function(x, ...) {
   as.network.Rcpp_UndirectedNet(x, ...)
 }
 
-# Convert a FirectedNet object to a network object
+# Convert a DirectedNet object to a network object
 #' @title Conversion to network object
 #' @name as.network.DirectedNet
 #' @param x the object

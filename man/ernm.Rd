@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{ernm}
 \alias{ernm}
-\title{fits an ERNM model}
+\title{Fits an ERNM model}
 \usage{
 ernm(
   formula,
@@ -42,5 +42,5 @@ ernm(
 a fitted model
 }
 \description{
-fits an ERNM model
+Fits an ERNM model
 }

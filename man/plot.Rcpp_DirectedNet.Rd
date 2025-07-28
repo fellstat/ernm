@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryNet.R
 \name{plot.Rcpp_DirectedNet}
 \alias{plot.Rcpp_DirectedNet}
-\title{plot an Rcpp_UnirectedNet object}
+\title{Plot an Rcpp_UnirectedNet object}
 \usage{
 \method{plot}{Rcpp_DirectedNet}(x, ...)
 }
@@ -15,5 +15,5 @@
 No return value, invisibly NULL
 }
 \description{
-plot an Rcpp_UnirectedNet object
+Plot an Rcpp_UnirectedNet object
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm-fit.R
 \name{ernmFit}
 \alias{ernmFit}
-\title{fit an ernm model}
+\title{Fit an ernm}
 \usage{
 ernmFit(
   sampler,
@@ -48,5 +48,5 @@ ernmFit(
 ernm object
 }
 \description{
-fit an ernm model
+Fit an ernm
 }

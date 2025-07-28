@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{createCppSampler}
 \alias{createCppSampler}
-\title{create a sampler}
+\title{Create a sampler}
 \usage{
 createCppSampler(
   formula,
@@ -42,5 +42,5 @@ createCppSampler(
 a MetropolisHastings object
 }
 \description{
-create a sampler
+Create a sampler
 }
