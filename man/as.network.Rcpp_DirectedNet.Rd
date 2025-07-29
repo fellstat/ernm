@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryNet.R
 \name{as.network.Rcpp_DirectedNet}
 \alias{as.network.Rcpp_DirectedNet}
-\title{Convert and Rcpp_DirectedNet to a network object}
+\title{Convert an Rcpp_DirectedNet to a network object}
 \usage{
 \method{as.network}{Rcpp_DirectedNet}(x, ...)
 }
@@ -15,5 +15,15 @@
 a directed network object
 }
 \description{
-Convert and Rcpp_DirectedNet to a network object
+Converts a native ernm network into a network object
+from the network package.
+}
+\examples{
+edge_list <- matrix(c(1,3),ncol=2)
+# create a network with an edge from 1 -> 3
+ernm_net <- new(DirectedNet,edge_list,5)
+
+# convert to a network object from the network package
+network_net <- as.network(net)
+network_net
 }

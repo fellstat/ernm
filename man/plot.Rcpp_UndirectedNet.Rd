@@ -17,3 +17,16 @@ No return value, invisibly NULL
 \description{
 Plot an UndirectedNet object
 }
+\examples{
+
+# create ring network with 5 vertices
+edge_list <- matrix(c(1,2,2,3,3,4,4,5,5,1),ncol=2, byrow=TRUE)
+ernm_net <- new(UndirectedNet,edge_list,5)
+
+# basic plot
+plot(ernm_net)
+
+# change vertex point size (see plot.network)
+plot(ernm_net, vertex.cex=.5)
+
+}
