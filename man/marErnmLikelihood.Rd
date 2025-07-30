@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods.R
 \name{marErnmLikelihood}
 \alias{marErnmLikelihood}
-\title{likelihood for an ernm with missing data}
+\title{Likelihood for an ernm with missing data}
 \usage{
 marErnmLikelihood(theta, sample, theta0, stats, minEss = 5, damping = 0.1)
 }
@@ -23,5 +23,9 @@ marErnmLikelihood(theta, sample, theta0, stats, minEss = 5, damping = 0.1)
 a list with value, gradient, and hessian
 }
 \description{
-likelihood for an ernm with missing data
+This function approximates the likelihood around a sample
+generated at parameters theta0. The likelihood is only
+"trusted" within a vicinity of theta0. The size of this
+vicinity is controlled by requiring a minimum effective
+sample size (minESS) at theta + (theta - tehta0) * damping.
 }

@@ -1,7 +1,8 @@
 
-#' creates an ERNM likelihood model
-#' @param observedSampler a sampler
-#' @param unobservedSampler a sampler conditional upon the observed values
+#' Creates an ERNM likelihood model with missing data
+#'
+#' @param observedSampler a C++ sampler
+#' @param unobservedSampler a C++ sampler conditional upon the observed values
 #' @param ... additional parameters for the log likelihood
 #' @export
 #' @return a MarModel object

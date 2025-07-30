@@ -19,7 +19,7 @@
 #' @return A list containing goodness-of-fit plots and simulated statistics
 #' @export
 #' @description Goodness of fit plot for ERNM models, particularly suited for comparing models
-#' @examplesif FALSE
+#' @examplesIf FALSE
 #' data(samplike)
 #' fit_basic <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 #' fit_tri <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + triangles() | group)
@@ -158,7 +158,7 @@ ernm_gof <- function(models,
       }
     }
   }
-
+  # TODO: the boxplot should preserve the statistic ordering. doing esp(1:10) yields alphabetic ordering.
   if(style == 'boxplot'){
     observed_data <- long_stats %>%
       filter(.data$model == "observed") %>%
@@ -201,6 +201,8 @@ ernm_gof <- function(models,
     }
     plots <- list(stat_plot)
   }
+
+  # TODO: This should return an "ErnmSummary" object which has a nice s3 print method.
 
   # Return the simulated statistics as a data frame
   return(list(stat = combined_stats,plots = plots))

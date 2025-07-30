@@ -377,7 +377,7 @@ calculateStatistics <- function(formula){
 #'
 #' # ALAAMs can be fit by specifying that edges are considered fixed using noDyad
 #' fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
-#' summafit3
+#' summary(fit3)
 #'
 #'
 #' @references

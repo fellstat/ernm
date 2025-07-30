@@ -1,6 +1,13 @@
 
 
-#' likelihood for a fully observed ernm
+#' Likelihood for a fully observed ernm
+#'
+#' This function approximates the likelihood around a sample
+#' generated at parameters theta0. The likelihood is only
+#' "trusted" within a vicinity of theta0. The size of this
+#' vicinity is controlled by requiring a minimum effective
+#' sample size (minESS) at theta + (theta - tehta0) * damping.
+#'
 #' @param theta parameters
 #' @param sample mcmc sample
 #' @param theta0 parameter values which generated sample
@@ -9,6 +16,7 @@
 #' @param damping a damping parameter
 #' @param method the method of partition function approximation to use
 #' @param order the order of the cumulant approximation
+#'
 #' @export
 #' @return a list with value, gradient, and hessian
 fullErnmLikelihood <- function(theta,
@@ -89,7 +97,13 @@ fullErnmLikelihood <- function(theta,
 }
 
 
-#' likelihood for an ernm with missing data
+#' Likelihood for an ernm with missing data
+#'
+#' This function approximates the likelihood around a sample
+#' generated at parameters theta0. The likelihood is only
+#' "trusted" within a vicinity of theta0. The size of this
+#' vicinity is controlled by requiring a minimum effective
+#' sample size (minESS) at theta + (theta - tehta0) * damping.
 #' @param theta parameters
 #' @param sample mcmc sample
 #' @param theta0 parameter values which generated sample
@@ -211,7 +225,13 @@ marErnmLikelihood <- function(theta,sample,theta0,stats,minEss=5, damping=.1){
 
 
 
-#' (E(g(X)) - g(x_o)^2 for TaperedModel
+#' Ernm likelihood for a TaperedModel
+#'
+#' This function approximates the likelihood around a sample
+#' generated at parameters theta0. The likelihood is only
+#' "trusted" within a vicinity of theta0. The size of this
+#' vicinity is controlled by requiring a minimum effective
+#' sample size (minESS) at theta + (theta - tehta0) * damping.
 #' @param theta parameters
 #' @param centers center of statistics
 #' @param tau tapering parameter

@@ -7,8 +7,11 @@
 #' @param expon A numeric value controlling the batch size; default is 0.5.
 #' @return A numeric value representing the estimated standard error.
 #' @export
+#' @examples
+#' x <-
+#'
 mcmcse <- function(x, expon=.5){
-	
+
 	n <- length(x)
 	b <- floor(n^expon)
 	a <- floor(n/b)
@@ -28,9 +31,9 @@ mcmcse <- function(x, expon=.5){
 #' @param x A numeric vector.
 #' @return A numeric value representing the effective sample size.
 #' @references
-#' Kass, R. E., Carlin, B. P., Gelman, A., & Neal, R. M. (1998). 
+#' Kass, R. E., Carlin, B. P., Gelman, A., & Neal, R. M. (1998).
 #' "Markov Chain Monte Carlo in Practice: A Roundtable Discussion."
-#' *The American Statistician*, 52(2), 93-100. 
+#' *The American Statistician*, 52(2), 93-100.
 #' DOI: \doi{10.2307/2685466}
 #' @export
 mcmcEss <- function(x){

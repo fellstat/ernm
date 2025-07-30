@@ -46,3 +46,33 @@ Goodness of fit in ERNM is done by comparing simulated networks from the ernm mo
 the observed network. If the observed network is typical of the simulated networks
 it is considered to be well fit.
 }
+\examples{
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+data(samplike)
+fit_basic <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
+fit_tri <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + triangles() | group)
+
+# how well is the triangle term fit?
+gof <- ernm_gof(
+  list(
+    basic = fit_basic,
+    with_triangles = fit_tri
+  ),
+  observed_network = samplike,
+  stats_formula = samplike ~ triangles(),
+  n_sim = 100
+)
+
+# look at the fit over all edgewise shared partners
+gof <- ernm_gof(
+  list(
+    basic = fit_basic,
+    with_triangles = fit_tri
+  ),
+  style="boxplot",
+  observed_network = samplike,
+  stats_formula = samplike ~ esp(1:10),
+  n_sim = 100
+)
+\dontshow{\}) # examplesIf}
+}

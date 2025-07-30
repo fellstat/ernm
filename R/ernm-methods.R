@@ -29,14 +29,14 @@ print.ernm <- function(x,...){
   }
 }
 
+# TODO: I've removed AIC/BIC from summary. summary should not have anything in it that takes significant time. We need to change the paper to reflect the different output.
 #' Summary for ernm object
 #' @param object object
 #' @param ... unused
-#' @param include_AIC whether to include AIC in the summary, will slow down
 #' @return a data frame summary of the model
 #' @export
 #' @method summary ernm
-summary.ernm <- function(object,include_AIC = TRUE,...){
+summary.ernm <- function(object, ...){
 
   theta <- object$theta
   cv <- solve(object$info)
@@ -45,37 +45,47 @@ summary.ernm <- function(object,include_AIC = TRUE,...){
   p.value <- 2*pnorm(abs(z),lower.tail=FALSE)
   d <- data.frame(theta,se,z,p.value)
   rownames(d) <- make.unique(names(theta))
+  d
+}
 
-  # Compute AIC and BIC with latest sample - no bridge sampling for now
-  # generate new bigger sample
-  if(include_AIC){
-    if(!is.null(object$m$missSamp)){
-      n_sim <- dim(object$sample$unconditional)[1]
-      samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)$unconditional
-    }else{
-      n_sim <- dim(object$sample)[1]
-      samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)
-    }
 
-    sample_calc <- apply(samples,1,function(x){sum(theta*x)})
-    max_term <- max(sample_calc)
-    const_approx <- log(mean(exp(sample_calc - max_term))) + max_term
-    logLik <- sum(theta*ernm::calculateStatistics(object$formula)) - const_approx
-    net <- eval(object$formula[[2]],envir=environment(object$formula))
-    n_verts <- net %n% 'n'
-    n_dyads <- n_verts*(n_verts-1)*(1 - 0.5*(!is.directed(net)))
-    BIC <- -2*logLik + length(theta)*log(n_verts*(length(object$m$randomVariables())!=0) + n_dyads*object$m$randomGraph())
-    AIC <- -2*logLik + 2*length(theta)
-    BIC <- round(BIC,2)
-    AIC <- round(AIC,2)
 
-    print(round(d,4))
-    cat(paste("\nBIC:",BIC,"AIC:",AIC, "(lower is better)\n"))
+#' MCMC approximate log-likelihood
+#'
+#' @param object an ernm object
+#' @param ... unused
+#' @export
+#' @method logLik ernm
+#' @examplesIf FALSE
+#' fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
+#' logLik(fit)
+#' AIC(fit)
+#' BIC(fit)
+#'
+logLik.ernm <- function(object, ...){
+  theta <- object$theta
+  # TODO: why are we generating these samples? Don't we get them for free in object$sample?
+  # If they are needed. MCMC options should be passed as parameters.
+  if(!is.null(object$m$missSamp)){
+    n_sim <- dim(object$sample$unconditional)[1]
+    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)$unconditional
+  }else{
+    n_sim <- dim(object$sample)[1]
+    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)
   }
 
-  # Return the data frame invisibly
-  invisible(d)
+  sample_calc <- apply(samples,1,function(x){sum(theta*x)})
+  max_term <- max(sample_calc)
+  const_approx <- log(mean(exp(sample_calc - max_term))) + max_term
+  logLik <- sum(theta*ernm::calculateStatistics(object$formula)) - const_approx # TODO: I don't think this is correct for a fit with missing data.
+  net <- as.BinaryNet(eval(object$formula[[2]],envir=environment(object$formula)))
+  n_verts <- net$size()
+  n_dyads <- n_verts*(n_verts-1)*(1 - 0.5*(!net$isDirected())) #
+  attr(logLik, "df") <- length(theta)
+  attr(logLik, "nobs") <- n_verts*(length(object$m$randomVariables())!=0) + n_dyads*object$m$randomGraph()
+  logLik
 }
+
 
 #' Parameter covariance matrix
 #' @param object object

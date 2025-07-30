@@ -17,3 +17,7 @@ A numeric value representing the estimated standard error.
 \description{
 Computes the MCMC standard error from a statistic vector using a batching method.
 }
+\examples{
+x <-
+
+}
