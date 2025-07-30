@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{calculateStatistics}
 \alias{calculateStatistics}
-\title{calculate model statistics from a formula}
+\title{Calculate network statistics}
 \usage{
 calculateStatistics(formula)
 }
@@ -10,8 +10,12 @@ calculateStatistics(formula)
 \item{formula}{An ernm formula}
 }
 \value{
-a list of statistics
+a named vector of statistics
 }
 \description{
-calculate model statistics from a formula
+Calculates all network statistics
+}
+\examples{
+data(samplike)
+calculateStatistics(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + homophily("group") + triangles())
 }
