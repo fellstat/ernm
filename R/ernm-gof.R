@@ -59,15 +59,20 @@ ernm_gof <- function(models,
   # Helper function to simulate networks and calculate statistics
   calculate_gof_stats <- function(model, name) {
     # Simulate networks
-    sims <- model$m$sampler$generateSample(burnin,interval,n_sim)
-    # Convert simulations to network objects and calculate statistics
-    stats <- lapply(sims, function(sim) {
+    calc <- function(sim) {
       new_formula <- update(stats_formula, sim ~ .)
       newenv <- new.env(parent = environment(stats_formula))
       assign("sim", sim, envir = newenv)
       environment(new_formula) <- newenv
       ernm::calculateStatistics(new_formula)
-    })
+    }
+    stats <- list()
+    # burn in
+    model$m$sampler$generateSample(burnin,0,1)
+    # run sims
+    for(i in seq_len(n_sim)){
+      stats[[i]] <- calc(model$m$sampler$generateSample(interval,0,1)[[1]])
+    }
 
     # Combine statistics into a data frame
     stats_df <- as.data.frame(do.call(rbind, stats))
