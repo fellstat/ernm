@@ -28,9 +28,9 @@ fullErnmLikelihood(
 
 \item{damping}{a damping parameter}
 
-\item{method}{cumulant generating function approximation}
+\item{method}{the method of partition function approximation to use}
 
-\item{order}{the ordering}
+\item{order}{the order of the cumulant approximation}
 }
 \value{
 a list with value, gradient, and hessian

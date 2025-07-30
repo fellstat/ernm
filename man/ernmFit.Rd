@@ -24,29 +24,33 @@ ernmFit(
 
 \item{theta0}{initial starting values}
 
-\item{mcmcBurnIn}{burn in}
+\item{mcmcBurnIn}{MCMC burn in}
 
-\item{mcmcInterval}{interval}
+\item{mcmcInterval}{MCMC interval}
 
-\item{mcmcSampleSize}{sample size}
+\item{mcmcSampleSize}{MCMC sample size}
 
-\item{minIter}{minimum number of iterations}
+\item{minIter}{minimum number of MCMC-MLE iterations}
 
-\item{maxIter}{maximum number of iterations}
+\item{maxIter}{maximum number of MCMC-MLE iterations}
 
-\item{objectiveTolerance}{convergance criteria on change in log likelihood ratio}
+\item{objectiveTolerance}{convergence criteria on change in log likelihood ratio}
 
-\item{gradTolerance}{convergance criteria on scaled gradient}
+\item{gradTolerance}{convergence criteria on scaled gradient}
 
-\item{meanStats}{if non-missing, these are the target statistics}
+\item{meanStats}{optional target statistics for the mean value parameters}
 
 \item{verbose}{level of verbosity 0, 1, or 2}
 
-\item{method}{the optimization method to use}
+\item{method}{the optimization method to use. "bounded" uses trust regions around the MCMC sample and is generally preferable. See Fellows (2012) for details.}
 }
 \value{
-ernm object
+an ernm object
 }
 \description{
-Fit an ernm
+This is a lower level MCMC-MLE fitting function for ERNM. Users should generally use
+the ernm() function instead.
+}
+\references{
+Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
 }

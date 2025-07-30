@@ -1,19 +1,25 @@
 
 #' Fit an ernm
+#'
+#' This is a lower level MCMC-MLE fitting function for ERNM. Users should generally use
+#' the ernm() function instead.
+#'
 #' @param sampler the ErnmModel
 #' @param theta0 initial starting values
-#' @param mcmcBurnIn burn in
-#' @param mcmcInterval interval
-#' @param mcmcSampleSize sample size
-#' @param minIter minimum number of iterations
-#' @param maxIter maximum number of iterations
-#' @param objectiveTolerance convergance criteria on change in log likelihood ratio
-#' @param gradTolerance convergance criteria on scaled gradient
-#' @param meanStats if non-missing, these are the target statistics
+#' @param mcmcBurnIn MCMC burn in
+#' @param mcmcInterval MCMC interval
+#' @param mcmcSampleSize MCMC sample size
+#' @param minIter minimum number of MCMC-MLE iterations
+#' @param maxIter maximum number of MCMC-MLE iterations
+#' @param objectiveTolerance convergence criteria on change in log likelihood ratio
+#' @param gradTolerance convergence criteria on scaled gradient
+#' @param meanStats optional target statistics for the mean value parameters
 #' @param verbose level of verbosity 0, 1, or 2
-#' @param method the optimization method to use
+#' @param method the optimization method to use. "bounded" uses trust regions around the MCMC sample and is generally preferable. See Fellows (2012) for details.
 #' @export
-#' @return ernm object
+#' @return an ernm object
+#' @references
+#' Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
 ernmFit <- function(sampler,
                     theta0,
                     mcmcBurnIn=10000,
@@ -32,25 +38,25 @@ ernmFit <- function(sampler,
 	if(!missing(meanStats))
 		stats <- meanStats
 	logLikelihoodFun <- sampler$logLikelihood
-	
+
 	if(!missing(theta0)){
 		sampler$setThetas(theta0)
 	}
 	theta0 <- sampler$thetas()
-	
+
 	iter<-1
 	converged <- FALSE
 	likHistory <- c()
 	gradHistory <- list()
 	trace <- list()
 	while(iter<maxIter){
-		sample <- sampler$generateSampleStatistics(mcmcBurnIn,mcmcInterval,mcmcSampleSize)	
+		sample <- sampler$generateSampleStatistics(mcmcBurnIn,mcmcInterval,mcmcSampleSize)
 		sampStats <- sapply(sampler$statistics(sample),function(x)colMeans(as.matrix(x)))
 		sampSd <- sapply(sampler$statistics(sample),function(x)apply(x,2,sd))
 		if(verbose>0){
 			cat("iteration:",iter,"\n")
 			cat("       parameters:\n")
-			print(theta0)			
+			print(theta0)
 			cat("sample statistics:\n")
 			cat("       means:\n")
 			sampStats <- t(sampStats)
@@ -58,7 +64,7 @@ ernmFit <- function(sampler,
 				sampStats <- rbind(sampStats,stats)
 				rownames(sampStats) <- c("simulated","observed")
 			}
-			print(sampStats)		
+			print(sampStats)
 			cat("       std:\n")
 			print(t(sampSd))
 		}
@@ -76,10 +82,10 @@ ernmFit <- function(sampler,
 		maxGrad <- max(abs(scaledGrad))
 		lastTheta <- theta0
 		if(method == "bounded"){
-			tty <- try(trustRes <- trust(objfun=logLikelihoodFun, 
+			tty <- try(trustRes <- trust(objfun=logLikelihoodFun,
 				parinit=theta0,
-				rinit=1, 
-				rmax=100, 
+				rinit=1,
+				rmax=100,
 				parscale=rep(1,length(theta0)), minimize=FALSE,
 				sample=sample,
 				theta0=theta0,
@@ -101,7 +107,7 @@ ernmFit <- function(sampler,
 		likHistory <- c(likHistory,llik)
 		gradHistory[[length(gradHistory) + 1]] <- scaledGrad
 		trace[[length(trace) + 1]] <- lastTheta
-		
+
 		sampler$setThetas(theta0)
 		if(iter>minIter && llik<objectiveTolerance && maxGrad<gradTolerance){
 			sampler$setThetas(lastTheta)
