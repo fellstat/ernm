@@ -63,7 +63,9 @@ ernm_gof <- function(models,
     # Convert simulations to network objects and calculate statistics
     stats <- lapply(sims, function(sim) {
       new_formula <- update(stats_formula, sim ~ .)
-      environment(new_formula) <- environment()
+      newenv <- new.env(parent = environment(stats_formula))
+      assign("sim", sim, envir = newenv)
+      environment(new_formula) <- newenv
       ernm::calculateStatistics(new_formula)
     })
 
@@ -86,7 +88,9 @@ ernm_gof <- function(models,
   # If observed network is provided, calculate observed statistics
   if (!is.null(observed_network)) {
     new_formula <- update(stats_formula, observed_network ~ .)
-    environment(new_formula) <- environment()
+    newenv <- new.env(parent = environment(stats_formula))
+    assign("observed_network", observed_network, envir = newenv)
+    environment(new_formula) <- newenv
     observed_stats <- ernm::calculateStatistics(new_formula)
     observed_stats <- as.data.frame(t(observed_stats))
     observed_stats$model <- "observed"
