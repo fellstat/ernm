@@ -222,10 +222,6 @@ NULL
 #' Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
 NULL
 
-# TODO: replace "@examplesIf FALSE" with something that will run everywhere except CRAN
-# TODO: Add a reference to this documentation in every @param statement that takes an ERNM formula
-# TODO: Check title formatting. are things like "Creates an ERNM likelihood model with missing data" allowed, or does it need to be "Creates an ERNM Likelihood Model with Missing Data"
-
 #' ERNM formula
 #' @name ernm-formula
 #' @docType methods
