@@ -12,7 +12,7 @@
 \item{...}{unused}
 }
 \value{
-a data frame summary of the model
+an ErnmSummary object
 }
 \description{
 Summary for ernm object

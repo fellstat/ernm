@@ -1,5 +1,5 @@
 
-#' MCMC Standard Error by Batch
+#' MCMC standard error by batch
 #'
 #' Computes the MCMC standard error from a statistic vector using a batching method.
 #'
@@ -24,7 +24,7 @@ mcmcse <- function(x, expon=.5){
 }
 
 
-#' MCMC Effective Sample Size
+#' MCMC effective sample size
 #'
 #' Computes the effective sample size from a statistic vector.
 #'
@@ -43,7 +43,7 @@ mcmcEss <- function(x){
 
 
 
-#' Create an ERNM Package Skeleton
+#' Create an ERNM package skeleton
 #'
 #' Creates a skeleton for a package extending the ernm package by copying an example package.
 #'

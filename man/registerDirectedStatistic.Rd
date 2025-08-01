@@ -5,7 +5,7 @@
 \alias{registerUndirectedStatistic}
 \alias{registerDirectedOffset}
 \alias{registerUndirectedOffset}
-\title{Register Statistics}
+\title{Register statistics}
 \usage{
 registerDirectedStatistic
 }
@@ -13,5 +13,5 @@ registerDirectedStatistic
 no return value
 }
 \description{
-Register Statistics
+Register statistics
 }

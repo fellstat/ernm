@@ -3,9 +3,9 @@
 \docType{methods}
 \name{ernm-formula}
 \alias{ernm-formula}
-\title{ERNM Formula}
+\title{ERNM formula}
 \description{
-ERNM Formula
+ERNM formula
 }
 \section{Formula}{
 

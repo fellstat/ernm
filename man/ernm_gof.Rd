@@ -21,7 +21,7 @@ ernm_gof(
 
 \item{observed_network}{the observed network}
 
-\item{stats_formula}{the formula for the statistics}
+\item{stats_formula}{the formula for the statistics (see \code{\link{ernm-formula}})}
 
 \item{style}{the style of the plot, either 'histogram' or 'boxplot'}
 

@@ -12,7 +12,7 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 }
 
 #' Creates a C++ representation of an ERNM model
-#' @param formula the model formula
+#' @param formula the model formula (see \code{\link{ernm-formula}})
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
@@ -186,7 +186,7 @@ createCppModel <- function(formula,
 }
 
 #' Create a C++ MCMC sampler
-#' @param formula the model formula
+#' @param formula the model formula (see \code{\link{ernm-formula}})
 #' @param modelArgs additional arguments for the model, e.g. tapering parameters
 #' @param dyadArgs list of args for dyad
 #' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
@@ -287,7 +287,7 @@ createCppSampler <- function(formula,
 #'
 #' Generates a MCMC chain for an ernm model and returns the sample statistics
 #'
-#' @param formula the model formula
+#' @param formula the model formula (see \code{\link{ernm-formula}})
 #' @param theta model parameters
 #' @param nodeSamplingPercentage how often the nodes should be toggled
 #' @param mcmcBurnIn burn in
@@ -325,7 +325,7 @@ simulateStatistics <- function(formula,
 #'
 #' Calculates all network statistics
 #'
-#' @param formula An ernm formula
+#' @param formula An ernm formula (see \code{\link{ernm-formula}})
 #' @export
 #' @return a named vector of statistics
 #' @examples
@@ -342,7 +342,7 @@ calculateStatistics <- function(formula){
 #' nodal covariates may be considered stochastic. Additionally, the function may be used to fit models where the nodal covariates
 #' are random, but the graph is fixed (i.e. ALAAMs )
 #'
-#' @param formula an ernm model formula
+#' @param formula an ernm model formula (see \code{\link{ernm-formula}})
 #' @param tapered should the model be tapered
 #' @param tapering_r the tapering parameter (tau = 1/(tapering_r^2 +5))
 #' @param modelArgs additional arguments for the model, e.g. tapering parameters that override the defaults

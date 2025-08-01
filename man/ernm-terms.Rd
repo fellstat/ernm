@@ -3,9 +3,9 @@
 \docType{methods}
 \name{ernm-terms}
 \alias{ernm-terms}
-\title{ERNM Model Terms}
+\title{ERNM model terms}
 \description{
-ERNM Model Terms
+ERNM model terms
 }
 \section{Statistic Descriptions}{
 

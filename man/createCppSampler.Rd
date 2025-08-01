@@ -18,7 +18,7 @@ createCppSampler(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
 \item{modelArgs}{additional arguments for the model, e.g. tapering parameters}
 

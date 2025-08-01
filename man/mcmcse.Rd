@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{mcmcse}
 \alias{mcmcse}
-\title{MCMC Standard Error by Batch}
+\title{MCMC standard error by batch}
 \usage{
 mcmcse(x, expon = 0.5)
 }

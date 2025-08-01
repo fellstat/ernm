@@ -7,7 +7,7 @@
 calculateStatistics(formula)
 }
 \arguments{
-\item{formula}{An ernm formula}
+\item{formula}{An ernm formula (see \code{\link{ernm-formula}})}
 }
 \value{
 a named vector of statistics

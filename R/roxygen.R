@@ -5,7 +5,7 @@
 #' @importFrom rlang .data
 NULL
 
-#' Register Statistics
+#' Register statistics
 #' @name registerDirectedStatistic
 #' @return no return value
 #' @aliases registerDirectedStatistic registerUndirectedStatistic
@@ -14,7 +14,7 @@ NULL
 #' @usage registerDirectedStatistic
 NULL
 
-#' Metropolis Samplers
+#' Metropolis samplers
 #' @name ErnmSamplers
 #' @docType class
 #' @aliases
@@ -51,7 +51,7 @@ NULL
 #' @aliases DirectedNet UndirectedNet Rcpp_DirectedNet-class Rcpp_UndirectedNet-class
 NULL
 
-#' Internal Symbols
+#' Internal symbols
 #' @name call-symbols
 #' @description Internal symbols used to access compiles code.
 #' @docType methods
@@ -67,7 +67,7 @@ NULL
 #'
 NULL
 
-#' DirectedNet Class
+#' DirectedNet class
 #'
 #' An S4 (old-style) class representing a directed network.
 #'
@@ -76,7 +76,7 @@ NULL
 #' @exportClass Rcpp_DirectedNet
 NULL
 
-#' UndirectedNet Class
+#' UndirectedNet class
 #'
 #' An S4 (old-style) class representing an undirected network.
 #'
@@ -86,7 +86,7 @@ NULL
 NULL
 
 
-#' ERNM Model Terms
+#' ERNM model terms
 #' @name ernm-terms
 #' @docType methods
 #' @section Statistic Descriptions:
@@ -226,7 +226,7 @@ NULL
 # TODO: Add a reference to this documentation in every @param statement that takes an ERNM formula
 # TODO: Check title formatting. are things like "Creates an ERNM likelihood model with missing data" allowed, or does it need to be "Creates an ERNM Likelihood Model with Missing Data"
 
-#' ERNM Formula
+#' ERNM formula
 #' @name ernm-formula
 #' @docType methods
 #' @section Formula:

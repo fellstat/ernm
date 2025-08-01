@@ -6,7 +6,7 @@
 #'
 #' @param models named list of ernm models to be to be compared (can be length 1
 #' @param observed_network the observed network
-#' @param stats_formula the formula for the statistics
+#' @param stats_formula the formula for the statistics (see \code{\link{ernm-formula}})
 #' @param style the style of the plot, either 'histogram' or 'boxplot'
 #' @param scales the scales of the plot, either 'fixed' or 'free'
 #' @param print whether to print the plot

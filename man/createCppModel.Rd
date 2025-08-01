@@ -13,7 +13,7 @@ createCppModel(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
 \item{ignoreMnar}{ignore missing not at random offsets}
 

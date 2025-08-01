@@ -7,7 +7,7 @@
 \alias{_ernm_initToggles}
 \alias{_ernm_initStats}
 \alias{initLatent}
-\title{Internal Symbols}
+\title{Internal symbols}
 \description{
 Internal symbols used to access compiles code.
 }

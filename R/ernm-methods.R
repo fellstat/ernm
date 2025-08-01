@@ -29,11 +29,10 @@ print.ernm <- function(x,...){
   }
 }
 
-# TODO: I've removed AIC/BIC from summary. summary should not have anything in it that takes significant time. We need to change the paper to reflect the different output.
 #' Summary for ernm object
 #' @param object object
 #' @param ... unused
-#' @return a data frame summary of the model
+#' @return an ErnmSummary object
 #' @export
 #' @method summary ernm
 summary.ernm <- function(object, ...){
@@ -45,9 +44,32 @@ summary.ernm <- function(object, ...){
   p.value <- 2*pnorm(abs(z),lower.tail=FALSE)
   d <- data.frame(theta,se,z,p.value)
   rownames(d) <- make.unique(names(theta))
+  if(!is.null(object$m$missSamp)){
+    criteria <- NULL
+  }else{
+    criteria <- data.frame(AIC=AIC(object), BIC=BIC(object))
+    rownames(criteria) <- ""
+    attr(d, "criteria") <- criteria
+  }
+  class(d) <- c("ErnmSummary", "data.frame")
   d
 }
 
+#' Print a ERNM summary object
+#' @param x the object
+#' @param ... parameters passed to print.data.frame
+#' @return x invisibly
+#' @export
+#' @method print ErnmSummary
+print.ErnmSummary <- function(x, ...){
+  print.data.frame(x, ...)
+  crit <- attr(x,"criteria")
+  if(!is.null(crit)){
+    cat("\nInformation Criteria:\n")
+    print(crit, ...)
+  }
+  invisible(x)
+}
 
 
 #' MCMC approximate log-likelihood
@@ -64,15 +86,19 @@ summary.ernm <- function(object, ...){
 #'
 logLik.ernm <- function(object, ...){
   theta <- object$theta
+  if(!is.null(object$m$missSamp)){
+    stop("Missing data models are not supported yet")
+  }
+  samples <- object$sample
   # TODO: why are we generating these samples? Don't we get them for free in object$sample?
   # If they are needed. MCMC options should be passed as parameters.
-  if(!is.null(object$m$missSamp)){
-    n_sim <- dim(object$sample$unconditional)[1]
-    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)$unconditional
-  }else{
-    n_sim <- dim(object$sample)[1]
-    samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)
-  }
+  #if(!is.null(object$m$missSamp)){
+  #  n_sim <- dim(object$sample$unconditional)[1]
+  #  samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)$unconditional
+  #}else{
+  #  n_sim <- dim(object$sample)[1]
+  #  samples <- object$m$generateSampleStatistics(10000,100,n_sim*10)
+  #}
 
   sample_calc <- apply(samples,1,function(x){sum(theta*x)})
   max_term <- max(sample_calc)

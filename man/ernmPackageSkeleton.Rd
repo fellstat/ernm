@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{ernmPackageSkeleton}
 \alias{ernmPackageSkeleton}
-\title{Create an ERNM Package Skeleton}
+\title{Create an ERNM package skeleton}
 \usage{
 ernmPackageSkeleton(path = ".")
 }

@@ -17,7 +17,7 @@ simulateStatistics(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
 \item{theta}{model parameters}
 

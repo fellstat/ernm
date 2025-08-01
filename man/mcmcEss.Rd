@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{mcmcEss}
 \alias{mcmcEss}
-\title{MCMC Effective Sample Size}
+\title{MCMC effective sample size}
 \usage{
 mcmcEss(x)
 }

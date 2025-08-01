@@ -18,7 +18,7 @@ ernm(
 )
 }
 \arguments{
-\item{formula}{an ernm model formula}
+\item{formula}{an ernm model formula (see \code{\link{ernm-formula}})}
 
 \item{tapered}{should the model be tapered}
 
