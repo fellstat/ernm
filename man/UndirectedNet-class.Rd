@@ -3,7 +3,7 @@
 \docType{class}
 \name{UndirectedNet-class}
 \alias{UndirectedNet-class}
-\title{UndirectedNet Class}
+\title{UndirectedNet class}
 \description{
 An S4 (old-style) class representing an undirected network.
 }

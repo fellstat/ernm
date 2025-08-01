@@ -1,5 +1,5 @@
 
-#' MCMC Standard Error by Batch
+#' MCMC standard error by batch
 #'
 #' Computes the MCMC standard error from a statistic vector using a batching method.
 #'
@@ -7,8 +7,11 @@
 #' @param expon A numeric value controlling the batch size; default is 0.5.
 #' @return A numeric value representing the estimated standard error.
 #' @export
+#' @examples
+#' x <-
+#'
 mcmcse <- function(x, expon=.5){
-	
+
 	n <- length(x)
 	b <- floor(n^expon)
 	a <- floor(n/b)
@@ -21,16 +24,16 @@ mcmcse <- function(x, expon=.5){
 }
 
 
-#' MCMC Effective Sample Size
+#' MCMC effective sample size
 #'
 #' Computes the effective sample size from a statistic vector.
 #'
 #' @param x A numeric vector.
 #' @return A numeric value representing the effective sample size.
 #' @references
-#' Kass, R. E., Carlin, B. P., Gelman, A., & Neal, R. M. (1998). 
+#' Kass, R. E., Carlin, B. P., Gelman, A., & Neal, R. M. (1998).
 #' "Markov Chain Monte Carlo in Practice: A Roundtable Discussion."
-#' *The American Statistician*, 52(2), 93-100. 
+#' *The American Statistician*, 52(2), 93-100.
 #' DOI: \doi{10.2307/2685466}
 #' @export
 mcmcEss <- function(x){
@@ -40,7 +43,7 @@ mcmcEss <- function(x){
 
 
 
-#' Create an ERNM Package Skeleton
+#' Create an ERNM package skeleton
 #'
 #' Creates a skeleton for a package extending the ernm package by copying an example package.
 #'

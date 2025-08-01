@@ -2,14 +2,14 @@
 % Please edit documentation in R/ernm-models.R
 \name{MissingErnmModel}
 \alias{MissingErnmModel}
-\title{creates an ERNM likelihood model}
+\title{Creates an ERNM likelihood model with missing data}
 \usage{
 MissingErnmModel(observedSampler, unobservedSampler, ...)
 }
 \arguments{
-\item{observedSampler}{a sampler}
+\item{observedSampler}{a C++ sampler}
 
-\item{unobservedSampler}{a sampler conditional upon the observed values}
+\item{unobservedSampler}{a C++ sampler conditional upon the observed values}
 
 \item{...}{additional parameters for the log likelihood}
 }
@@ -17,5 +17,5 @@ MissingErnmModel(observedSampler, unobservedSampler, ...)
 a MarModel object
 }
 \description{
-creates an ERNM likelihood model
+Creates an ERNM likelihood model with missing data
 }

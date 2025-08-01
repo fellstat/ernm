@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods.R
 \name{fullErnmLikelihood}
 \alias{fullErnmLikelihood}
-\title{likelihood for a fully observed ernm}
+\title{Likelihood for a fully observed ernm}
 \usage{
 fullErnmLikelihood(
   theta,
@@ -28,13 +28,17 @@ fullErnmLikelihood(
 
 \item{damping}{a damping parameter}
 
-\item{method}{cumulant generating function approximation}
+\item{method}{the method of partition function approximation to use}
 
-\item{order}{the ordering}
+\item{order}{the order of the cumulant approximation}
 }
 \value{
 a list with value, gradient, and hessian
 }
 \description{
-likelihood for a fully observed ernm
+This function approximates the likelihood around a sample
+generated at parameters theta0. The likelihood is only
+"trusted" within a vicinity of theta0. The size of this
+vicinity is controlled by requiring a minimum effective
+sample size (minESS) at theta + (theta - tehta0) * damping.
 }

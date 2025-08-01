@@ -17,7 +17,7 @@ simulateStatistics(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
 \item{theta}{model parameters}
 
@@ -31,13 +31,24 @@ simulateStatistics(
 
 \item{ignoreMnar}{ignore missing not at random offsets}
 
-\item{modelArgs}{additiional arguments for the model, e.g. tapering parameters}
+\item{modelArgs}{additional arguments for the model, e.g. tapering parameters}
 
 \item{...}{additional arguments to createCppSampler}
 }
 \value{
-a list of statistics
+a matrix of statistics
 }
 \description{
-Simulate statistics
+Generates a MCMC chain for an ernm model and returns the sample statistics
+}
+\examples{
+edge_list <- matrix(numeric(),ncol=2)
+net <- new(UndirectedNet,edge_list,5)
+net[["group"]] <- c("a","b","a","b","a")
+
+# generate sample statistics from a simple ernm model with positive homophily
+stats <- simulateStatistics(net ~ edges() + nodeCount("group") + homophily("group") | group,
+  theta = c(0,0,2),
+  mcmcBurnIn=10)
+colMeans(stats)
 }

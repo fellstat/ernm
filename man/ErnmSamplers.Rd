@@ -19,7 +19,7 @@
 \alias{DirectedGibbsCdSampler}
 \alias{UndirectedGibbsCdSampler2}
 \alias{DirectedGibbsCdSampler2}
-\title{Metropolis Samplers}
+\title{Metropolis samplers}
 \description{
-Metropolis Samplers
+Metropolis samplers
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryNet.R
 \name{plot.Rcpp_DirectedNet}
 \alias{plot.Rcpp_DirectedNet}
-\title{Plot an Rcpp_UndirectedNet object}
+\title{Plot an Rcpp_DirectedNet object}
 \usage{
 \method{plot}{Rcpp_DirectedNet}(x, ...)
 }
@@ -15,5 +15,18 @@
 No return value, invisibly NULL
 }
 \description{
-Plot an Rcpp_UnirectedNet object
+Plot an Rcpp_DirectedNet object
+}
+\examples{
+
+# create ring network with 5 vertices
+edge_list <- matrix(c(1,2,2,3,3,4,4,5,5,1),ncol=2, byrow=TRUE)
+ernm_net <- new(DirectedNet,edge_list,5)
+
+# basic plot
+plot(ernm_net)
+
+# change vertex point size (see plot.network)
+plot(ernm_net, vertex.cex=.5)
+
 }

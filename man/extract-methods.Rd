@@ -11,7 +11,7 @@
 \alias{[,Rcpp_UndirectedNet-method}
 \alias{[<-,Rcpp_DirectedNet-method}
 \alias{[<-,Rcpp_UndirectedNet-method}
-\title{Subsetting and assignment for Net objects}
+\title{Subsetting and assignment for ernm network objects}
 \usage{
 \S4method{[}{Rcpp_DirectedNet}(x, i, j, ..., maskMissing = TRUE, drop = TRUE)
 
@@ -22,11 +22,11 @@
 \S4method{[}{Rcpp_UndirectedNet}(x, i, j, ...) <- value
 }
 \arguments{
-\item{x}{A `DirectedNet` or `UndirectedNet` object.}
+\item{x}{an `Rcpp_DirectedNet` or `Rcpp_UndirectedNet` object.}
 
-\item{i, j}{Index vectors.}
+\item{i, j}{index vectors.}
 
-\item{...}{Currently unused.}
+\item{...}{currently unused.}
 
 \item{maskMissing}{Logical. Should missing values be masked by NA?}
 
@@ -38,5 +38,36 @@
 A modified object or extracted submatrix depending on the method.
 }
 \description{
-These methods allow standard subsetting (`[`) and assignment (`[<-`) for `DirectedNet` and `UndirectedNet` objects.
+These methods allow standard subsetting (`[`) and assignment (`[<-`) for `Rcpp_DirectedNet` and `Rcpp_UndirectedNet` objects.
+}
+\examples{
+
+# convert the Sampson's monks network into a native ernm network
+data(samplike)
+sampnet <- as.BinaryNet(samplike)
+sampnet
+
+# get the number of nodes and edges in the network
+sampnet$size()
+sampnet$nEdges()
+
+# Extract and assign vertex attributes
+sampnet[["group"]]
+sampnet[["newvar"]] <- rnorm(18)
+sampnet[["newvar"]]
+
+# get the edge matrix between the first 5 vertices
+sampnet[1:5,1:5]
+
+# add an edge 2 --> 3
+sampnet[2,3] <- TRUE
+
+# Make the dyad 4 --> 1 missing
+sampnet[4,1] <- NA
+sampnet[1:5,1:5]
+
+# get the in and out degrees for each vertex
+sampnet$inDegree(1:18)
+sampnet$outDegree(1:18)
+
 }

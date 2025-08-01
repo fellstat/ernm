@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{createCppModel}
 \alias{createCppModel}
-\title{Creates a model}
+\title{Creates a C++ representation of an ERNM model}
 \usage{
 createCppModel(
   formula,
@@ -13,7 +13,7 @@ createCppModel(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
 \item{ignoreMnar}{ignore missing not at random offsets}
 
@@ -21,11 +21,26 @@ createCppModel(
 
 \item{theta}{the model parameters.}
 
-\item{modelArgs}{additiional arguments for the model, e.g. tapering parameters}
+\item{modelArgs}{additional arguments for the model, e.g. tapering parameters}
 }
 \value{
 a Model object
 }
 \description{
-Creates a model
+Creates a C++ representation of an ERNM model
+}
+\examples{
+
+edge_list <- matrix(numeric(),ncol=2)
+net <- new(UndirectedNet,edge_list,5)
+
+rcpp_model <- createCppModel(net ~ edges(), theta = 0)
+
+rcpp_sampler <- new(UndirectedMetropolisHastings, rcpp_model)
+
+# Run MCMC to generate 30 networks with burnin=10 and an interval of 20 steps between each network
+networks <- rcpp_sampler$generateSample(10,20,30)
+
+sapply(networks, function(net) net$nEdges()) # number of edges in each network
+
 }

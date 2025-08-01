@@ -2,7 +2,7 @@
 % Please edit documentation in R/BinaryNet.R
 \name{as.BinaryNet}
 \alias{as.BinaryNet}
-\title{Convert a network to either an UndirectedNet or DirectedNet object}
+\title{Convert a network to either an Rcpp_UndirectedNet or Rcpp_DirectedNet object}
 \usage{
 as.BinaryNet(x, ...)
 }
@@ -12,8 +12,18 @@ as.BinaryNet(x, ...)
 \item{...}{unused}
 }
 \value{
-a BinaryNet object
+either an Rcpp_UndirectedNet or Rcpp_DirectedNet object
 }
 \description{
-Convert a network to either an UndirectedNet or DirectedNet object
+Convert a network to either an Rcpp_UndirectedNet or Rcpp_DirectedNet object
+}
+\examples{
+
+data(samplike)
+
+# convert Sampson's monks into a native ernm network
+net <- as.BinaryNet(samplike)
+net[["group"]]
+net[1:5,1:5]
+
 }

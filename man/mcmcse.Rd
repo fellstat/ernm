@@ -2,7 +2,7 @@
 % Please edit documentation in R/util.R
 \name{mcmcse}
 \alias{mcmcse}
-\title{MCMC Standard Error by Batch}
+\title{MCMC standard error by batch}
 \usage{
 mcmcse(x, expon = 0.5)
 }
@@ -16,4 +16,8 @@ A numeric value representing the estimated standard error.
 }
 \description{
 Computes the MCMC standard error from a statistic vector using a batching method.
+}
+\examples{
+x <-
+
 }

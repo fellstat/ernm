@@ -4,17 +4,15 @@
 \alias{summary.ernm}
 \title{Summary for ernm object}
 \usage{
-\method{summary}{ernm}(object, include_AIC = TRUE, ...)
+\method{summary}{ernm}(object, ...)
 }
 \arguments{
 \item{object}{object}
 
-\item{include_AIC}{whether to include AIC in the summary, will slow down}
-
 \item{...}{unused}
 }
 \value{
-a data frame summary of the model
+an ErnmSummary object
 }
 \description{
 Summary for ernm object

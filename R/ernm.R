@@ -11,14 +11,28 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 		return(list(name=name,type='discrete',levels=levels))
 }
 
-#' Creates a model
-#' @param formula the model formula
+#' Creates a C++ representation of an ERNM model
+#' @param formula the model formula (see \code{\link{ernm-formula}})
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param cloneNet should the network be cloned
 #' @param theta the model parameters.
-#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @param modelArgs additional arguments for the model, e.g. tapering parameters
 #' @export
 #' @return a Model object
+#' @examples
+#'
+#' edge_list <- matrix(numeric(),ncol=2)
+#' net <- new(UndirectedNet,edge_list,5)
+#'
+#' rcpp_model <- createCppModel(net ~ edges(), theta = 0)
+#'
+#' rcpp_sampler <- new(UndirectedMetropolisHastings, rcpp_model)
+#'
+#' # Run MCMC to generate 30 networks with burnin=10 and an interval of 20 steps between each network
+#' networks <- rcpp_sampler$generateSample(10,20,30)
+#'
+#' sapply(networks, function(net) net$nEdges()) # number of edges in each network
+#'
 createCppModel <- function(formula,
                            ignoreMnar=TRUE,
                            cloneNet=TRUE,
@@ -26,8 +40,11 @@ createCppModel <- function(formula,
                            modelArgs = list(modelClass='Model')){
 	form <- formula
 	env <- environment(form)
-	#delete the "na" vertex attribute used for node activity - since can be nuisance in CPP
-	net_raw <- network::delete.vertex.attribute(eval(form[[2]], envir = env), "na")
+	net_raw <- eval(form[[2]], envir = env)
+	if(network::is.network(net_raw)){
+	  # delete the "na" vertex attribute used for node activity - since can be nuisance in CPP
+	  net_raw <- network::delete.vertex.attribute(eval(form[[2]], envir = env), "na")
+	}
 	net <- as.BinaryNet(net_raw)
 	if(cloneNet)
 		net <- net$clone()
@@ -73,10 +90,10 @@ createCppModel <- function(formula,
 	clss <- class(net)
 	networkEngine <- substring(clss,6,nchar(clss)-3)
 	ModelType <- eval(parse(text=paste(networkEngine,modelArgs$modelClass,sep="")))
-	
+
 	model <- new(ModelType)
 	model$setNetwork(net)
-	
+
 	tmp <- form[[3]]
 	lastTerm <- FALSE
 	stats <- list()
@@ -93,7 +110,7 @@ createCppModel <- function(formula,
 			lastTerm <- TRUE
 			tmp
 		}
-		
+
 		name <- if(is.symbol(term)) as.character(term) else as.character(term[[1]])
 		args <- NULL
 		if(name=="offset" || name=="constraint"){
@@ -118,7 +135,7 @@ createCppModel <- function(formula,
 					args <- list()
 				}
 				offsets[[lo+1]] <- args
-				names(offsets)[lo+1] <- name		
+				names(offsets)[lo+1] <- name
 			}
 		}else{
 			if(length(term)>1){
@@ -168,19 +185,73 @@ createCppModel <- function(formula,
 	model
 }
 
-#' Create a sampler
-#' @param formula the model formula
-#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' Create a C++ MCMC sampler
+#' @param formula the model formula (see \code{\link{ernm-formula}})
+#' @param modelArgs additional arguments for the model, e.g. tapering parameters
 #' @param dyadArgs list of args for dyad
 #' @param dyadToggle the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.
-#' @param vertexToggle the method of vertex attribuate sampling to use.
+#' @param vertexToggle the method of vertex attribute sampling to use.
 #' @param vertexArgs list of args for vertex
 #' @param nodeSamplingPercentage how often the nodes should be toggled
 #' @param ignoreMnar ignore missing not at random offsets
 #' @param theta parameter values
 #' @param ... additional parameters to be passed to createCppModel
+#' @details
+#' Available dyad toggles are:
+#'
+#' 'RandomDyad' : chooses a dyad randomly to toggle
+#'
+#' 'TieDyad' : chooses a dyad randomly with probability .5 and a random edge with probability .5
+#'
+#' 'NodeTieDyad' : chooses a random vertex and then chooses an out dyad from that vertex with probability .5 and an out edge with probability .5
+#'
+#' 'Neighborhood' : The neighborhood proposal starts by choosing a random vertex (a) and then
+#' selecting two random neighbors (b and c) Then a random non-a neighbor of b is also selected
+#' (d). The neighborhood toggle selects the dyad b- for toggling with probability 50\% and the dyad d-c otherwise.
+#'
+#' 'Compound_NodeTieDyad_Neighborhood' : chooses 'NodeTieDyad' with probability .5 and 'Neighborhood' otherwise. This is the default proposal.
+#'
+#' 'Tetrad' : A toggle that preserves network degrees. This is useful when degrees are considered fixed.
+#'
+#' 'RandomMissingDyad' : RandomDyad, but restricted to missing dyads.
+#'
+#' 'NodeTieDyadMissing' : NodeTieDyad, but restricted to missing dyads.
+#'
+#' 'NeighborhoodMissing' : Neighborhood, but restricted to missing dyads.
+#'
+#' 'Compound_NodeTieDyadMissing_NeighborhoodMissing' : Compound_NodeTieDyad_Neighborhood, but restricted to missing dyads.
+#'
+#' Available vertex toggles are:
+#'
+#' 'DefaultVertex' : The default toggle.
+#'
+#' 'DefaultVertexMissing' : DefaultVertex, but restricted to missing values.
+#'
+#'
+#'
 #' @export
 #' @return a MetropolisHastings object
+#' @examples
+#'
+#' edge_list <- matrix(numeric(),ncol=2)
+#' net <- new(UndirectedNet,edge_list,5)
+#' net[["group"]] <- c("a","b","a","b","a")
+#'
+#' # create a simple ernm model sampler
+#' sampler <- createCppSampler(net ~ edges() + nodeCount("group") | group, theta = c(0,0))
+#'
+#' # generate network statistics for 10 networks with a burn in of 100 steps and 200 steps between them
+#' sampler$generateSampleStatistics(100,200,10)
+#'
+#' # generate a network a further 100 steps later
+#' sampler$generateSample(0,100,1)[[1]]
+#'
+#' # make a sampler using Tie-Dyad proposals for the graph
+#' td_sampler <- createCppSampler(net ~ edges() + nodeCount("group") | group,
+#'   theta = c(0,0),
+#'   dyadToggle = "TieDyad")
+#' td_sampler$generateSampleStatistics(100,200,10)
+#'
 createCppSampler <- function(formula,
                              modelArgs = list(modelClass='Model'),
                              dyadToggle = NULL,
@@ -198,7 +269,7 @@ createCppSampler <- function(formula,
 	                           ...)
 	net <- cppModel$getNetwork()
 	clss <- class(net)
-	networkEngine <- substring(clss,6,nchar(clss)-3)	
+	networkEngine <- substring(clss,6,nchar(clss)-3)
 	SamplerClass <- eval(parse(text=paste0(networkEngine,"MetropolisHastings")))
 	cppSampler <- new(SamplerClass)
 	cppSampler$setModel(cppModel)
@@ -213,19 +284,32 @@ createCppSampler <- function(formula,
 
 
 #' Simulate statistics
-#' @param formula the model formula
+#'
+#' Generates a MCMC chain for an ernm model and returns the sample statistics
+#'
+#' @param formula the model formula (see \code{\link{ernm-formula}})
 #' @param theta model parameters
 #' @param nodeSamplingPercentage how often the nodes should be toggled
 #' @param mcmcBurnIn burn in
 #' @param mcmcInterval interval
 #' @param mcmcSampleSize sample size
 #' @param ignoreMnar ignore missing not at random offsets
-#' @param modelArgs additiional arguments for the model, e.g. tapering parameters
+#' @param modelArgs additional arguments for the model, e.g. tapering parameters
 #' @param ... additional arguments to createCppSampler
 #' @export
-#' @return a list of statistics
+#' @return a matrix of statistics
+#' @examples
+#' edge_list <- matrix(numeric(),ncol=2)
+#' net <- new(UndirectedNet,edge_list,5)
+#' net[["group"]] <- c("a","b","a","b","a")
+#'
+#' # generate sample statistics from a simple ernm model with positive homophily
+#' stats <- simulateStatistics(net ~ edges() + nodeCount("group") + homophily("group") | group,
+#'   theta = c(0,0,2),
+#'   mcmcBurnIn=10)
+#' colMeans(stats)
 simulateStatistics <- function(formula,
-                               theta, 
+                               theta,
                                nodeSamplingPercentage=0.2,
                                mcmcBurnIn=10000,
                                mcmcInterval=100,
@@ -237,28 +321,68 @@ simulateStatistics <- function(formula,
 	s$generateSampleStatistics(mcmcBurnIn,mcmcInterval,mcmcSampleSize)
 }
 
-#'calculate model statistics from a formula
-#' @param formula An ernm formula
+#' Calculate network statistics
+#'
+#' Calculates all network statistics
+#'
+#' @param formula An ernm formula (see \code{\link{ernm-formula}})
 #' @export
-#' @return a list of statistics
+#' @return a named vector of statistics
+#' @examples
+#' data(samplike)
+#' calculateStatistics(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + homophily("group") + triangles())
 calculateStatistics <- function(formula){
 	createCppModel(formula,cloneNet=FALSE,ignoreMnar=FALSE)$statistics()
 }
 
 
 #' Fits an ERNM model
-#' @param formula model formula
+#'
+#' ernm() fits exponential family random network models, which is an extension of exponential family random graph models, where
+#' nodal covariates may be considered stochastic. Additionally, the function may be used to fit models where the nodal covariates
+#' are random, but the graph is fixed (i.e. ALAAMs )
+#'
+#' @param formula an ernm model formula (see \code{\link{ernm-formula}})
 #' @param tapered should the model be tapered
 #' @param tapering_r the tapering parameter (tau = 1/(tapering_r^2 +5))
-#' @param modelArgs additiional arguments for the model, e.g. tapering parameters that override the defaults
+#' @param modelArgs additional arguments for the model, e.g. tapering parameters that override the defaults
 #' @param nodeSamplingPercentage how often are nodal variates toggled
 #' @param modelType either FullErnmModel or MissingErnmModel if NULL will check for missingness
-#' @param likelihoodArgs additiional arguments for the ernmLikelihood
+#' @param likelihoodArgs additional arguments for the ernmLikelihood
 #' @param fullToggles a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations
 #' @param missingToggles a character vector of length 2 indicating the dyad and vertex toggle types for the conditional simulations
 #' @param ... additional parameters for ernmFit
 #' @export
 #' @return a fitted model
+#' @examplesIf FALSE
+#'
+#' data(samplike)
+#'
+#' # fit a tapered model to the samplike dataset where group is considered random
+#' fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
+#' summary(fit)
+#'
+#' # fit an untapered model. The homophily term is a degeneracy robust version
+#' # of nodeMatch, which should be used instead of nodeMatch when tapering is not
+#' # present. See Fellows (2012)
+#' fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
+#' summary(fit2)
+#'
+#' # standard ergms may be fit within ernm
+#' library(network)
+#' data(flo)
+#' flomarriage <- network(flo,directed=FALSE)
+#' fit_flo <- ernm(flomarriage ~ edges() + star(2) + triangles(), tapered=FALSE)
+#' summary(fit_flo)
+#'
+#' # ALAAMs can be fit by specifying that edges are considered fixed using noDyad
+#' fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
+#' summary(fit3)
+#'
+#'
+#' @references
+#' Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
+#'
 ernm <- function(formula,
                  tapered = TRUE,
                  tapering_r = 3,
@@ -276,7 +400,7 @@ ernm <- function(formula,
 	    if(is.null(modelArgs$tau)){
             tau <- 1 / (tapering_r^2 * (stats + 5))
             tau[stats<0] <- Inf
-            modelArgs$tau <- tau   
+            modelArgs$tau <- tau
 	    }
 	    if(is.null(modelArgs$centers)){
 	        modelArgs$centers <- stats
@@ -285,7 +409,7 @@ ernm <- function(formula,
 	}else{
 	    modelArgs$modelClass <- "Model"
 	}
-    
+
     # make the full sampler
     fullCppSampler <- createCppSampler(formula,
                                        dyadToggle=fullToggles[1],

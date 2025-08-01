@@ -2,7 +2,7 @@
 % Please edit documentation in R/ernm.R
 \name{createCppSampler}
 \alias{createCppSampler}
-\title{Create a sampler}
+\title{Create a C++ MCMC sampler}
 \usage{
 createCppSampler(
   formula,
@@ -18,15 +18,15 @@ createCppSampler(
 )
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the model formula (see \code{\link{ernm-formula}})}
 
-\item{modelArgs}{additiional arguments for the model, e.g. tapering parameters}
+\item{modelArgs}{additional arguments for the model, e.g. tapering parameters}
 
 \item{dyadToggle}{the method of sampling to use. Defaults to alternating between nodal-tie-dyad and neighborhood toggling.}
 
 \item{dyadArgs}{list of args for dyad}
 
-\item{vertexToggle}{the method of vertex attribuate sampling to use.}
+\item{vertexToggle}{the method of vertex attribute sampling to use.}
 
 \item{vertexArgs}{list of args for vertex}
 
@@ -42,5 +42,58 @@ createCppSampler(
 a MetropolisHastings object
 }
 \description{
-Create a sampler
+Create a C++ MCMC sampler
+}
+\details{
+Available dyad toggles are:
+
+'RandomDyad' : chooses a dyad randomly to toggle
+
+'TieDyad' : chooses a dyad randomly with probability .5 and a random edge with probability .5
+
+'NodeTieDyad' : chooses a random vertex and then chooses an out dyad from that vertex with probability .5 and an out edge with probability .5
+
+'Neighborhood' : The neighborhood proposal starts by choosing a random vertex (a) and then
+selecting two random neighbors (b and c) Then a random non-a neighbor of b is also selected
+(d). The neighborhood toggle selects the dyad b- for toggling with probability 50\% and the dyad d-c otherwise.
+
+'Compound_NodeTieDyad_Neighborhood' : chooses 'NodeTieDyad' with probability .5 and 'Neighborhood' otherwise. This is the default proposal.
+
+'Tetrad' : A toggle that preserves network degrees. This is useful when degrees are considered fixed.
+
+'RandomMissingDyad' : RandomDyad, but restricted to missing dyads.
+
+'NodeTieDyadMissing' : NodeTieDyad, but restricted to missing dyads.
+
+'NeighborhoodMissing' : Neighborhood, but restricted to missing dyads.
+
+'Compound_NodeTieDyadMissing_NeighborhoodMissing' : Compound_NodeTieDyad_Neighborhood, but restricted to missing dyads.
+
+Available vertex toggles are:
+
+'DefaultVertex' : The default toggle.
+
+'DefaultVertexMissing' : DefaultVertex, but restricted to missing values.
+}
+\examples{
+
+edge_list <- matrix(numeric(),ncol=2)
+net <- new(UndirectedNet,edge_list,5)
+net[["group"]] <- c("a","b","a","b","a")
+
+# create a simple ernm model sampler
+sampler <- createCppSampler(net ~ edges() + nodeCount("group") | group, theta = c(0,0))
+
+# generate network statistics for 10 networks with a burn in of 100 steps and 200 steps between them
+sampler$generateSampleStatistics(100,200,10)
+
+# generate a network a further 100 steps later
+sampler$generateSample(0,100,1)[[1]]
+
+# make a sampler using Tie-Dyad proposals for the graph
+td_sampler <- createCppSampler(net ~ edges() + nodeCount("group") | group,
+  theta = c(0,0),
+  dyadToggle = "TieDyad")
+td_sampler$generateSampleStatistics(100,200,10)
+
 }

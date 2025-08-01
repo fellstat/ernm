@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods.R
 \name{taperedErnmLikelihood}
 \alias{taperedErnmLikelihood}
-\title{(E(g(X)) - g(x_o)^2 for TaperedModel}
+\title{Ernm likelihood for a TaperedModel}
 \usage{
 taperedErnmLikelihood(
   theta,
@@ -36,5 +36,9 @@ taperedErnmLikelihood(
 a list with value, gradient, and hessian
 }
 \description{
-(E(g(X)) - g(x_o)^2 for TaperedModel
+This function approximates the likelihood around a sample
+generated at parameters theta0. The likelihood is only
+"trusted" within a vicinity of theta0. The size of this
+vicinity is controlled by requiring a minimum effective
+sample size (minESS) at theta + (theta - tehta0) * damping.
 }

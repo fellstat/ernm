@@ -12,8 +12,18 @@
 \item{...}{unused}
 }
 \value{
-a undirected network object
+an undirected network object
 }
 \description{
-Convert an Rcpp_UndirectedNet to a network object
+Converts a native ernm network into a network object
+from the network package.
+}
+\examples{
+edge_list <- matrix(c(1,3),ncol=2)
+# create a network with an edge from 1 -> 3
+ernm_net <- new(UndirectedNet,edge_list,5)
+
+# convert to a network object from the network package
+network_net <- as.network(net)
+network_net
 }

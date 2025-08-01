@@ -18,19 +18,19 @@ ernm(
 )
 }
 \arguments{
-\item{formula}{model formula}
+\item{formula}{an ernm model formula (see \code{\link{ernm-formula}})}
 
 \item{tapered}{should the model be tapered}
 
 \item{tapering_r}{the tapering parameter (tau = 1/(tapering_r^2 +5))}
 
-\item{modelArgs}{additiional arguments for the model, e.g. tapering parameters that override the defaults}
+\item{modelArgs}{additional arguments for the model, e.g. tapering parameters that override the defaults}
 
 \item{nodeSamplingPercentage}{how often are nodal variates toggled}
 
 \item{modelType}{either FullErnmModel or MissingErnmModel if NULL will check for missingness}
 
-\item{likelihoodArgs}{additiional arguments for the ernmLikelihood}
+\item{likelihoodArgs}{additional arguments for the ernmLikelihood}
 
 \item{fullToggles}{a character vector of length 2 indicating the dyad and vertex toggle types for the unconditional simulations}
 
@@ -42,5 +42,38 @@ ernm(
 a fitted model
 }
 \description{
-Fits an ERNM model
+ernm() fits exponential family random network models, which is an extension of exponential family random graph models, where
+nodal covariates may be considered stochastic. Additionally, the function may be used to fit models where the nodal covariates
+are random, but the graph is fixed (i.e. ALAAMs )
+}
+\examples{
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+
+data(samplike)
+
+# fit a tapered model to the samplike dataset where group is considered random
+fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
+summary(fit)
+
+# fit an untapered model. The homophily term is a degeneracy robust version
+# of nodeMatch, which should be used instead of nodeMatch when tapering is not
+# present. See Fellows (2012)
+fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
+summary(fit2)
+
+# standard ergms may be fit within ernm
+library(network)
+data(flo)
+flomarriage <- network(flo,directed=FALSE)
+fit_flo <- ernm(flomarriage ~ edges() + star(2) + triangles(), tapered=FALSE)
+summary(fit_flo)
+
+# ALAAMs can be fit by specifying that edges are considered fixed using noDyad
+fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
+summary(fit3)
+
+\dontshow{\}) # examplesIf}
+}
+\references{
+Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
 }
