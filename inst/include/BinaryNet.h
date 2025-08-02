@@ -1135,7 +1135,6 @@ public:
 	void addVertex(){
 		vertPtr pv(new VertType(size()+1));
 		pv->setId(verts.size());
-		//TODO: make vetex variable length match
 		verts.push_back(pv);
 		for(int i=0;i<size();i++){
 			verts[i]->setNetworkSize(size());
@@ -1149,7 +1148,6 @@ public:
 		refreshIds();
 		(*numEdges) -= pV->indegree();
 		(*numEdges) -= pV->outdegree();
-		//TODO: correct sets to reflect new ids
 		for(int i=0;i<size();i++){
 			verts[i]->setNetworkSize(size());
 		}
@@ -1159,7 +1157,6 @@ public:
 		std::vector<vertPtr> tmp = verts;
 		for(int i=0;i<verts.size();i++)
 			verts[i] = tmp[order[i]];
-		//TODO correct sets to reflect new ids
 	}
 
 	int size() const{
@@ -1661,7 +1658,6 @@ public:
 			std::vector<double> d(vec.size());
 			for(int i=0;i<size();i++){
 				if(R_IsNA(vec[i])){
-					d[i]=0.0; //TODO: this should be more intel.
 					missing[i] = true;
 				}else
 					d[i]=vec[i];
@@ -1806,7 +1802,6 @@ public:
 	void addVertex(){
 		vertPtr pv(new VertType(size()+1));
 		pv->setId(verts.size());
-		//TODO: make vetex variable length match
 		verts.push_back(pv);
 		for(int i=0;i<size();i++){
 			verts[i]->setNetworkSize(size());
@@ -1819,7 +1814,6 @@ public:
 		verts.erase(verts.begin() + pos);
 		refreshIds();
 		(*numEdges) -= pV->degree();
-		//TODO: correct sets to reflect new ids
 		for(int i=0;i<size();i++){
 			verts[i]->setNetworkSize(size());
 		}

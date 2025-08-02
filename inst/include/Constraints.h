@@ -241,7 +241,7 @@ typedef Constraint<Undirected, FixedDegree<Undirected> > UndirectedFixedDegreeCo
  * Restricted the sample space such that the vertex variables of a set of nodes
  * are kept constant.
  *
- * TODO:continuous variable toggleing not implemented
+ * Note: continuous variable toggleing not implemented
  */
 template<class Engine>
 class FixedNode : public BaseConstraint< Engine >{

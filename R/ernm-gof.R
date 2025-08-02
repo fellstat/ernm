@@ -161,7 +161,6 @@ ernm_gof <- function(models,
       }
     }
   }
-  # TODO: the boxplot should preserve the statistic ordering. doing esp(1:10) yields alphabetic ordering.
   if(style == 'boxplot'){
     observed_data <- long_stats %>%
       filter(.data$model == "observed") %>%
