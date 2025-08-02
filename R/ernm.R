@@ -330,7 +330,11 @@ simulateStatistics <- function(formula,
 #' @return a named vector of statistics
 #' @examples
 #' data(samplike)
-#' calculateStatistics(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + homophily("group") + triangles())
+#' calculateStatistics(samplike ~ edges() +
+#'  nodeCount("group") +
+#'  nodeMatch("group") +
+#'  homophily("group") +
+#'  triangles())
 calculateStatistics <- function(formula){
 	createCppModel(formula,cloneNet=FALSE,ignoreMnar=FALSE)$statistics()
 }

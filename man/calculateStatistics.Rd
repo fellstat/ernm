@@ -17,5 +17,9 @@ Calculates all network statistics
 }
 \examples{
 data(samplike)
-calculateStatistics(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + homophily("group") + triangles())
+calculateStatistics(samplike ~ edges() +
+ nodeCount("group") +
+ nodeMatch("group") +
+ homophily("group") +
+ triangles())
 }
