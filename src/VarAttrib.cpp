@@ -16,7 +16,6 @@ VarAttrib::VarAttrib() {
 }
 
 VarAttrib::~VarAttrib() {
-	// TODO Auto-generated destructor stub
 }
 
 bool VarAttrib::isDouble(){
@@ -46,7 +45,6 @@ DiscreteAttrib::DiscreteAttrib() {
 }
 
 DiscreteAttrib::~DiscreteAttrib() {
-	// TODO Auto-generated destructor stub
 }
 void DiscreteAttrib::setLabels(std::vector<std::string> l){
 	labs = l;
@@ -107,7 +105,6 @@ ContinAttrib::ContinAttrib() {
 }
 
 ContinAttrib::~ContinAttrib() {
-	// TODO Auto-generated destructor stub
 }
 
 bool ContinAttrib::hasLowerBound(){

@@ -754,7 +754,6 @@ public:
 			for(int j=0;j<net->discreteVarNames().size();j++){
 				if(net->discreteVariableObserved(j,i))
 					observed.at(i) = true;
-				//TODO: check continuous variables
 			}
 		}
 
@@ -951,7 +950,6 @@ public:
 			for(int j=0;j<net->discreteVarNames().size();j++){
 				if(net->discreteVariableObserved(j,i))
 					observed.at(i) = true;
-				//TODO: check continuous variables
 			}
 		}
 		nUnobsEdges = 0;
@@ -1185,7 +1183,6 @@ public:
 			for(int j=0;j<net->discreteVarNames().size();j++){
 				if(net->discreteVariableObserved(j,i))
 					observed.at(i) = true;
-				//TODO: check continuous variables
 			}
 		}
 
