@@ -14,7 +14,7 @@
 #' ernm_net <- new(UndirectedNet,edge_list,5)
 #'
 #' # convert to a network object from the network package
-#' network_net <- as.network(net)
+#' network_net <- as.network(ernm_net)
 #' network_net
 #' @export
 as.network.Rcpp_UndirectedNet <- function(x,...){
@@ -57,7 +57,7 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 #' ernm_net <- new(DirectedNet,edge_list,5)
 #'
 #' # convert to a network object from the network package
-#' network_net <- as.network(net)
+#' network_net <- as.network(ernm_net)
 #' network_net
 #' @export
 as.network.Rcpp_DirectedNet <- function(x,...){

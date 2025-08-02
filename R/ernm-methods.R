@@ -76,6 +76,7 @@ print.ErnmSummary <- function(x, ...){
 #'
 #' @param object an ernm object
 #' @param ... unused
+#' @importFrom stats AIC BIC
 #' @export
 #' @method logLik ernm
 #' @examplesIf FALSE

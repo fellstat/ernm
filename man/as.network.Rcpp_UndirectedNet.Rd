@@ -24,6 +24,6 @@ edge_list <- matrix(c(1,3),ncol=2)
 ernm_net <- new(UndirectedNet,edge_list,5)
 
 # convert to a network object from the network package
-network_net <- as.network(net)
+network_net <- as.network(ernm_net)
 network_net
 }
