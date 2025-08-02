@@ -117,6 +117,9 @@ ernm_gof <- function(models,
       names_to = "statistic",
       values_to = "value"
     )
+  # Preserve original statistic ordering for boxplots
+  stat_order <- unique(long_stats$statistic)
+  long_stats$statistic <- factor(long_stats$statistic, levels = stat_order)
 
   # Calculate means of simulated statistics for plotting
   means <- long_stats %>%
@@ -158,7 +161,6 @@ ernm_gof <- function(models,
       }
     }
   }
-  # TODO: the boxplot should preserve the statistic ordering. doing esp(1:10) yields alphabetic ordering.
   if(style == 'boxplot'){
     observed_data <- long_stats %>%
       filter(.data$model == "observed") %>%
@@ -201,8 +203,6 @@ ernm_gof <- function(models,
     }
     plots <- list(stat_plot)
   }
-
-  # TODO: This should return an "ErnmSummary" object which has a nice s3 print method.
 
   # Return the simulated statistics as a data frame
   return(list(stat = combined_stats,plots = plots))
