@@ -358,7 +358,7 @@ calculateStatistics <- function(formula){
 #' @param ... additional parameters for ernmFit
 #' @export
 #' @return a fitted model
-#' @examplesIf FALSE
+#' @examples
 #'
 #' data(samplike)
 #'
@@ -371,7 +371,7 @@ calculateStatistics <- function(formula){
 #' # present. See Fellows (2012)
 #' fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
 #' summary(fit2)
-#'
+#'@examplesIf requireNamespace("network", quietly = TRUE)
 #' # standard ergms may be fit within ernm
 #' library(network)
 #' data(flo)
@@ -382,7 +382,6 @@ calculateStatistics <- function(formula){
 #' # ALAAMs can be fit by specifying that edges are considered fixed using noDyad
 #' fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
 #' summary(fit3)
-#'
 #'
 #' @references
 #' Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.

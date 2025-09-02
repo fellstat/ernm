@@ -12,11 +12,16 @@ NULL
 #' registerDirectedOffset
 #' registerUndirectedOffset
 #' @usage registerDirectedStatistic
+#' @internal
 NULL
 
 #' Metropolis samplers
+#' 
+#' Metropolis hastings CPP samplers, used in the fitting procedure for ernm models.
+#' 
 #' @name ErnmSamplers
 #' @docType class
+#' @internal
 #' @aliases
 #' Rcpp_DirectedMetropolisHastings-class
 #' Rcpp_UndirectedMetropolisHastings-class
@@ -36,25 +41,49 @@ NULL
 #' DirectedGibbsCdSampler2
 NULL
 
-#' Models
+#' CPP model objects
+#' 
+#' CPP backend for model objects used internally in ernm functions
+#' 
 #' @name ErnmModels
 #' @docType class
+#' @internal
 #' @aliases DirectedModel UndirectedModel
 #' Rcpp_DirectedModel-class Rcpp_UndirectedModel-class
 #' Rcpp_DirectedTaperedModel-class Rcpp_UndirectedTaperedModel-class
 #' DirectedTaperedModel UndirectedTaperedModel
 NULL
 
-#' BinaryNet
+#' BinaryNet: native ERNM network types and methods
+#'
+#' `BinaryNet` covers ERNM's native network objects exposed via Rcpp modules:
+#' `Rcpp_DirectedNet` and `Rcpp_UndirectedNet`. This page documents the classes
+#' and common coercion/plot/subsetting methods.
+#'
+#' @section Classes:
+#' * `Rcpp_DirectedNet` – directed binary network
+#' * `Rcpp_UndirectedNet` – undirected binary network
+#'
+#' @section Coercion:
+#' * `as.network()` – convert to a `network` object (package **network**)
+#' * `as.BinaryNet()` – convert from a `network` (or return-as-is)
+#'
+#' @section Methods:
+#' * `plot()` – plot via `plot.network`
+#'
+#' @seealso [network::network], [network::plot.network]
+#'
 #' @name BinaryNet
 #' @docType class
-#' @aliases DirectedNet UndirectedNet Rcpp_DirectedNet-class Rcpp_UndirectedNet-class
+#' @aliases DirectedNet UndirectedNet
+#' @aliases Rcpp_DirectedNet-class Rcpp_UndirectedNet-class
 NULL
 
 #' Internal symbols
 #' @name call-symbols
 #' @description Internal symbols used to access compiles code.
 #' @docType methods
+#' @internal
 #' @aliases _rcpp_module_boot_ernm _ernm_initToggles _ernm_initStats initLatent
 NULL
 
@@ -62,6 +91,7 @@ NULL
 #' @name runErnmCppTests
 #' @description Runs the internal C++ tests for the ernm package.
 #' @return A logical value indicating whether all tests passed.
+#' @internal
 #' @examples
 #' runErnmCppTests()
 #'

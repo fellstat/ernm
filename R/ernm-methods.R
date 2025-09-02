@@ -62,7 +62,13 @@ summary.ernm <- function(object, ...){
 #' @export
 #' @method print ErnmSummary
 print.ErnmSummary <- function(x, ...){
-  print.data.frame(x, ...)
+  # rename the columns:
+  colnames(x) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  stats::printCoefmat(as.matrix(x),
+                      digits = 3,
+                      signif.stars = TRUE,
+                      P.values = TRUE,
+                      has.Pvalue = TRUE)
   crit <- attr(x,"criteria")
   if(!is.null(crit)){
     cat("\nInformation Criteria:\n")
@@ -101,6 +107,7 @@ logLik.ernm <- function(object, ...){
   n_dyads <- n_verts*(n_verts-1)*(1 - 0.5*(!net$isDirected())) #
   attr(logLik, "df") <- length(theta)
   attr(logLik, "nobs") <- n_verts*(length(object$m$randomVariables())!=0) + n_dyads*object$m$randomGraph()
+  class(logLik) <- "logLik"
   logLik
 }
 
