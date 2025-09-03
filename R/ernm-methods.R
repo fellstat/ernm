@@ -1,10 +1,13 @@
 #' Print ernm object
 #' @param x x
+#' @param rowwise if TRUE, print mean values row-wise, otherwise column-wise
 #' @param ... unused
 #' @return No return value, prints summary
 #' @export
 #' @method print ernm
-print.ernm <- function(x,...){
+print.ernm <- function(x,
+                       rowwise = TRUE,
+                       ...){
   cat("                          ",x$m$name(),"\n")
   cat("Domain:\n Random graph =",x$m$randomGraph())
   rv <- x$m$randomVariables()
@@ -19,8 +22,13 @@ print.ernm <- function(x,...){
     samp <- samp[[1]]
   #cat("Mean values:\n")
   #print(colMeans(samp))
-  r <- rbind(x$theta,colMeans(samp))
-  rownames(r) <- c("Parameters","Mean Values")
+  if(rowwise){
+    r <- rbind(x$theta,colMeans(samp))
+    rownames(r) <- c("Parameters","Mean Values")
+  }else{
+    r <- cbind(x$theta,colMeans(samp))
+    colnames(r) <- c("Parameters","Mean Values")
+  }
   print(r)
   offset <- attr(samp,"offset")
   if(!is.null(offset) && ncol(offset)>0){
@@ -134,12 +142,16 @@ coef.ernm <- function(object,...){
 
 #' Plot an ernm object
 #' @param  x the object
-#' @param ... unused
+#' @param ... passed to plot function
 #' @return No return value, plots the likelihood history
 #' @export
 #' @method plot ernm
 plot.ernm <- function(x,...){
-  plot(x$likelihoodHistory,main="Likelihood convergence",
-       ylab="Change in log-likelihood",xlab="iteration")
+  plot(x$likelihoodHistory,
+       main="Likelihood convergence",
+       ylab="Change in log-likelihood",
+       xlab="iteration",
+       ...
+       )
 }
 

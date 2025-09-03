@@ -4,10 +4,12 @@
 \alias{print.ernm}
 \title{Print ernm object}
 \usage{
-\method{print}{ernm}(x, ...)
+\method{print}{ernm}(x, rowwise = TRUE, ...)
 }
 \arguments{
 \item{x}{x}
+
+\item{rowwise}{if TRUE, print mean values row-wise, otherwise column-wise}
 
 \item{...}{unused}
 }

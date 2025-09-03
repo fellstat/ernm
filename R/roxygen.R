@@ -89,9 +89,16 @@ NULL
 
 #' runErnmCppTests
 #' @name runErnmCppTests
+<<<<<<< HEAD
 #' @description Runs the internal C++ tests for the ernm package.
 #' @return A logical value indicating whether all tests passed.
 #' @internal
+=======
+#' @description Runs the internal C++ tests for the ernm package. Prints the results
+#' of any failed tests
+#' @return NULL
+#' @keywords internal
+>>>>>>> ac857b8 (updates)
 #' @examples
 #' runErnmCppTests()
 #'
