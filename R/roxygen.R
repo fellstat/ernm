@@ -12,7 +12,7 @@ NULL
 #' registerDirectedOffset
 #' registerUndirectedOffset
 #' @usage registerDirectedStatistic
-#' @internal
+#' @keywords internal
 NULL
 
 #' Metropolis samplers
@@ -21,7 +21,7 @@ NULL
 #' 
 #' @name ErnmSamplers
 #' @docType class
-#' @internal
+#' @keywords internal
 #' @aliases
 #' Rcpp_DirectedMetropolisHastings-class
 #' Rcpp_UndirectedMetropolisHastings-class
@@ -47,7 +47,7 @@ NULL
 #' 
 #' @name ErnmModels
 #' @docType class
-#' @internal
+#' @keywords internal
 #' @aliases DirectedModel UndirectedModel
 #' Rcpp_DirectedModel-class Rcpp_UndirectedModel-class
 #' Rcpp_DirectedTaperedModel-class Rcpp_UndirectedTaperedModel-class
@@ -83,22 +83,16 @@ NULL
 #' @name call-symbols
 #' @description Internal symbols used to access compiles code.
 #' @docType methods
-#' @internal
+#' @keywords internal
 #' @aliases _rcpp_module_boot_ernm _ernm_initToggles _ernm_initStats initLatent
 NULL
 
 #' runErnmCppTests
 #' @name runErnmCppTests
-<<<<<<< HEAD
-#' @description Runs the internal C++ tests for the ernm package.
-#' @return A logical value indicating whether all tests passed.
-#' @internal
-=======
 #' @description Runs the internal C++ tests for the ernm package. Prints the results
 #' of any failed tests
 #' @return NULL
 #' @keywords internal
->>>>>>> ac857b8 (updates)
 #' @examples
 #' runErnmCppTests()
 #'
