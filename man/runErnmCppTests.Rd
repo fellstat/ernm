@@ -4,10 +4,11 @@
 \alias{runErnmCppTests}
 \title{runErnmCppTests}
 \value{
-A logical value indicating whether all tests passed.
+No return value, invisibly NULL
 }
 \description{
-Runs the internal C++ tests for the ernm package.
+Runs the internal C++ tests for the ernm package in order. If a particular
+test fails it prints an informative error message and stops without running the subsequent tests.
 }
 \examples{
 runErnmCppTests()
