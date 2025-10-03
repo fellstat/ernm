@@ -11,3 +11,4 @@ of any failed tests
 runErnmCppTests()
 
 }
+\keyword{internal}

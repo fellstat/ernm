@@ -23,3 +23,4 @@
 \description{
 Metropolis hastings CPP samplers, used in the fitting procedure for ernm models.
 }
+\keyword{internal}
