@@ -13,6 +13,6 @@
 \alias{UndirectedTaperedModel}
 \title{CPP model objects}
 \description{
-CPP backend for model objects used internally in ernm functions. `ErnmModels` covers ERNM's native, Rcpp-module model classes exposing their methods to the R interface.
+CPP backend for model objects used internally in ernm functions
 }
 \keyword{internal}
