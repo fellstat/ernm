@@ -137,8 +137,8 @@ void tapered(){
 	//	<<net.discreteVariableValue(0,4)<<" "<<net.discreteVariableValue(0,2)<<"\n";
     mh.initialize();
 
-    Language call3("print",wrap(model.tauParams()));
-    call3.eval();
+ // Language call3("print",wrap(model.tauParams()));
+ // call3.eval();
    // for(int i=0;i<30;i++){
     mh.run(10);
     	//cout <<"acceptance rate: "<< mh.run(200) << "\n";
