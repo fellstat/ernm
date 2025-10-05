@@ -46,15 +46,16 @@ data(dutch_school)
 ```
 
 `dutch_school` is a list of four networks collected in Knecht (2008). There are of students from a single class in the dataset collected at four time points at intervals of three months. The students are aged 11-13. Each node has values for age, ethnicity, religion and sex, as these are likely exogenous to the social process, we regard them as fixed for the purpose of this demonstration of analysis. There are also values 1 − 5 for alcohol use and delinquency from school, which we process as binary variables, with 1 indicating any alcohol or delinquency
-behavior and 0 being none. Drinking alcohol and delinquency are likely endogenous to the social process of friendship within the class, thus, ERNM which treats them as such, is a suitable model. These variables are included as vertex attributes of the networks. We focus on the network at the third time point. 
+behavior and 0 being none. Drinking alcohol and delinquency are likely endogenous to the social process of friendship within the class, thus, ERNM which treats them as such, is a suitable model. These variables are included as vertex attributes of the networks. We focuse on the network at the third time point. 
 
-As ERNM accounts for both stochastic edges and nodal covariates, network statistics can incorporate both. We analyze the third network, the second last network collected in the dataset, with the logic that the endogenous social process has had some time to reach some kind of stable state. We include edges, geometrically weighted edgewise shared partner (GWESP) and geometrically weighted degree (GWDEG) terms, with a fixed decay parameter. This is analogous to an ERGM analysis where the GWESP term accounts for transitivity in the network and the GWDEG term accounts for social popularity effects. The `nodeMatch` terms are the same as in ERGM, we note that these are applicable for both random nodal covariates and fixed nodal covariates.
+As ERNM accounts for both stochastic edges and nodal covariates, network statistics can incorporate both. We analyse the 4th network, the last network collected in the dataset, with the logic that the endogenous social process in this case has hasd longest to reach some kind
+stable state. We include edges, geometrically weighted edgewise shared partner (GWESP) and geometrically weighted degree (GWDEG) terms, with a fixed decay parameter. This is analogous to an ERGM analysis where the GWESP term accounts for transitivity in the network and the GWDEG term accounts for social popularity effects. The nodeMatch terms are the same as in ERGM, we note that these are applicable for both random nodal covariates and fixed nodal covariates.
 
 There are other important control parameters, that are described in Fellows, Clark and Handcock (2025). 
 
-The syntax is very similar to ERGM syntax with some slightly differently names terms for example `nodeMatch` in place of the `ergm` package `nodematch`. Full details can be found in Fellows, Clark and Handcock (2025) and the package documentation. Note that nodal covariates after the `|` symbol are regarded as random. Currently only discrete random variables are supported for nodal covariates.
+The syntax is very similar to ERGM syntax with some slightly differently names terms for example nodeMatch in place of the ergm package nodematch. Full details can be found in Fellows, Clark and Handcock (2025) and the package documentation. Note that nodal covariates after the | symbol are regarded as random. Currently only discrete random variables are supported for nodal covariates.
 
-We can make a quick visualization of the network, where the number of sides of the node is proportional to the level of alcohol use and the color is black if they do not use alcohol and black if they do.
+We can make a quick visualization of the network, where the number of sides of the node is proportional to the level of alchol use and the color is black if they do not use alchol and black if they do.
 
 ```{r}
 gplot(net, gmode="graph",
