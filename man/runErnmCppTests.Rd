@@ -3,14 +3,12 @@
 \name{runErnmCppTests}
 \alias{runErnmCppTests}
 \title{runErnmCppTests}
-\value{
-No return value, invisibly NULL
-}
 \description{
-Runs the internal C++ tests for the ernm package in order. If a particular
-test fails it prints an informative error message and stops without running the subsequent tests.
+Runs the internal C++ tests for the ernm package. Prints the results
+of any failed tests
 }
 \examples{
 runErnmCppTests()
 
 }
+\keyword{internal}

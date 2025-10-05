@@ -12,12 +12,12 @@ The stochastic processes generating complex social networks often involve stocha
 While exponential-family random graph models (ERGMs) have been very successful in modeling social
 networks with exogenous covariates, they are often misspecified for networks where some covariates are stochastic.
 Exponential-family random network models (ERNMs) retain the desirable properties of
-ERGM, but allow the joint modeling of tie variables and covariates.
+ERGM, but allow the joint modeling of tie variables and covariates. For more information about the [`ergm`](https://github.com/statnet/ergm) package see [here](https://github.com/statnet/ergm).
 
-\proglang{ernm} is an open-source R package  which enables ERNM to be fit to real-world network data.  The package implements likelihood-based inference, goodness-of-fit assessment and simulation of ERNM.
-It also implements analogs of some of the many of the extensions that have been developed for ERGM, including tapered models.
+`ernm` is an open-source R package  which enables ERNM to be fit to real-world network data.  The package implements likelihood-based inference, goodness-of-fit assessment and simulation of ERNM.
+It also implements analogs of some of the many of the extensions that have been developed for ERGM, including tapered models. 
 
-The package was developed by [Ian E. Fellows](https://fellstat.org) qith support from Duncan Clark and Mark S. Handcock.
+The package was developed by [Ian E. Fellows](https://fellstat.org) with support from Duncan A. Clark and Mark S. Handcock.
 
 # Installation
 
@@ -27,7 +27,7 @@ The package is available on CRAN and can be installed using
 install.packages("ernm")
 ```
 
-To install the latest development version from github, the best way it to use git to create a local copy and install it as usual from there. If you just want to install it, you can also use:
+To install the latest development version from GitHub, the best way it to use git to create a local copy and install it as usual from there. If you just want to install it, you can also use:
 
 ```{r}
 # If devtools is not installed:
@@ -67,7 +67,7 @@ gplot(net, gmode="graph",
 
 ## The `ernm()` function
 
-The function that performs the overal maximum likelihood fit is called `ernm()`. This may take a few seconds to run.
+The function that performs the overall maximum likelihood fit is called `ernm()`. This may take a few seconds to run.
 
 ```
 set.seed(1)
@@ -178,6 +178,8 @@ See the following papers for more information and examples:
 
 * Fellows, I. E., Clark, D. A. and Handcock, M. S. (2025). *R package ernm: Exponential-family Random
 Network Models*. Manuscript.
+
+* Hunter, D. R., Handcock, M. S., Butts, C. T., Goodreau, S. M., and Morris, M. (2008). ergm: A package to fit, simulate and diagnose exponential-family models for networks. *Journal of Statistical Software, 24*(3), 1–29. [https://doi.org/10.18637/jss.v024.i03](https://doi.org/10.18637/jss.v024.i03)
 
 * Knecht, A. B. (2008). *Friendship selection and friends’ influence: Dynamics of networks and actor attributes in early adolescence* (Doctoral dissertation, University of Utrecht, Utrecht, The Netherlands). 134 pages. [https://dspace.library.uu.nl/handle/1874/25950](https://dspace.library.uu.nl/handle/1874/25950)
 

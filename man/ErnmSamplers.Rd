@@ -21,5 +21,6 @@
 \alias{DirectedGibbsCdSampler2}
 \title{Metropolis samplers}
 \description{
-Metropolis samplers
+Metropolis hastings CPP samplers, used in the fitting procedure for ernm models.
 }
+\keyword{internal}

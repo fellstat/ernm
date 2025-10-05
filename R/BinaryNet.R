@@ -16,6 +16,7 @@
 #' # convert to a network object from the network package
 #' network_net <- as.network(ernm_net)
 #' network_net
+#' @rdname BinaryNet
 #' @export
 as.network.Rcpp_UndirectedNet <- function(x,...){
 	el <- x$edges()
@@ -59,6 +60,7 @@ as.network.Rcpp_UndirectedNet <- function(x,...){
 #' # convert to a network object from the network package
 #' network_net <- as.network(ernm_net)
 #' network_net
+#' @rdname BinaryNet
 #' @export
 as.network.Rcpp_DirectedNet <- function(x,...){
 	el <- x$edges()
@@ -101,7 +103,7 @@ as.network.Rcpp_DirectedNet <- function(x,...){
 #'
 #' # change vertex point size (see plot.network)
 #' plot(ernm_net, vertex.cex=.5)
-#'
+#' @rdname BinaryNet
 #' @export
 plot.Rcpp_DirectedNet <- function(x,...){
 	x <- as.network(x)
@@ -124,7 +126,7 @@ plot.Rcpp_DirectedNet <- function(x,...){
 #'
 #' # change vertex point size (see plot.network)
 #' plot(ernm_net, vertex.cex=.5)
-#'
+#' @rdname BinaryNet
 #' @export
 plot.Rcpp_UndirectedNet <- function(x,...){
 	x <- as.network(x)
@@ -137,6 +139,7 @@ plot.Rcpp_UndirectedNet <- function(x,...){
 #'
 #' @param x the object
 #' @param ... unused
+#' @rdname BinaryNet
 #' @export
 #' @return either an Rcpp_UndirectedNet or Rcpp_DirectedNet object
 #' @examples

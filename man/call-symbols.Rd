@@ -11,3 +11,4 @@
 \description{
 Internal symbols used to access compiles code.
 }
+\keyword{internal}

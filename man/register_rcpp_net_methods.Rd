@@ -12,3 +12,4 @@ no return value
 \description{
 Register setter methods for Rcpp net objeccts
 }
+\keyword{internal}
