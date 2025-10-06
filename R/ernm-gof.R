@@ -19,7 +19,8 @@
 #' @return A list containing goodness-of-fit plots and simulated statistics
 #' @export
 #' @description Goodness of fit plot for ERNM models, particularly suited for comparing models
-#' @examplesIf FALSE
+#' @examples
+#' \dontrun{
 #' data(samplike)
 #' fit_basic <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 #' fit_tri <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + triangles() | group)
@@ -46,6 +47,7 @@
 #'   stats_formula = samplike ~ esp(1:10),
 #'   n_sim = 100
 #' )
+#' }
 #'
 ernm_gof <- function(models,
                      observed_network = NULL,

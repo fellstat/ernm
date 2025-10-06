@@ -93,11 +93,13 @@ print.ErnmSummary <- function(x, ...){
 #' @importFrom stats AIC BIC
 #' @export
 #' @method logLik ernm
-#' @examplesIf FALSE
+#' @examples
+#' \dontrun{
 #' fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 #' logLik(fit)
 #' AIC(fit)
 #' BIC(fit)
+#' }
 #'
 logLik.ernm <- function(object, ...){
   theta <- object$theta
