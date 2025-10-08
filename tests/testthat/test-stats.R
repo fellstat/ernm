@@ -509,6 +509,6 @@ test_that("Stats", {
       deltas <- c(deltas,delta_r - delta_cpp)
     }
     
-    testthat::expect_equal(r_stat_gwesp, r_stat_gwesp)
+    testthat::expect_equal(r_stat_gwesp, cpp_stat_gwesp)
     testthat::expect_equal(sum(deltas)<10**(-6), TRUE)
     
