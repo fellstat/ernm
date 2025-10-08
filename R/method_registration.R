@@ -1,5 +1,6 @@
 #' Register setter methods for Rcpp net objeccts
 #' @name register_rcpp_net_methods
+#' @keywords internal
 #' @return no return value
 register_rcpp_net_methods <- function() {
   if (!methods::isClass("Rcpp_DirectedNet")) return()

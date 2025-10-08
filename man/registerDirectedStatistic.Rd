@@ -15,3 +15,4 @@ no return value
 \description{
 Register statistics
 }
+\keyword{internal}

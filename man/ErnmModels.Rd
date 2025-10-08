@@ -11,7 +11,8 @@
 \alias{Rcpp_UndirectedTaperedModel-class}
 \alias{DirectedTaperedModel}
 \alias{UndirectedTaperedModel}
-\title{Models}
+\title{CPP model objects}
 \description{
-Models
+CPP backend for model objects used internally in ernm functions
 }
+\keyword{internal}

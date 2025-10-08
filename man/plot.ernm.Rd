@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{the object}
 
-\item{...}{unused}
+\item{...}{passed to plot function}
 }
 \value{
 No return value, plots the likelihood history
