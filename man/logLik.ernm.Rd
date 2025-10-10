@@ -15,7 +15,7 @@
 MCMC approximate log-likelihood
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 logLik(fit)
 AIC(fit)

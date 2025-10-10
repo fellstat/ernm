@@ -39,4 +39,4 @@ Language: en-US
 LazyData: true
 LazyLoad: yes
 RcppModules: ernm
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
