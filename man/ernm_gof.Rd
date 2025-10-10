@@ -47,7 +47,7 @@ the observed network. If the observed network is typical of the simulated networ
 it is considered to be well fit.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 data(samplike)
 fit_basic <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 fit_tri <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + triangles() | group)

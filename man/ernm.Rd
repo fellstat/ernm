@@ -59,7 +59,7 @@ summary(fit)
 # present. See Fellows (2012)
 fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
 summary(fit2)
-\dontshow{if (requireNamespace("network", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("network", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 # standard ergms may be fit within ernm
 library(network)
 data(flo)
