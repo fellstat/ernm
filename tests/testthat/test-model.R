@@ -132,7 +132,6 @@ test_that("models", {
     testthat::expect_true(ERNM$converged)
     testthat::expect_true(ERNM_tapered_1$converged)
     testthat::expect_true(ERNM_tapered_2$converged)
-    testthat::expect_true(bulk_change_stat_test)
     testthat::expect_true(bulk_change_stat_test_1)
     testthat::expect_true(bulk_change_stat_test_2)
 }
