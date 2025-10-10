@@ -17,7 +17,7 @@ ERGM, but allow the joint modeling of tie variables and covariates. For more inf
 `ernm` is an open-source R package  which enables ERNM to be fit to real-world network data.  The package implements likelihood-based inference, goodness-of-fit assessment and simulation of ERNM.
 It also implements analogs of some of the many of the extensions that have been developed for ERGM, including tapered models. 
 
-The package was developed by [Ian E. Fellows](https://fellstat.org) with support from Duncan A. Clark and Mark S. Handcock.
+The package was developed by [Ian E. Fellows](https://fellstat.com) with support from Duncan A. Clark and Mark S. Handcock.
 
 # Installation
 
