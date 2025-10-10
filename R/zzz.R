@@ -18,4 +18,3 @@ NULL
     .Call("_ernm_initToggles")
     register_rcpp_net_methods()
 }
-
