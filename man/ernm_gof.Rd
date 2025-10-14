@@ -13,7 +13,8 @@ ernm_gof(
   print = TRUE,
   n_sim = 10000,
   burnin = 10000,
-  interval = 100
+  interval = 100,
+  hist_bins = 30
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ ernm_gof(
 \item{burnin}{the burnin for the MCMC simulation}
 
 \item{interval}{the sampling interval for MCMC simulation}
+
+\item{hist_bins}{number of bins for histogram}
 }
 \value{
 A list containing goodness-of-fit plots and simulated statistics
