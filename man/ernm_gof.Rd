@@ -13,7 +13,8 @@ ernm_gof(
   print = TRUE,
   n_sim = 10000,
   burnin = 10000,
-  interval = 100
+  interval = 100,
+  hist_bins = 30
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ ernm_gof(
 \item{burnin}{the burnin for the MCMC simulation}
 
 \item{interval}{the sampling interval for MCMC simulation}
+
+\item{hist_bins}{number of bins for histogram}
 }
 \value{
 A list containing goodness-of-fit plots and simulated statistics
@@ -47,7 +50,7 @@ the observed network. If the observed network is typical of the simulated networ
 it is considered to be well fit.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontrun{
 data(samplike)
 fit_basic <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 fit_tri <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") + triangles() | group)
@@ -74,5 +77,6 @@ gof <- ernm_gof(
   stats_formula = samplike ~ esp(1:10),
   n_sim = 100
 )
-\dontshow{\}) # examplesIf}
+}
+
 }

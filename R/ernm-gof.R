@@ -13,6 +13,7 @@
 #' @param n_sim the number of simulations to run
 #' @param burnin the burnin for the MCMC simulation
 #' @param interval the sampling interval for MCMC simulation
+#' @param hist_bins number of bins for histogram
 #' @import ggplot2
 #' @import tidyr
 #' @import dplyr
@@ -57,7 +58,9 @@ ernm_gof <- function(models,
                      print = TRUE,
                      n_sim = 10000,
                      burnin = 10000,
-                     interval = 100){
+                     interval = 100,
+                     hist_bins = 30
+                     ){
   # Helper function to simulate networks and calculate statistics
   calculate_gof_stats <- function(model, name) {
     # Simulate networks
@@ -137,11 +140,11 @@ ernm_gof <- function(models,
     plots <- list()
     for (stat_name in unique_stats) {
       stat_plot <- ggplot(long_stats %>% filter(.data$model != "observed", .data$statistic == stat_name), aes(x = .data$value, fill = .data$model)) +
-        geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity') +
+        geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity',bins = hist_bins) +
         geom_vline(
           data = means %>% filter(.data$model != "observed",.data$statistic == stat_name),
           aes(xintercept = .data$value, linetype = "Mean"),
-          color = "black", size = 0.8
+          color = "black", linewidth = 0.8
         ) +
         geom_vline(data = long_stats %>% filter(.data$model == "observed", .data$statistic == stat_name) %>% select(.data$value),
                    aes(xintercept = .data$value, linetype = "observed"),

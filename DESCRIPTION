@@ -1,7 +1,7 @@
 Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
-Version: 1.0.3
+Version: 1.0.4
 Date: 2025-10-06
 Authors@R: c(person(given = "Ian",
                     family = "Fellows",
