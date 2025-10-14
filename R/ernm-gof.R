@@ -137,11 +137,11 @@ ernm_gof <- function(models,
     plots <- list()
     for (stat_name in unique_stats) {
       stat_plot <- ggplot(long_stats %>% filter(.data$model != "observed", .data$statistic == stat_name), aes(x = .data$value, fill = .data$model)) +
-        geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity') +
+        geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity',bins = 30) +
         geom_vline(
           data = means %>% filter(.data$model != "observed",.data$statistic == stat_name),
           aes(xintercept = .data$value, linetype = "Mean"),
-          color = "black", size = 0.8
+          color = "black", linewidth = 0.8
         ) +
         geom_vline(data = long_stats %>% filter(.data$model == "observed", .data$statistic == stat_name) %>% select(.data$value),
                    aes(xintercept = .data$value, linetype = "observed"),

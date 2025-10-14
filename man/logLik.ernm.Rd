@@ -15,10 +15,11 @@
 MCMC approximate log-likelihood
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontrun{
 fit <- ernm(samplike ~ edges() + nodeCount("group") + nodeMatch("group") | group)
 logLik(fit)
 AIC(fit)
 BIC(fit)
-\dontshow{\}) # examplesIf}
+}
+
 }
