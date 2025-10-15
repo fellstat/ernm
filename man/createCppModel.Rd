@@ -30,7 +30,7 @@ a Model object
 Creates a C++ representation of an ERNM model
 }
 \examples{
-
+\dontrun{
 edge_list <- matrix(numeric(),ncol=2)
 net <- new(UndirectedNet,edge_list,5)
 
@@ -42,5 +42,6 @@ rcpp_sampler <- new(UndirectedMetropolisHastings, rcpp_model)
 networks <- rcpp_sampler$generateSample(10,20,30)
 
 sapply(networks, function(net) net$nEdges()) # number of edges in each network
+}
 
 }

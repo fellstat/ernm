@@ -16,10 +16,12 @@ a named vector of statistics
 Calculates all network statistics
 }
 \examples{
+\dontrun{
 data(samplike)
 calculateStatistics(samplike ~ edges() +
  nodeCount("group") +
  nodeMatch("group") +
  homophily("group") +
  triangles())
+}
 }

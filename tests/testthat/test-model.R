@@ -90,19 +90,19 @@ test_that("models", {
     change_stats_2 <- model$computeChangeStats(tails, heads)
     t_4 <- proc.time()[3] - t_4
     
-    r_t <- microbenchmark::microbenchmark( 
-      change_stats_1 <- mapply(tails,heads,FUN = function(tail, head) {
+    r_t <- proc.time()[3]
+    tmp <- replicate(100, mapply(tails,heads,FUN = function(tail, head) {
         old <- model$statistics()
         model$dyadUpdate(tail,head)
         new <- model$statistics()
         model$dyadUpdate(tail,head)
         return(new-old)
-    },SIMPLIFY = F),times = 100)
-    r_t
+    },SIMPLIFY = F))
+    r_t <- proc.time()[3] - r_t
     
-    cpp_t <- microbenchmark::microbenchmark(change_stats_2 <- model$computeChangeStats(tails, heads),
-                                            times = 100)
-    cpp_t
+    cpp_t <- proc.time()[3]
+    tmp <- replicate(100,model$computeChangeStats(tails, heads))
+    cpp_t <- proc.time()[3] - cpp_t
     
     # do it repeadtly:
     tmp <- model$computeChangeStats(rep(tails,each = 5), rep(heads,each =5))
@@ -123,6 +123,7 @@ test_that("models", {
     })
     bulk_change_stat_test_1 <- all(bulk_change_stat_test)
     bulk_change_stat_test_2 <- t_4<t_3
+    bulk_change_stat_test_3 <- cpp_t<r_t
     
     
     

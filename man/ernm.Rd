@@ -47,7 +47,7 @@ nodal covariates may be considered stochastic. Additionally, the function may be
 are random, but the graph is fixed (i.e. ALAAMs )
 }
 \examples{
-
+\dontrun{
 data(samplike)
 
 # fit a tapered model to the samplike dataset where group is considered random
@@ -59,7 +59,9 @@ summary(fit)
 # present. See Fellows (2012)
 fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
 summary(fit2)
+}
 \dontshow{if (requireNamespace("network", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+\dontrun{
 # standard ergms may be fit within ernm
 library(network)
 data(flo)
@@ -70,6 +72,7 @@ summary(fit_flo)
 # ALAAMs can be fit by specifying that edges are considered fixed using noDyad
 fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
 summary(fit3)
+}
 \dontshow{\}) # examplesIf}
 }
 \references{
