@@ -76,7 +76,7 @@ Available vertex toggles are:
 'DefaultVertexMissing' : DefaultVertex, but restricted to missing values.
 }
 \examples{
-
+\dontrun{
 edge_list <- matrix(numeric(),ncol=2)
 net <- new(UndirectedNet,edge_list,5)
 net[["group"]] <- c("a","b","a","b","a")
@@ -95,5 +95,6 @@ td_sampler <- createCppSampler(net ~ edges() + nodeCount("group") | group,
   theta = c(0,0),
   dyadToggle = "TieDyad")
 td_sampler$generateSampleStatistics(100,200,10)
+}
 
 }

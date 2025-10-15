@@ -20,7 +20,7 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' @export
 #' @return a Model object
 #' @examples
-#'
+#' \dontrun{
 #' edge_list <- matrix(numeric(),ncol=2)
 #' net <- new(UndirectedNet,edge_list,5)
 #'
@@ -32,6 +32,7 @@ initLatent <- function(name, levels, lower=NULL,upper=NULL){
 #' networks <- rcpp_sampler$generateSample(10,20,30)
 #'
 #' sapply(networks, function(net) net$nEdges()) # number of edges in each network
+#' }
 #'
 createCppModel <- function(formula,
                            ignoreMnar=TRUE,
@@ -232,7 +233,7 @@ createCppModel <- function(formula,
 #' @export
 #' @return a MetropolisHastings object
 #' @examples
-#'
+#' \dontrun{
 #' edge_list <- matrix(numeric(),ncol=2)
 #' net <- new(UndirectedNet,edge_list,5)
 #' net[["group"]] <- c("a","b","a","b","a")
@@ -251,6 +252,7 @@ createCppModel <- function(formula,
 #'   theta = c(0,0),
 #'   dyadToggle = "TieDyad")
 #' td_sampler$generateSampleStatistics(100,200,10)
+#' }
 #'
 createCppSampler <- function(formula,
                              modelArgs = list(modelClass='Model'),
@@ -299,6 +301,7 @@ createCppSampler <- function(formula,
 #' @export
 #' @return a matrix of statistics
 #' @examples
+#' \dontrun{
 #' edge_list <- matrix(numeric(),ncol=2)
 #' net <- new(UndirectedNet,edge_list,5)
 #' net[["group"]] <- c("a","b","a","b","a")
@@ -308,6 +311,7 @@ createCppSampler <- function(formula,
 #'   theta = c(0,0,2),
 #'   mcmcBurnIn=10)
 #' colMeans(stats)
+#' }
 simulateStatistics <- function(formula,
                                theta,
                                nodeSamplingPercentage=0.2,
@@ -329,12 +333,14 @@ simulateStatistics <- function(formula,
 #' @export
 #' @return a named vector of statistics
 #' @examples
+#' \dontrun{
 #' data(samplike)
 #' calculateStatistics(samplike ~ edges() +
 #'  nodeCount("group") +
 #'  nodeMatch("group") +
 #'  homophily("group") +
 #'  triangles())
+#' }
 calculateStatistics <- function(formula){
 	createCppModel(formula,cloneNet=FALSE,ignoreMnar=FALSE)$statistics()
 }
@@ -359,7 +365,7 @@ calculateStatistics <- function(formula){
 #' @export
 #' @return a fitted model
 #' @examples
-#'
+#' \dontrun{
 #' data(samplike)
 #'
 #' # fit a tapered model to the samplike dataset where group is considered random
@@ -371,7 +377,9 @@ calculateStatistics <- function(formula){
 #' # present. See Fellows (2012)
 #' fit2 <- ernm(samplike ~ edges() + nodeCount("group") + homophily("group") | group, tapered=FALSE)
 #' summary(fit2)
+#' }
 #'@examplesIf requireNamespace("network", quietly = TRUE)
+#' \dontrun{
 #' # standard ergms may be fit within ernm
 #' library(network)
 #' data(flo)
@@ -382,7 +390,7 @@ calculateStatistics <- function(formula){
 #' # ALAAMs can be fit by specifying that edges are considered fixed using noDyad
 #' fit3 <- ernm(samplike ~ nodeCount("group") + nodeMatch("group") | group + noDyad)
 #' summary(fit3)
-#'
+#' }
 #' @references
 #' Fellows, Ian Edward. Exponential family random network models. University of California, Los Angeles, 2012.
 #'

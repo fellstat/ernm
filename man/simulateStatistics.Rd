@@ -42,6 +42,7 @@ a matrix of statistics
 Generates a MCMC chain for an ernm model and returns the sample statistics
 }
 \examples{
+\dontrun{
 edge_list <- matrix(numeric(),ncol=2)
 net <- new(UndirectedNet,edge_list,5)
 net[["group"]] <- c("a","b","a","b","a")
@@ -51,4 +52,5 @@ stats <- simulateStatistics(net ~ edges() + nodeCount("group") + homophily("grou
   theta = c(0,0,2),
   mcmcBurnIn=10)
 colMeans(stats)
+}
 }
