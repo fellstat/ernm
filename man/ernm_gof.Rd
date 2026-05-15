@@ -14,7 +14,8 @@ ernm_gof(
   n_sim = 10000,
   burnin = 10000,
   interval = 100,
-  hist_bins = 30
+  hist_bins = NULL,
+  title = ""
 )
 }
 \arguments{
@@ -36,7 +37,9 @@ ernm_gof(
 
 \item{interval}{the sampling interval for MCMC simulation}
 
-\item{hist_bins}{number of bins for histogram}
+\item{hist_bins}{number of bins for histogram; if \code{NULL}, integer statistics use unit-width bins}
+
+\item{title}{optional plot title}
 }
 \value{
 A list containing goodness-of-fit plots and simulated statistics

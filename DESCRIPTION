@@ -1,8 +1,8 @@
 Type: Package
 Package: ernm
 Title: Exponential-Family Random Network Models
-Version: 1.0.4
-Date: 2025-10-06
+Version: 1.0.5
+Date: 2026-05-15
 Authors@R: c(person(given = "Ian",
                     family = "Fellows",
                     role = c("aut")),
@@ -14,7 +14,6 @@ Description: Estimation of fully and partially observed Exponential-Family Rando
 License: LGPL-2.1
 Depends:
     R (>= 3.5.0),
-    BH,
     methods,
     network,
     Rcpp

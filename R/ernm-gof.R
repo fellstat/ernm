@@ -13,7 +13,8 @@
 #' @param n_sim the number of simulations to run
 #' @param burnin the burnin for the MCMC simulation
 #' @param interval the sampling interval for MCMC simulation
-#' @param hist_bins number of bins for histogram
+#' @param hist_bins number of bins for histogram; if \code{NULL}, integer statistics use unit-width bins
+#' @param title optional plot title
 #' @import ggplot2
 #' @import tidyr
 #' @import dplyr
@@ -59,7 +60,8 @@ ernm_gof <- function(models,
                      n_sim = 10000,
                      burnin = 10000,
                      interval = 100,
-                     hist_bins = 30
+                     hist_bins = NULL,
+                     title = ""
                      ){
   # Helper function to simulate networks and calculate statistics
   calculate_gof_stats <- function(model, name) {
@@ -138,9 +140,31 @@ ernm_gof <- function(models,
   # Loop over each statistic and create a plot
   if(style == 'histogram'){
     plots <- list()
+    histogram_scales <- if (scales %in% c("free", "free_x")) "free_y" else scales
     for (stat_name in unique_stats) {
-      stat_plot <- ggplot(long_stats %>% filter(.data$model != "observed", .data$statistic == stat_name), aes(x = .data$value, fill = .data$model)) +
-        geom_histogram(aes(y = after_stat(density)),alpha = 0.6, position = 'identity',bins = hist_bins) +
+      plot_data <- long_stats %>% filter(.data$model != "observed", .data$statistic == stat_name)
+      histogram_data <- plot_data %>%
+        group_by(.data$model) %>%
+        filter(length(unique(.data$value[is.finite(.data$value)])) > 1) %>%
+        ungroup()
+      finite_values <- histogram_data$value[is.finite(histogram_data$value)]
+      integer_stat <- length(finite_values) > 0 && all(abs(finite_values - round(finite_values)) < .Machine$double.eps^0.5)
+      histogram_layer <- if (nrow(histogram_data) == 0) {
+        NULL
+      } else if (is.null(hist_bins) && integer_stat) {
+        geom_histogram(data = histogram_data, aes(y = after_stat(density)), alpha = 0.6, position = 'identity', binwidth = 1, boundary = -0.5)
+      } else {
+        geom_histogram(data = histogram_data, aes(y = after_stat(density)), alpha = 0.6, position = 'identity', bins = if (is.null(hist_bins)) 30 else hist_bins)
+      }
+      density_layer <- if (nrow(histogram_data) == 0) {
+        NULL
+      } else {
+        geom_density(data = histogram_data, aes(color = .data$model), fill = NA, linewidth = 0.8, show.legend = FALSE)
+      }
+
+      stat_plot <- ggplot(plot_data, aes(x = .data$value, fill = .data$model)) +
+        histogram_layer +
+        density_layer +
         geom_vline(
           data = means %>% filter(.data$model != "observed",.data$statistic == stat_name),
           aes(xintercept = .data$value, linetype = "Mean"),
@@ -149,13 +173,14 @@ ernm_gof <- function(models,
         geom_vline(data = long_stats %>% filter(.data$model == "observed", .data$statistic == stat_name) %>% select(.data$value),
                    aes(xintercept = .data$value, linetype = "observed"),
                    color = "red", linewidth = 0.8) +
-        facet_wrap(~.data$model,nrow =length(models), scales = scales) +
+        facet_wrap(~.data$model,nrow =length(models), scales = histogram_scales) +
         labs(
-          title = paste("Goodness-of-Fit: Histogram of", stat_name),
+          title = title,
           x = "Value",
-          y = "Frequency",
+          y = "Density",
           fill = "Model"
-        )
+        ) + 
+        theme_minimal()
 
       # Save the plot to the list
       plots[[stat_name]] <- stat_plot
@@ -197,10 +222,11 @@ ernm_gof <- function(models,
       coord_cartesian(ylim = c(0, quantile(long_stats$value,0.98))) +
       # Labels and theme
       labs(
-        title = "Goodness of fit boxplot",
+        title = title,
         x = "Statistic",
         y = "Value"
-      )
+      ) + 
+      theme_minimal()
 
     # Print the plot if desired
     if(print){

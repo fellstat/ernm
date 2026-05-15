@@ -2,7 +2,6 @@
 #' @exportPattern ^[^\.]
 #' @import methods
 #' @import Rcpp
-#' @import BH
 #' @import trust
 #' @import moments
 NULL
